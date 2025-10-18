@@ -28,18 +28,18 @@ export class BrandStoriesResource {
   constructor(private client: Scope3Client) {}
 
   async list(request: BrandStoryListRequest): Promise<ToolResponse> {
-    return this.client['post']('/brand-story-list', request);
+    return this.client['callTool']('brand_story_list', request);
   }
 
   async create(request: BrandStoryCreateRequest): Promise<ToolResponse> {
-    return this.client['post']('/brand-story-create', request);
+    return this.client['callTool']('brand_story_create', request);
   }
 
   async update(request: BrandStoryUpdateRequest): Promise<ToolResponse> {
-    return this.client['post']('/brand-story-update', request);
+    return this.client['callTool']('brand_story_update', request);
   }
 
   async delete(request: BrandStoryDeleteRequest): Promise<ToolResponse> {
-    return this.client['post']('/brand-story-delete', request);
+    return this.client['callTool']('brand_story_delete', request);
   }
 }

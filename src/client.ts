@@ -1,25 +1,37 @@
-import axios, { AxiosInstance, AxiosError } from 'axios';
-import { ClientConfig, Environment, ErrorResponse } from './types';
+import { Client } from '@modelcontextprotocol/sdk/client/index.js';
+import { SSEClientTransport } from '@modelcontextprotocol/sdk/client/sse.js';
+import { ClientConfig, Environment } from './types';
 
 export class Scope3Client {
-  private readonly client: AxiosInstance;
-  private readonly apiKey: string;
+  protected readonly mcpClient: Client;
+  protected readonly apiKey: string;
+  private transport?: SSEClientTransport;
+  private connected = false;
 
   constructor(config: ClientConfig) {
     this.apiKey = config.apiKey;
 
     const baseURL = config.baseUrl || this.getDefaultBaseUrl('production');
 
-    this.client = axios.create({
-      baseURL,
-      timeout: config.timeout || 30000,
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${this.apiKey}`,
+    this.mcpClient = new Client(
+      {
+        name: '@scope3/agentic-client',
+        version: '0.1.0',
+      },
+      {
+        capabilities: {
+          tools: {},
+        },
+      }
+    );
+
+    this.transport = new SSEClientTransport(new URL(`${baseURL}/mcp`), {
+      requestInit: {
+        headers: {
+          Authorization: `Bearer ${this.apiKey}`,
+        },
       },
     });
-
-    this.setupInterceptors();
   }
 
   private getDefaultBaseUrl(env: Environment): string {
@@ -28,33 +40,49 @@ export class Scope3Client {
       : 'https://api.agentic.staging.scope3.com';
   }
 
-  private setupInterceptors(): void {
-    this.client.interceptors.response.use(
-      (response) => response,
-      (error: AxiosError<ErrorResponse>) => {
-        if (error.response) {
-          const errorData = error.response.data;
-          throw new Error(
-            errorData?.error || `API Error: ${error.response.status} ${error.response.statusText}`
-          );
-        } else if (error.request) {
-          throw new Error('No response received from API');
-        } else {
-          throw new Error(`Request setup error: ${error.message}`);
-        }
-      }
-    );
+  async connect(): Promise<void> {
+    if (this.connected || !this.transport) {
+      return;
+    }
+
+    await this.mcpClient.connect(this.transport);
+    this.connected = true;
   }
 
-  protected async post<TRequest, TResponse>(
-    endpoint: string,
-    data: TRequest
+  async disconnect(): Promise<void> {
+    if (!this.connected) {
+      return;
+    }
+
+    await this.mcpClient.close();
+    this.connected = false;
+  }
+
+  protected async callTool<TRequest, TResponse>(
+    toolName: string,
+    args: TRequest
   ): Promise<TResponse> {
-    const response = await this.client.post<TResponse>(endpoint, data);
-    return response.data;
+    if (!this.connected) {
+      await this.connect();
+    }
+
+    const result = await this.mcpClient.callTool({
+      name: toolName,
+      arguments: args as Record<string, unknown>,
+    });
+
+    // MCP tools return content array, extract the JSON from text content
+    if (result.content && Array.isArray(result.content) && result.content.length > 0) {
+      const content = result.content[0];
+      if (content.type === 'text') {
+        return JSON.parse(content.text) as TResponse;
+      }
+    }
+
+    throw new Error('Unexpected tool response format');
   }
 
-  protected getClient(): AxiosInstance {
-    return this.client;
+  protected getClient(): Client {
+    return this.mcpClient;
   }
 }

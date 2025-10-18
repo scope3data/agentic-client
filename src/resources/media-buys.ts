@@ -55,26 +55,26 @@ export class MediaBuysResource {
   constructor(private client: Scope3Client) {}
 
   async list(request: MediaBuyListRequest = {}): Promise<ToolResponse> {
-    return this.client['post']('/media-buy-list', request);
+    return this.client['callTool']('media_buy_list', request);
   }
 
   async create(request: MediaBuyCreateRequest): Promise<ToolResponse> {
-    return this.client['post']('/media-buy-create', request);
+    return this.client['callTool']('media_buy_create', request);
   }
 
   async get(request: MediaBuyGetRequest): Promise<ToolResponse> {
-    return this.client['post']('/media-buy-get', request);
+    return this.client['callTool']('media_buy_get', request);
   }
 
   async update(request: MediaBuyUpdateRequest): Promise<ToolResponse> {
-    return this.client['post']('/media-buy-update', request);
+    return this.client['callTool']('media_buy_update', request);
   }
 
   async delete(request: MediaBuyDeleteRequest): Promise<ToolResponse> {
-    return this.client['post']('/media-buy-delete', request);
+    return this.client['callTool']('media_buy_delete', request);
   }
 
   async execute(request: MediaBuyExecuteRequest): Promise<ToolResponse> {
-    return this.client['post']('/media-buy-execute', request);
+    return this.client['callTool']('media_buy_execute', request);
   }
 }

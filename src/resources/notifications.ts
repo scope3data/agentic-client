@@ -18,18 +18,18 @@ export class NotificationsResource {
   constructor(private client: Scope3Client) {}
 
   async list(request: NotificationsListRequest = {}): Promise<ToolResponse> {
-    return this.client['post']('/notifications-list', request);
+    return this.client['callTool']('notifications_list', request);
   }
 
   async markRead(request: NotificationMarkReadRequest): Promise<ToolResponse> {
-    return this.client['post']('/notifications-mark-read', request);
+    return this.client['callTool']('notifications_mark_read', request);
   }
 
   async markAcknowledged(request: NotificationMarkAcknowledgedRequest): Promise<ToolResponse> {
-    return this.client['post']('/notifications-mark-acknowledged', request);
+    return this.client['callTool']('notifications_mark_acknowledged', request);
   }
 
   async markAllRead(): Promise<ToolResponse> {
-    return this.client['post']('/notifications-mark-all-read', {});
+    return this.client['callTool']('notifications_mark_all_read', {});
   }
 }

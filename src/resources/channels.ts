@@ -5,6 +5,6 @@ export class ChannelsResource {
   constructor(private client: Scope3Client) {}
 
   async list(): Promise<ToolResponse> {
-    return this.client['post']('/channel-list', {});
+    return this.client['callTool']('channel_list', {});
   }
 }

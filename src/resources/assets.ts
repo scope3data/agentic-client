@@ -20,10 +20,10 @@ export class AssetsResource {
   constructor(private client: Scope3Client) {}
 
   async upload(request: AssetUploadRequest): Promise<ToolResponse> {
-    return this.client['post']('/asset-upload', request);
+    return this.client['callTool']('asset_upload', request);
   }
 
   async list(request: AssetListRequest = {}): Promise<ToolResponse> {
-    return this.client['post']('/asset-list', request);
+    return this.client['callTool']('asset_list', request);
   }
 }

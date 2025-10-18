@@ -32,14 +32,14 @@ export class BrandStandardsResource {
   constructor(private client: Scope3Client) {}
 
   async list(request: BrandStandardsListRequest = {}): Promise<ToolResponse> {
-    return this.client['post']('/brand-standards-list', request);
+    return this.client['callTool']('brand_standards_list', request);
   }
 
   async create(request: BrandStandardsCreateRequest): Promise<ToolResponse> {
-    return this.client['post']('/brand-standards-create', request);
+    return this.client['callTool']('brand_standards_create', request);
   }
 
   async delete(request: BrandStandardsDeleteRequest): Promise<ToolResponse> {
-    return this.client['post']('/brand-standards-delete', request);
+    return this.client['callTool']('brand_standards_delete', request);
   }
 }

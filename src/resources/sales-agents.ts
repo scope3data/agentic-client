@@ -55,38 +55,38 @@ export class SalesAgentsResource {
   constructor(private client: Scope3Client) {}
 
   async list(): Promise<ToolResponse> {
-    return this.client['post']('/sales-agent-list', {});
+    return this.client['callTool']('sales_agent_list', {});
   }
 
   async get(request: SalesAgentGetRequest): Promise<ToolResponse> {
-    return this.client['post']('/sales-agent-get', request);
+    return this.client['callTool']('sales_agent_get', request);
   }
 
   async register(request: SalesAgentRegisterRequest): Promise<ToolResponse> {
-    return this.client['post']('/sales-agent-register', request);
+    return this.client['callTool']('sales_agent_register', request);
   }
 
   async update(request: SalesAgentUpdateRequest): Promise<ToolResponse> {
-    return this.client['post']('/sales-agent-update', request);
+    return this.client['callTool']('sales_agent_update', request);
   }
 
   async unregister(request: SalesAgentUnregisterRequest): Promise<ToolResponse> {
-    return this.client['post']('/sales-agent-unregister', request);
+    return this.client['callTool']('sales_agent_unregister', request);
   }
 
   async listAccounts(request: SalesAgentAccountListRequest): Promise<ToolResponse> {
-    return this.client['post']('/sales-agent-account-list', request);
+    return this.client['callTool']('sales_agent_account_list', request);
   }
 
   async registerAccount(request: SalesAgentAccountRegisterRequest): Promise<ToolResponse> {
-    return this.client['post']('/sales-agent-account-register', request);
+    return this.client['callTool']('sales_agent_account_register', request);
   }
 
   async updateAccount(request: SalesAgentAccountUpdateRequest): Promise<ToolResponse> {
-    return this.client['post']('/sales-agent-account-update', request);
+    return this.client['callTool']('sales_agent_account_update', request);
   }
 
   async unregisterAccount(request: SalesAgentAccountUnregisterRequest): Promise<ToolResponse> {
-    return this.client['post']('/sales-agent-account-unregister', request);
+    return this.client['callTool']('sales_agent_account_unregister', request);
   }
 }

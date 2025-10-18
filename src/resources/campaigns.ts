@@ -75,30 +75,30 @@ export class CampaignsResource {
   constructor(private client: Scope3Client) {}
 
   async list(request: CampaignListRequest = {}): Promise<ToolResponse> {
-    return this.client['post']('/campaign-list', request);
+    return this.client['callTool']('campaign_list', request);
   }
 
   async create(request: CampaignCreateRequest): Promise<ToolResponse> {
-    return this.client['post']('/campaign-create', request);
+    return this.client['callTool']('campaign_create', request);
   }
 
   async update(request: CampaignUpdateRequest): Promise<ToolResponse> {
-    return this.client['post']('/campaign-update', request);
+    return this.client['callTool']('campaign_update', request);
   }
 
   async delete(request: CampaignDeleteRequest): Promise<ToolResponse> {
-    return this.client['post']('/campaign-delete', request);
+    return this.client['callTool']('campaign_delete', request);
   }
 
   async getSummary(request: CampaignGetSummaryRequest): Promise<ToolResponse> {
-    return this.client['post']('/campaign-get-summary', request);
+    return this.client['callTool']('campaign_get_summary', request);
   }
 
   async listTactics(request: CampaignListTacticsRequest): Promise<ToolResponse> {
-    return this.client['post']('/campaign-list-tactics', request);
+    return this.client['callTool']('campaign_list_tactics', request);
   }
 
   async validateBrief(request: CampaignValidateBriefRequest): Promise<ToolResponse> {
-    return this.client['post']('/campaign-validate-brief', request);
+    return this.client['callTool']('campaign_validate_brief', request);
   }
 }

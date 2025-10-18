@@ -17,14 +17,14 @@ export class ProductsResource {
   constructor(private client: Scope3Client) {}
 
   async list(request: MediaProductListRequest = {}): Promise<ToolResponse> {
-    return this.client['post']('/media-product-list', request);
+    return this.client['callTool']('media_product_list', request);
   }
 
   async discover(request: MediaProductDiscoverRequest = {}): Promise<ToolResponse> {
-    return this.client['post']('/media-product-discover', request);
+    return this.client['callTool']('media_product_discover', request);
   }
 
   async sync(request: MediaProductSyncRequest): Promise<ToolResponse> {
-    return this.client['post']('/media-product-sync', request);
+    return this.client['callTool']('media_product_sync', request);
   }
 }

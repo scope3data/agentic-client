@@ -50,30 +50,30 @@ export class CreativesResource {
   constructor(private client: Scope3Client) {}
 
   async list(request: CreativeListRequest = {}): Promise<ToolResponse> {
-    return this.client['post']('/creative-list', request);
+    return this.client['callTool']('creative_list', request);
   }
 
   async create(request: CreativeCreateRequest): Promise<ToolResponse> {
-    return this.client['post']('/creative-create', request);
+    return this.client['callTool']('creative_create', request);
   }
 
   async get(request: CreativeGetRequest): Promise<ToolResponse> {
-    return this.client['post']('/creative-get', request);
+    return this.client['callTool']('creative_get', request);
   }
 
   async update(request: CreativeUpdateRequest): Promise<ToolResponse> {
-    return this.client['post']('/creative-update', request);
+    return this.client['callTool']('creative_update', request);
   }
 
   async delete(request: CreativeDeleteRequest): Promise<ToolResponse> {
-    return this.client['post']('/creative-delete', request);
+    return this.client['callTool']('creative_delete', request);
   }
 
   async assign(request: CreativeAssignRequest): Promise<ToolResponse> {
-    return this.client['post']('/creative-assign', request);
+    return this.client['callTool']('creative_assign', request);
   }
 
   async syncSalesAgents(request: CreativeSyncSalesAgentsRequest): Promise<ToolResponse> {
-    return this.client['post']('/creative-sync-sales-agents', request);
+    return this.client['callTool']('creative_sync_sales_agents', request);
   }
 }

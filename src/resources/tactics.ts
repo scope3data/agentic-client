@@ -53,30 +53,30 @@ export class TacticsResource {
   constructor(private client: Scope3Client) {}
 
   async list(request: TacticListRequest = {}): Promise<ToolResponse> {
-    return this.client['post']('/tactic-list', request);
+    return this.client['callTool']('tactic_list', request);
   }
 
   async create(request: TacticCreateRequest): Promise<ToolResponse> {
-    return this.client['post']('/tactic-create', request);
+    return this.client['callTool']('tactic_create', request);
   }
 
   async get(request: TacticGetRequest): Promise<ToolResponse> {
-    return this.client['post']('/tactic-get', request);
+    return this.client['callTool']('tactic_get', request);
   }
 
   async update(request: TacticUpdateRequest): Promise<ToolResponse> {
-    return this.client['post']('/tactic-update', request);
+    return this.client['callTool']('tactic_update', request);
   }
 
   async delete(request: TacticDeleteRequest): Promise<ToolResponse> {
-    return this.client['post']('/tactic-delete', request);
+    return this.client['callTool']('tactic_delete', request);
   }
 
   async linkCampaign(request: TacticLinkCampaignRequest): Promise<ToolResponse> {
-    return this.client['post']('/tactic-link-campaign', request);
+    return this.client['callTool']('tactic_link_campaign', request);
   }
 
   async unlinkCampaign(request: TacticUnlinkCampaignRequest): Promise<ToolResponse> {
-    return this.client['post']('/tactic-unlink-campaign', request);
+    return this.client['callTool']('tactic_unlink_campaign', request);
   }
 }
