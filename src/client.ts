@@ -1,11 +1,11 @@
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
-import { SSEClientTransport } from '@modelcontextprotocol/sdk/client/sse.js';
+import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 import { ClientConfig, Environment } from './types';
 
 export class Scope3Client {
   protected readonly mcpClient: Client;
   protected readonly apiKey: string;
-  private transport?: SSEClientTransport;
+  private transport?: StreamableHTTPClientTransport;
   private connected = false;
 
   constructor(config: ClientConfig) {
@@ -25,7 +25,7 @@ export class Scope3Client {
       }
     );
 
-    this.transport = new SSEClientTransport(new URL(`${baseURL}/mcp`), {
+    this.transport = new StreamableHTTPClientTransport(new URL(`${baseURL}/mcp`), {
       requestInit: {
         headers: {
           Authorization: `Bearer ${this.apiKey}`,

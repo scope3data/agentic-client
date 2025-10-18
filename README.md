@@ -7,12 +7,12 @@ TypeScript client for the Scope3 Agentic API with AdCP webhook support.
 - 🚀 Full TypeScript support with generated types from OpenAPI schema
 - 📦 Complete API coverage for all Scope3 MCP tools
 - 🔐 Bearer token authentication
-- 🔌 Official MCP SDK (`@modelcontextprotocol/sdk`) with SSE transport
+- 🔌 Official MCP SDK (`@modelcontextprotocol/sdk`) with HTTP streaming transport
 - 🪝 Optional webhook server for AdCP events
 - ✨ Clean, intuitive API design
 - 🧪 Comprehensive test coverage
 
-**Architecture:** This client uses the official `@modelcontextprotocol/sdk` to connect to the Scope3 MCP server at `https://api.agentic.scope3.com/mcp` via Server-Sent Events (SSE) transport. All API operations are exposed as MCP tool calls with proper request/response handling.
+**Architecture:** This client uses the official `@modelcontextprotocol/sdk` to connect to the Scope3 MCP server at `https://api.agentic.scope3.com/mcp` via Streamable HTTP transport. This uses HTTP POST for sending messages and HTTP GET with Server-Sent Events for receiving messages, providing reliable bidirectional communication with automatic reconnection support.
 
 ## Installation
 
