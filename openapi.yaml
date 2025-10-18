@@ -1,0 +1,2402 @@
+openapi: 3.0.0
+info:
+  title: Jackson Agentic API
+  version: 1.0.0
+  description: |
+    Comprehensive API for the Jackson Agentic Advertising Platform.
+    This API provides tools for managing brand agents, campaigns, creatives, tactics,
+    media buys, and more through natural language interfaces and structured endpoints.
+
+servers:
+  - url: https://api.agentic.scope3.com
+    description: Production server
+  - url: https://api.agentic.staging.scope3.com
+    description: Staging server
+
+security:
+  - bearerAuth: []
+
+tags:
+  - name: Assets
+    description: Upload and manage creative assets
+  - name: Brand Agents
+    description: Manage brand agent (advertiser) accounts
+  - name: Brand Standards
+    description: Manage brand safety standards and rules
+  - name: Brand Stories
+    description: AI-powered audience definitions
+  - name: Campaigns
+    description: Campaign creation and management
+  - name: Channels
+    description: Advertising channel management
+  - name: Creatives
+    description: Creative asset management
+  - name: Sales Agents
+    description: Publisher/sales agent registration
+  - name: Tactics
+    description: Media buying tactics
+  - name: Media Buys
+    description: Media buy execution and management
+  - name: Notifications
+    description: System notifications
+  - name: Products
+    description: Media product management
+
+paths:
+  /asset-upload:
+    post:
+      tags: [Assets]
+      summary: Upload creative assets
+      operationId: asset_upload
+      description: Upload creative assets (images, videos, audio) to Google Cloud Storage. Accepts base64-encoded file data and returns signed URLs (valid for 1 hour).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [brandAgentId, assets]
+              properties:
+                brandAgentId:
+                  type: string
+                  description: Brand agent ID for file organization
+                assets:
+                  type: array
+                  description: Array of assets to upload
+                  items:
+                    type: object
+                    required: [name, contentType, data, assetType]
+                    properties:
+                      name:
+                        type: string
+                        description: Original filename
+                      contentType:
+                        type: string
+                        description: MIME type (e.g., image/png, video/mp4)
+                      data:
+                        type: string
+                        format: byte
+                        description: Base64-encoded file data
+                      assetType:
+                        type: string
+                        enum: [image, video, audio, logo, font]
+                        description: Type of asset
+                      tags:
+                        type: array
+                        items:
+                          type: string
+                        description: Optional tags for organization
+      responses:
+        '200':
+          $ref: '#/components/responses/ToolResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /asset-list:
+    post:
+      tags: [Assets]
+      summary: List creative assets
+      operationId: asset_list
+      description: List creative assets stored in Google Cloud Storage. Filter by customer and/or brand agent.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                brandAgentId:
+                  type: string
+                  description: Optional brand agent ID to filter assets
+      responses:
+        '200':
+          $ref: '#/components/responses/ToolResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /brand-agent-list:
+    post:
+      tags: [Brand Agents]
+      summary: List brand agents
+      operationId: brand_agent_list
+      description: List all brand agents (advertiser accounts) for the authenticated customer. Authentication is automatic - no parameters required.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: {}
+      responses:
+        '200':
+          $ref: '#/components/responses/ToolResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /brand-agent-create:
+    post:
+      tags: [Brand Agents]
+      summary: Create brand agent
+      operationId: brand_agent_create
+      description: Create a new brand agent (advertiser account). This creates the top-level container that will own campaigns, creatives, audiences, standards, and measurement sources.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name:
+                  type: string
+                  description: Name of the brand agent (advertiser account)
+                description:
+                  type: string
+                  description: Optional description of the brand agent
+                nickname:
+                  type: string
+                  description: Friendly name for easy identification (e.g., 'Nike' for 'Nike c/o Kinesso')
+                externalId:
+                  type: string
+                  description: Your internal ID for this brand agent (e.g., client code or account ID)
+                advertiserDomains:
+                  type: array
+                  items:
+                    type: string
+                  description: Domains where users will be sent from all campaigns/creatives
+      responses:
+        '200':
+          $ref: '#/components/responses/ToolResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /brand-agent-get:
+    post:
+      tags: [Brand Agents]
+      summary: Get brand agent
+      operationId: brand_agent_get
+      description: Get detailed information about a specific brand agent (advertiser account) by ID.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [brandAgentId]
+              properties:
+                brandAgentId:
+                  type: string
+                  description: ID of the brand agent to retrieve
+      responses:
+        '200':
+          $ref: '#/components/responses/ToolResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /brand-agent-update:
+    post:
+      tags: [Brand Agents]
+      summary: Update brand agent
+      operationId: brand_agent_update
+      description: Update the name or description of an existing brand agent (advertiser account). This only updates metadata - campaigns, creatives, and other resources remain unchanged.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [brandAgentId]
+              properties:
+                brandAgentId:
+                  type: string
+                  description: ID of the brand agent to update
+                name:
+                  type: string
+                  description: New name for the brand agent
+                description:
+                  type: string
+                  description: New description for the brand agent
+                tacticSeedDataCoop:
+                  type: boolean
+                  description: Enable/disable tactic seed data cooperative participation
+      responses:
+        '200':
+          $ref: '#/components/responses/ToolResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /brand-agent-delete:
+    post:
+      tags: [Brand Agents]
+      summary: Delete brand agent
+      operationId: brand_agent_delete
+      description: ⚠️ DANGER - Permanently delete a brand agent (advertiser account) and ALL associated data including campaigns, creatives, audiences, standards, and measurement sources. This action cannot be undone.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [brandAgentId]
+              properties:
+                brandAgentId:
+                  type: string
+                  description: ID of the brand agent to delete permanently
+      responses:
+        '200':
+          $ref: '#/components/responses/ToolResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /brand-standards-list:
+    post:
+      tags: [Brand Standards]
+      summary: List brand standards
+      operationId: brand_standards_list
+      description: List all brand safety standards. Brand standards define safety rules and filtering criteria using AI-powered prompts.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                where:
+                  type: object
+                  description: Optional filtering criteria
+                  properties:
+                    name:
+                      type: string
+                      description: Filter by name
+                orderBy:
+                  type: object
+                  description: Optional ordering for results
+                  properties:
+                    id:
+                      type: string
+                      enum: [asc, desc]
+                    name:
+                      type: string
+                      enum: [asc, desc]
+                take:
+                  type: number
+                  description: Number of records to return (pagination)
+                skip:
+                  type: number
+                  description: Number of records to skip (pagination)
+      responses:
+        '200':
+          $ref: '#/components/responses/ToolResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /brand-standards-create:
+    post:
+      tags: [Brand Standards]
+      summary: Create brand standard
+      operationId: brand_standards_create
+      description: Create a new brand safety standard for a brand. The standard uses AI to classify content and enforce brand safety rules based on a natural language prompt.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [brandAgentId, prompt]
+              properties:
+                brandAgentId:
+                  type: string
+                  description: ID of the brand to create standards for
+                name:
+                  type: string
+                  description: Name for the brand standard (optional - defaults to "{Brand Name} Standards")
+                prompt:
+                  type: string
+                  description: Natural language prompt defining the brand safety standards, content restrictions, and enforcement rules
+                description:
+                  type: string
+                  description: Description for the brand standard
+                isArchived:
+                  type: boolean
+                  description: Whether to create the standard as archived
+                countries:
+                  type: array
+                  items:
+                    type: string
+                  description: List of country codes to target (e.g., ['US', 'CA'])
+                channels:
+                  type: array
+                  items:
+                    type: string
+                  description: List of channels to target (e.g., ['web', 'social'])
+                brands:
+                  type: array
+                  items:
+                    type: string
+                  description: List of specific brands this applies to
+      responses:
+        '200':
+          $ref: '#/components/responses/ToolResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /brand-standards-delete:
+    post:
+      tags: [Brand Standards]
+      summary: Delete brand standard
+      operationId: brand_standards_delete
+      description: ⚠️ DANGER - Permanently delete a brand standard. This will remove all safety rules and models associated with this standard.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [brandStandardId]
+              properties:
+                brandStandardId:
+                  type: string
+                  description: ID of the brand standard to delete
+      responses:
+        '200':
+          $ref: '#/components/responses/ToolResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /brand-story-list:
+    post:
+      tags: [Brand Stories]
+      summary: List brand stories
+      operationId: brand_story_list
+      description: List all brand stories for a brand. Brand stories are AI-powered target audience definitions using natural language prompts.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [brandAgentId]
+              properties:
+                brandAgentId:
+                  type: string
+                  description: ID of the brand to list brand stories for
+      responses:
+        '200':
+          $ref: '#/components/responses/ToolResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /brand-story-create:
+    post:
+      tags: [Brand Stories]
+      summary: Create brand story
+      operationId: brand_story_create
+      description: Create a new brand story for a brand. Brand stories are AI-powered target audience definitions that use natural language prompts to define audience profiles, demographics, and behavioral characteristics.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [brandAgentId, name, prompt]
+              properties:
+                brandAgentId:
+                  type: string
+                  description: ID of the brand to create a brand story for
+                name:
+                  type: string
+                  description: Name for the brand story (e.g., 'Tech Enthusiasts', 'Luxury Shoppers')
+                prompt:
+                  type: string
+                  description: Natural language prompt defining the target audience profile, demographics, and behavioral characteristics
+                countries:
+                  type: array
+                  items:
+                    type: string
+                  description: List of country codes to target (e.g., ['US', 'CA'])
+                channels:
+                  type: array
+                  items:
+                    type: string
+                  description: List of channels to target (e.g., ['web', 'social'])
+                languages:
+                  type: array
+                  items:
+                    type: string
+                  description: List of language codes to target (e.g., ['en', 'es'])
+                brands:
+                  type: array
+                  items:
+                    type: string
+                  description: List of specific brands this applies to
+      responses:
+        '200':
+          $ref: '#/components/responses/ToolResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /brand-story-update:
+    post:
+      tags: [Brand Stories]
+      summary: Update brand story
+      operationId: brand_story_update
+      description: Update the audience definition prompt of an existing brand story. This creates a new model version with the updated definition.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [brandStoryId, prompt]
+              properties:
+                brandStoryId:
+                  type: string
+                  description: ID of the brand story to update
+                prompt:
+                  type: string
+                  description: New audience definition prompt
+      responses:
+        '200':
+          $ref: '#/components/responses/ToolResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /brand-story-delete:
+    post:
+      tags: [Brand Stories]
+      summary: Delete brand story
+      operationId: brand_story_delete
+      description: ⚠️ DANGER - Permanently delete a brand story. This will remove all audience definitions and models associated with this story.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [brandStoryId]
+              properties:
+                brandStoryId:
+                  type: string
+                  description: ID of the brand story to delete
+      responses:
+        '200':
+          $ref: '#/components/responses/ToolResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /campaign-list:
+    post:
+      tags: [Campaigns]
+      summary: List campaigns
+      operationId: campaign_list
+      description: List campaigns for the authenticated customer, with optional filtering.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                brandAgentId:
+                  type: string
+                  description: Optional brand agent ID to filter campaigns
+                status:
+                  type: string
+                  enum: [ACTIVE, PAUSED, ARCHIVED]
+                  description: Optional status filter
+                limit:
+                  type: number
+                  description: Maximum number of campaigns to return (default 100)
+                offset:
+                  type: number
+                  description: Number of campaigns to skip for pagination
+      responses:
+        '200':
+          $ref: '#/components/responses/ToolResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /campaign-create:
+    post:
+      tags: [Campaigns]
+      summary: Create campaign
+      operationId: campaign_create
+      description: Create a new campaign with natural language prompt. The backend will parse the prompt to extract targeting, budget, and creative requirements.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [prompt]
+              properties:
+                brandAgentId:
+                  type: string
+                  description: Optional brand agent ID that will own this campaign
+                name:
+                  type: string
+                  description: Optional name for the campaign (auto-generated if not provided)
+                prompt:
+                  type: string
+                  description: Natural language description of campaign requirements (e.g., 'Create a video campaign targeting tech enthusiasts with $50k budget')
+                budget:
+                  $ref: '#/components/schemas/Budget'
+                startDate:
+                  type: string
+                  format: date-time
+                  description: Campaign start date (ISO 8601 format)
+                endDate:
+                  type: string
+                  format: date-time
+                  description: Campaign end date (ISO 8601 format)
+                scoringWeights:
+                  $ref: '#/components/schemas/ScoringWeights'
+                outcomeScoreWindowDays:
+                  type: number
+                  description: Days for outcome measurement window
+                segmentIds:
+                  type: array
+                  items:
+                    type: string
+                  description: Array of segment IDs to associate with campaign
+                dealIds:
+                  type: array
+                  items:
+                    type: string
+                  description: Array of deal IDs to associate with campaign
+                visibility:
+                  type: string
+                  enum: [PUBLIC, PRIVATE]
+                  description: Campaign visibility setting
+                status:
+                  type: string
+                  enum: [ACTIVE, PAUSED, ARCHIVED]
+                  description: Initial campaign status
+      responses:
+        '200':
+          $ref: '#/components/responses/ToolResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /campaign-update:
+    post:
+      tags: [Campaigns]
+      summary: Update campaign
+      operationId: campaign_update
+      description: Update an existing campaign's settings.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [campaignId]
+              properties:
+                campaignId:
+                  type: string
+                  description: ID of the campaign to update
+                name:
+                  type: string
+                  description: New name for the campaign
+                prompt:
+                  type: string
+                  description: Updated natural language campaign requirements
+                status:
+                  type: string
+                  enum: [ACTIVE, PAUSED, ARCHIVED]
+                  description: New status for the campaign
+                budget:
+                  $ref: '#/components/schemas/Budget'
+                startDate:
+                  type: string
+                  format: date-time
+                  description: Campaign start date (ISO 8601 format)
+                endDate:
+                  type: string
+                  format: date-time
+                  description: Campaign end date (ISO 8601 format)
+                scoringWeights:
+                  type: object
+                  properties:
+                    affinity:
+                      type: number
+                      description: Weight for affinity scoring (0-1)
+                    outcome:
+                      type: number
+                      description: Weight for outcome scoring (0-1)
+                    quality:
+                      type: number
+                      description: Weight for quality scoring (0-1)
+                  description: Scoring weights configuration
+                outcomeScoreWindowDays:
+                  type: number
+                  description: Days for outcome measurement window
+                segmentIds:
+                  type: array
+                  items:
+                    type: string
+                  description: Array of segment IDs to associate with campaign
+                dealIds:
+                  type: array
+                  items:
+                    type: string
+                  description: Array of deal IDs to associate with campaign
+                visibility:
+                  type: string
+                  enum: [PUBLIC, PRIVATE]
+                  description: Campaign visibility setting
+      responses:
+        '200':
+          $ref: '#/components/responses/ToolResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /campaign-delete:
+    post:
+      tags: [Campaigns]
+      summary: Delete campaign
+      operationId: campaign_delete
+      description: ⚠️ DANGER - Permanently delete a campaign and all associated data.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [campaignId]
+              properties:
+                campaignId:
+                  type: string
+                  description: ID of the campaign to delete
+                hardDelete:
+                  type: boolean
+                  description: If true, permanently delete the campaign. Default false (soft delete/archive)
+      responses:
+        '200':
+          $ref: '#/components/responses/ToolResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /campaign-get-summary:
+    post:
+      tags: [Campaigns]
+      summary: Get campaign summary
+      operationId: campaign_get_summary
+      description: Get detailed summary information about a specific campaign.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [campaignId]
+              properties:
+                campaignId:
+                  type: string
+                  description: ID of the campaign to retrieve
+      responses:
+        '200':
+          $ref: '#/components/responses/ToolResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /campaign-list-tactics:
+    post:
+      tags: [Campaigns]
+      summary: List campaign tactics
+      operationId: campaign_list_strategies
+      description: List all tactics associated with a specific campaign.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [campaignId]
+              properties:
+                campaignId:
+                  type: string
+                  description: ID of the campaign to list tactics for
+                includeArchived:
+                  type: boolean
+                  description: Include archived tactics (defaults to false)
+      responses:
+        '200':
+          $ref: '#/components/responses/ToolResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /campaign-validate-brief:
+    post:
+      tags: [Campaigns]
+      summary: Validate campaign brief
+      operationId: campaign_validate_brief
+      description: Validate a campaign brief to ensure it contains all necessary information.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [brief]
+              properties:
+                brief:
+                  type: string
+                  description: Campaign brief to validate
+                brandAgentId:
+                  type: string
+                  description: Optional brand agent ID for context-aware validation
+                threshold:
+                  type: number
+                  minimum: 0
+                  maximum: 100
+                  default: 70
+                  description: Minimum quality score required to pass validation
+      responses:
+        '200':
+          $ref: '#/components/responses/ToolResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /channel-list:
+    post:
+      tags: [Channels]
+      summary: List channels
+      operationId: channel_list
+      description: List all available advertising channels.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: {}
+      responses:
+        '200':
+          $ref: '#/components/responses/ToolResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /creative-list:
+    post:
+      tags: [Creatives]
+      summary: List creatives
+      operationId: creative_list
+      description: List creatives for the authenticated customer, with optional filtering.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                brandAgentId:
+                  type: string
+                  description: Optional brand agent ID to filter creatives
+                campaignId:
+                  type: string
+                  description: Optional campaign ID to filter creatives
+      responses:
+        '200':
+          $ref: '#/components/responses/ToolResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /creative-create:
+    post:
+      tags: [Creatives]
+      summary: Create creative
+      operationId: creative_create
+      description: Create a new creative with specified details. Supports various format sources (ADCP, CREATIVE_AGENT, PUBLISHER) and assembly methods.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [brandAgentId, name]
+              properties:
+                brandAgentId:
+                  type: integer
+                  description: Internal database ID of the brand agent that will own this creative
+                organizationId:
+                  type: integer
+                  description: Optional internal database ID of the organization
+                name:
+                  type: string
+                  description: Name for the creative
+                description:
+                  type: string
+                  description: Optional description of the creative
+                formatSource:
+                  type: string
+                  enum: [ADCP, CREATIVE_AGENT, PUBLISHER]
+                  description: Format source type
+                formatId:
+                  type: string
+                  description: Format identifier (e.g., "video/mp4", "display/banner")
+                mediaUrl:
+                  type: string
+                  description: URL to the creative media file (video, image, etc.)
+                content:
+                  type: object
+                  description: Creative content as JSON. Can include assetIds (array of asset IDs from asset_upload), htmlSnippet, vastTag, etc.
+                  properties:
+                    assetIds:
+                      type: array
+                      items:
+                        type: string
+                      description: Array of asset IDs uploaded via asset_upload tool
+                    htmlSnippet:
+                      type: string
+                      description: HTML5 creative snippet
+                    vastTag:
+                      type: string
+                      description: VAST XML tag for video ads
+                assemblyMethod:
+                  type: string
+                  enum: [CREATIVE_AGENT, ACTIVATION, PUBLISHER]
+                  description: Assembly method
+                campaignId:
+                  type: integer
+                  description: Optional internal database ID of campaign to assign creative to
+      responses:
+        '200':
+          description: Creative created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    description: Success message with creative details including creativeId (external string ID for use in media_buy_create/update) and internal ID
+                    example: |
+                      ✅ **Creative Created Successfully!**
+
+                      **Creative ID:** newcreativevideo_xntthe4w (use this for media_buy_create/update)
+                      **Internal ID:** 16
+                      **Name:** My Creative
+                      **Status:** PENDING
+                      **Created:** 2025-10-14T00:00:00.000Z
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /creative-get:
+    post:
+      tags: [Creatives]
+      summary: Get creative
+      operationId: creative_get
+      description: Get detailed information about a specific creative.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [creativeId]
+              properties:
+                creativeId:
+                  type: integer
+                  description: Internal database ID of the creative to retrieve
+      responses:
+        '200':
+          $ref: '#/components/responses/ToolResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /creative-update:
+    post:
+      tags: [Creatives]
+      summary: Update creative
+      operationId: creative_update
+      description: Update an existing creative's settings.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [creativeId]
+              properties:
+                creativeId:
+                  type: integer
+                  description: Internal database ID of the creative to update
+                name:
+                  type: string
+                  description: New name for the creative
+                status:
+                  type: string
+                  description: New status for the creative
+      responses:
+        '200':
+          $ref: '#/components/responses/ToolResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /creative-delete:
+    post:
+      tags: [Creatives]
+      summary: Delete creative
+      operationId: creative_delete
+      description: ⚠️ DANGER - Permanently delete a creative.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [creativeId]
+              properties:
+                creativeId:
+                  type: integer
+                  description: Internal database ID of the creative to delete
+      responses:
+        '200':
+          $ref: '#/components/responses/ToolResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /creative-assign:
+    post:
+      tags: [Creatives]
+      summary: Assign creative to campaign
+      operationId: creative_assign
+      description: |
+        Assign a creative to a campaign. Automatically discovers and syncs the creative to all sales agents
+        associated with the campaign via active media buys. Returns auto-sync results including which agents
+        received the creative and their approval status.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [creativeId, campaignId]
+              properties:
+                creativeId:
+                  type: integer
+                  description: Internal database ID of the creative to assign
+                campaignId:
+                  type: integer
+                  description: Internal database ID of the campaign to assign creative to
+      responses:
+        '200':
+          description: Creative assigned successfully with auto-sync results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  content:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        type:
+                          type: string
+                          example: text
+                        text:
+                          type: string
+                          description: |
+                            Summary of creative assignment including auto-sync results.
+                            Shows which sales agents received the creative and their approval status.
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /creative-sync-sales-agents:
+    post:
+      tags: [Creatives]
+      summary: Sync creative with sales agents
+      operationId: creative_sync_sales_agents
+      description: Sync a creative's formats and specifications with connected sales agents/publishers.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [creativeId]
+              properties:
+                creativeId:
+                  type: integer
+                  description: Internal database ID of the creative to sync
+      responses:
+        '200':
+          $ref: '#/components/responses/ToolResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /sales-agent-list:
+    post:
+      tags: [Sales Agents]
+      summary: List sales agents
+      operationId: sales_agent_list
+      description: List all registered sales agents (publishers) for the authenticated customer.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: {}
+      responses:
+        '200':
+          $ref: '#/components/responses/ToolResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /sales-agent-get:
+    post:
+      tags: [Sales Agents]
+      summary: Get sales agent
+      operationId: sales_agent_get
+      description: Get detailed information about a specific sales agent.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [salesAgentId]
+              properties:
+                salesAgentId:
+                  type: string
+                  description: ID of the sales agent to retrieve
+      responses:
+        '200':
+          $ref: '#/components/responses/ToolResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /sales-agent-register:
+    post:
+      tags: [Sales Agents]
+      summary: Register sales agent
+      operationId: sales_agent_register
+      description: Register a new sales agent. Creates a row in the adcp_agent table. Organization ID is auto-detected from customer if not provided.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, endpointUrl, protocol, authenticationType]
+              properties:
+                name:
+                  type: string
+                  description: Sales agent name
+                endpointUrl:
+                  type: string
+                  description: Sales agent endpoint URL
+                protocol:
+                  type: string
+                  enum: [REST, MCP, A2A, CUSTOM]
+                  description: Protocol type
+                authenticationType:
+                  type: string
+                  enum: [API_KEY, OAUTH, NO_AUTH]
+                  description: Authentication type
+                description:
+                  type: string
+                  description: Sales agent description (optional)
+                organizationId:
+                  type: string
+                  description: Organization ID (optional - auto-detected from customer if not provided)
+                authConfig:
+                  type: object
+                  description: Authentication configuration for the sales agent (optional)
+      responses:
+        '200':
+          $ref: '#/components/responses/ToolResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /sales-agent-account-list:
+    post:
+      tags: [Sales Agents]
+      summary: List accounts for a sales agent
+      operationId: sales_agent_account_list
+      description: List all accounts registered by your organization for a specific sales agent.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [salesAgentId]
+              properties:
+                salesAgentId:
+                  type: string
+                  description: ID of the sales agent
+      responses:
+        '200':
+          $ref: '#/components/responses/ToolResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /sales-agent-account-register:
+    post:
+      tags: [Sales Agents]
+      summary: Register account for sales agent
+      operationId: sales_agent_account_register
+      description: Register your organization's account to an existing sales agent. This allows you to access the sales agent's inventory and services.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [salesAgentId, accountIdentifier]
+              properties:
+                salesAgentId:
+                  type: string
+                  description: Sales agent ID
+                accountIdentifier:
+                  type: string
+                  description: Account identifier
+                authConfig:
+                  type: object
+                  description: Authentication configuration (credentials, tokens, etc.) - optional
+      responses:
+        '200':
+          $ref: '#/components/responses/ToolResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /sales-agent-unregister:
+    post:
+      tags: [Sales Agents]
+      summary: Unregister sales agent completely
+      operationId: sales_agent_unregister
+      description: Completely unregister a sales agent - deactivates ALL customer accounts and disables the agent itself. Only the owner can perform this action.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [salesAgentId, confirm]
+              properties:
+                salesAgentId:
+                  type: string
+                  description: ID of the sales agent to unregister
+                confirm:
+                  type: boolean
+                  description: Must be true to confirm this destructive operation
+      responses:
+        '200':
+          $ref: '#/components/responses/ToolResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /sales-agent-account-unregister:
+    post:
+      tags: [Sales Agents]
+      summary: Unregister your account with a sales agent
+      operationId: sales_agent_account_unregister
+      description: Unregister (deactivate) your organization's account with a sales agent. This only deactivates your account but doesn't affect the sales agent or other customers' accounts.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [salesAgentId, confirm]
+              properties:
+                salesAgentId:
+                  type: string
+                  description: ID of the sales agent to unregister your account from
+                confirm:
+                  type: boolean
+                  description: Must be true to confirm this destructive operation
+      responses:
+        '200':
+          $ref: '#/components/responses/ToolResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /sales-agent-update:
+    post:
+      tags: [Sales Agents]
+      summary: Update sales agent
+      operationId: sales_agent_update
+      description: Update a sales agent's core settings like name, description, or endpoint URL. Only the owner can perform this action.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [salesAgentId]
+              properties:
+                salesAgentId:
+                  type: string
+                  description: ID of the sales agent to update
+                name:
+                  type: string
+                  description: New name
+                description:
+                  type: string
+                  description: New description
+                endpointUrl:
+                  type: string
+                  description: New endpoint URL
+                protocol:
+                  type: string
+                  enum: [REST, MCP, A2A, CUSTOM]
+                  description: New protocol
+                authenticationType:
+                  type: string
+                  enum: [API_KEY, OAUTH, NO_AUTH]
+                  description: New authentication type
+                authConfig:
+                  type: object
+                  description: Authentication configuration for the sales agent
+      responses:
+        '200':
+          $ref: '#/components/responses/ToolResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /sales-agent-account-update:
+    post:
+      tags: [Sales Agents]
+      summary: Update sales agent account authentication
+      operationId: sales_agent_account_update
+      description: Update your organization's account authentication configuration for a sales agent. This endpoint only handles authentication updates.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [salesAgentId, accountIdentifier, authConfig]
+              properties:
+                salesAgentId:
+                  type: string
+                  description: ID of the sales agent
+                accountIdentifier:
+                  type: string
+                  description: Account identifier to update
+                authConfig:
+                  type: object
+                  description: Updated authentication configuration (credentials, tokens, etc.)
+      responses:
+        '200':
+          $ref: '#/components/responses/ToolResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /tactic-list:
+    post:
+      tags: [Tactics]
+      summary: List tactics
+      operationId: strategy_list
+      description: List all media buying tactics for the authenticated customer.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                campaignId:
+                  type: string
+                  description: Optional campaign ID to filter tactics
+                includeArchived:
+                  type: boolean
+                  description: Include archived tactics (defaults to false)
+      responses:
+        '200':
+          $ref: '#/components/responses/ToolResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /tactic-create:
+    post:
+      tags: [Tactics]
+      summary: Create tactic
+      operationId: strategy_create
+      description: Create a new AMP media buy tactic for executing media buys with publishers. Tactics are automatically configured as activityType=AMP and tacticType=INTELLIGENT_CAMPAIGNS. Use channel_list to see valid channel codes.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, campaignId]
+              properties:
+                name:
+                  type: string
+                  description: Name of the tactic
+                campaignId:
+                  type: string
+                  description: Campaign ID to link this tactic to (required)
+                prompt:
+                  type: string
+                  description: Optional tactical brief or prompt for this tactic
+                channelCodes:
+                  type: array
+                  items:
+                    type: string
+                    enum: [DIGITAL-AUDIO, DISPLAY-WEB, DISPLAY-APP, CTV-BVOD, OLV, DOOH, SOCIAL]
+                  description: Valid channel codes to target (also accepts friendly aliases like audio, web, app, ctv, video which are automatically mapped)
+                countryCodes:
+                  type: array
+                  items:
+                    type: string
+                  description: Country codes to target (2-digit ISO codes)
+      responses:
+        '200':
+          $ref: '#/components/responses/ToolResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /tactic-get:
+    post:
+      tags: [Tactics]
+      summary: Get tactic
+      operationId: strategy_get
+      description: Get detailed information about a specific tactic.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [tacticId]
+              properties:
+                tacticId:
+                  type: string
+                  description: ID of the tactic to retrieve
+      responses:
+        '200':
+          $ref: '#/components/responses/ToolResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /tactic-update:
+    post:
+      tags: [Tactics]
+      summary: Update tactic
+      operationId: strategy_update
+      description: Update an existing tactic's configuration.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [tacticId]
+              properties:
+                tacticId:
+                  type: string
+                  description: ID of the tactic to update
+                name:
+                  type: string
+                  description: New name for the tactic
+                prompt:
+                  type: string
+                  description: New tactical brief
+                channelCodes:
+                  type: array
+                  items:
+                    type: string
+                    enum: [DIGITAL-AUDIO, DISPLAY-WEB, DISPLAY-APP, CTV-BVOD, OLV, DOOH, SOCIAL]
+                  description: Updated channel codes (also accepts friendly aliases like audio, web, app, ctv, video)
+                countryCodes:
+                  type: array
+                  items:
+                    type: string
+                  description: Updated country codes
+      responses:
+        '200':
+          $ref: '#/components/responses/ToolResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /tactic-delete:
+    post:
+      tags: [Tactics]
+      summary: Delete tactic
+      operationId: strategy_delete
+      description: ⚠️ DANGER - Permanently delete a tactic.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [tacticId]
+              properties:
+                tacticId:
+                  type: string
+                  description: ID of the tactic to delete
+      responses:
+        '200':
+          $ref: '#/components/responses/ToolResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /tactic-link-campaign:
+    post:
+      tags: [Tactics]
+      summary: Link campaign to tactic
+      operationId: strategy_link_campaign
+      description: Link a campaign to a tactic for budget and execution management.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [tacticId, campaignId]
+              properties:
+                tacticId:
+                  type: string
+                  description: ID of the tactic
+                campaignId:
+                  type: string
+                  description: ID of the campaign to link
+      responses:
+        '200':
+          $ref: '#/components/responses/ToolResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /tactic-unlink-campaign:
+    post:
+      tags: [Tactics]
+      summary: Unlink campaign from tactic
+      operationId: strategy_unlink_campaign
+      description: Unlink a campaign from a tactic.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [tacticId, campaignId]
+              properties:
+                tacticId:
+                  type: string
+                  description: ID of the tactic
+                campaignId:
+                  type: string
+                  description: ID of the campaign to unlink
+      responses:
+        '200':
+          $ref: '#/components/responses/ToolResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /media-buy-list:
+    post:
+      tags: [Media Buys]
+      summary: List media buys
+      operationId: media_buy_list
+      description: List all media buys for the authenticated customer.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                tacticId:
+                  type: string
+                  description: Optional tactic ID to filter media buys
+                campaignId:
+                  type: string
+                  description: Optional campaign ID to filter media buys
+                includeArchived:
+                  type: boolean
+                  description: Include archived media buys (defaults to false)
+      responses:
+        '200':
+          $ref: '#/components/responses/ToolResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /media-buy-create:
+    post:
+      tags: [Media Buys]
+      summary: Create media buy
+      operationId: media_buy_create
+      description: |
+        Create a new media buy to execute a tactic with one or more publisher products. A media buy represents the actual execution of a tactic with budget allocation and pricing.
+
+        **Multi-Product Support**: Media buys now support multiple products from different sales agents in a single buy. Each product can have its own budget allocation and pricing. During execution, each unique sales agent will receive a separate ADCP submission.
+
+        **Budget Validation**: The sum of product budget allocations must not exceed the total media buy budget. The system will validate this at creation time and show warnings if budget is under-allocated.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [tacticId, name, products, budget]
+              properties:
+                tacticId:
+                  type: string
+                  description: ID of the tactic to execute
+                name:
+                  type: string
+                  description: Name of the media buy
+                description:
+                  type: string
+                  description: Optional description of the media buy
+                products:
+                  type: array
+                  description: Array of products to include in this media buy. At least one product is required. Each product will be validated with its sales agent.
+                  minItems: 1
+                  items:
+                    type: object
+                    required: [mediaProductId, salesAgentId]
+                    properties:
+                      mediaProductId:
+                        type: string
+                        description: Media product ID from publisher (will be validated with sales agent)
+                      salesAgentId:
+                        type: string
+                        description: Sales agent ID for this product
+                      budgetAmount:
+                        type: number
+                        description: Budget allocated to this specific product (optional, must not exceed total budget when summed across all products)
+                      budgetCurrency:
+                        type: string
+                        description: Currency for this product's budget (defaults to media buy currency)
+                      pricingCpm:
+                        type: number
+                        description: Base CPM price for this product
+                      pricingSignalCost:
+                        type: number
+                        description: Additional signal cost for this product
+                      displayOrder:
+                        type: integer
+                        description: Optional display order for organizing products
+                budget:
+                  type: object
+                  required: [amount]
+                  properties:
+                    amount:
+                      type: number
+                      description: Total budget amount for this media buy
+                    currency:
+                      type: string
+                      description: Currency code (defaults to USD)
+                    dailyCap:
+                      type: number
+                      description: Optional daily spending cap
+                    pacing:
+                      type: string
+                      enum: [asap, even, front_loaded]
+                      description: Budget pacing tactic (defaults to even)
+                creativeIds:
+                  type: array
+                  items:
+                    type: string
+                  description: Optional array of creative IDs (database IDs) to assign to this media buy. Creatives must be assigned to the campaign associated with this media buy's tactic.
+      responses:
+        '200':
+          $ref: '#/components/responses/ToolResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /media-buy-get:
+    post:
+      tags: [Media Buys]
+      summary: Get media buy
+      operationId: media_buy_get
+      description: Get detailed information about a specific media buy.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [mediaBuyId]
+              properties:
+                mediaBuyId:
+                  type: string
+                  description: ID of the media buy to retrieve
+      responses:
+        '200':
+          $ref: '#/components/responses/ToolResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /media-buy-update:
+    post:
+      tags: [Media Buys]
+      summary: Update media buy
+      operationId: media_buy_update
+      description: Update an existing media buy's configuration.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [mediaBuyId]
+              properties:
+                mediaBuyId:
+                  type: string
+                  description: ID of the media buy to update
+                name:
+                  type: string
+                  description: New name
+                budget:
+                  type: object
+                  properties:
+                    amount:
+                      type: number
+                    dailyCap:
+                      type: number
+                    pacing:
+                      type: string
+                      enum: [asap, even, front_loaded]
+                cpm:
+                  type: number
+                  description: New CPM price
+                creativeIds:
+                  type: array
+                  items:
+                    type: string
+                  description: Array of creative IDs (database IDs) to assign to this media buy. Replaces existing assignments. Creatives must be assigned to the campaign associated with this media buy's tactic.
+      responses:
+        '200':
+          $ref: '#/components/responses/ToolResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /media-buy-delete:
+    post:
+      tags: [Media Buys]
+      summary: Delete media buy
+      operationId: media_buy_delete
+      description: ⚠️ DANGER - Permanently delete a media buy.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [mediaBuyId]
+              properties:
+                mediaBuyId:
+                  type: string
+                  description: ID of the media buy to delete
+      responses:
+        '200':
+          $ref: '#/components/responses/ToolResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /media-buy-execute:
+    post:
+      tags: [Media Buys]
+      summary: Execute media buy
+      operationId: media_buy_execute
+      description: Execute a media buy by deploying it to the publisher platform.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [mediaBuyId]
+              properties:
+                mediaBuyId:
+                  type: string
+                  description: ID of the media buy to execute
+      responses:
+        '200':
+          $ref: '#/components/responses/ToolResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /notifications-list:
+    post:
+      tags: [Notifications]
+      summary: List notifications
+      operationId: notifications_list
+      description: List notifications for the authenticated user.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                unreadOnly:
+                  type: boolean
+                  description: Filter to only unread notifications
+                limit:
+                  type: number
+                  description: Maximum number of notifications to return
+      responses:
+        '200':
+          $ref: '#/components/responses/ToolResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /notifications-mark-read:
+    post:
+      tags: [Notifications]
+      summary: Mark notification as read
+      operationId: notifications_mark_read
+      description: Mark a specific notification as read.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [notificationId]
+              properties:
+                notificationId:
+                  type: string
+                  description: ID of the notification to mark as read
+      responses:
+        '200':
+          $ref: '#/components/responses/ToolResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /notifications-mark-acknowledged:
+    post:
+      tags: [Notifications]
+      summary: Mark notification as acknowledged
+      operationId: notifications_mark_acknowledged
+      description: Mark a specific notification as acknowledged.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [notificationId]
+              properties:
+                notificationId:
+                  type: string
+                  description: ID of the notification to mark as acknowledged
+      responses:
+        '200':
+          $ref: '#/components/responses/ToolResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /notifications-mark-all-read:
+    post:
+      tags: [Notifications]
+      summary: Mark all notifications as read
+      operationId: notifications_mark_all_read
+      description: Mark all notifications as read for the authenticated user.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: {}
+      responses:
+        '200':
+          $ref: '#/components/responses/ToolResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /media-product-list:
+    post:
+      tags: [Products]
+      summary: List media products
+      operationId: media_product_list
+      description: List available media products from publishers.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                salesAgentId:
+                  type: string
+                  description: Optional sales agent ID to filter products
+      responses:
+        '200':
+          $ref: '#/components/responses/ToolResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /media-product-discover:
+    post:
+      tags: [Products]
+      summary: Discover media products
+      operationId: media_product_discover
+      description: Discover new media products from connected publishers.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                salesAgentId:
+                  type: string
+                  description: Sales agent ID to discover products from
+      responses:
+        '200':
+          $ref: '#/components/responses/ToolResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /media-product-sync:
+    post:
+      tags: [Products]
+      summary: Sync media products
+      operationId: media_product_sync
+      description: Synchronize media product inventory with publisher systems.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [salesAgentId]
+              properties:
+                salesAgentId:
+                  type: string
+                  description: Sales agent ID to sync products from
+      responses:
+        '200':
+          $ref: '#/components/responses/ToolResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Bearer token authentication using Scope3 API key
+
+  responses:
+    ToolResponse:
+      description: Successful tool execution
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                description: Whether the operation succeeded
+              message:
+                type: string
+                description: Human-readable response message
+              data:
+                type: object
+                description: Response data (varies by tool)
+
+    BadRequest:
+      description: Bad request - invalid parameters
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                description: Error message
+              details:
+                type: object
+                description: Additional error details
+
+    Unauthorized:
+      description: Unauthorized - invalid or missing authentication
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                description: Error message
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                description: Error message
+
+    InternalError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                description: Error message
+
+  schemas:
+    Budget:
+      type: object
+      required: [total, currency]
+      properties:
+        total:
+          type: integer
+          description: Total budget amount in cents (e.g., 5000000 = $50,000)
+        currency:
+          type: string
+          enum: [USD, EUR, GBP, CAD, AUD]
+          description: Budget currency
+        dailyCap:
+          type: integer
+          description: Daily spending limit in cents
+        pacing:
+          type: string
+          enum: [even, accelerated, front_loaded]
+          description: Budget pacing tactic
+
+    ScoringWeights:
+      type: object
+      properties:
+        affinity:
+          type: number
+          minimum: 0
+          maximum: 1
+          description: Weight for affinity scoring (0-1)
+        outcome:
+          type: number
+          minimum: 0
+          maximum: 1
+          description: Weight for outcome scoring (0-1)
+        quality:
+          type: number
+          minimum: 0
+          maximum: 1
+          description: Weight for quality scoring (0-1)
+
+    BrandAgent:
+      type: object
+      required: [id, name, createdAt, updatedAt]
+      properties:
+        id:
+          type: string
+          description: Unique brand agent identifier
+        name:
+          type: string
+          description: Brand agent name
+        description:
+          type: string
+          description: Brand agent description
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    Campaign:
+      type: object
+      required: [id, name, prompt, brandAgentId, status, createdAt, updatedAt]
+      properties:
+        id:
+          type: string
+          description: Unique campaign identifier
+        name:
+          type: string
+          description: Campaign name
+        prompt:
+          type: string
+          description: Natural language campaign description
+        brandAgentId:
+          type: string
+          description: Parent brand agent ID
+        status:
+          type: string
+          enum: [active, paused, completed, draft]
+          description: Campaign status
+        budget:
+          $ref: '#/components/schemas/Budget'
+        audienceIds:
+          type: array
+          items:
+            type: string
+          description: Associated synthetic audience IDs
+        creativeIds:
+          type: array
+          items:
+            type: string
+          description: Associated creative asset IDs
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    Creative:
+      type: object
+      required: [id, name, type, url, brandAgentId, createdAt, updatedAt]
+      properties:
+        id:
+          type: string
+          description: Unique creative identifier
+        name:
+          type: string
+          description: Creative name
+        type:
+          type: string
+          enum: [video, image, native, html5]
+          description: Creative asset type
+        url:
+          type: string
+          format: uri
+          description: Creative asset URL
+        brandAgentId:
+          type: string
+          description: Parent brand agent ID
+        headline:
+          type: string
+          description: Creative headline text
+        body:
+          type: string
+          description: Creative body text
+        cta:
+          type: string
+          description: Call-to-action text
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    Tactic:
+      type: object
+      required: [id, name, campaignId, activityType, tacticType, createdAt, updatedAt]
+      properties:
+        id:
+          type: string
+          description: Unique tactic identifier
+        name:
+          type: string
+          description: Tactic name
+        campaignId:
+          type: string
+          description: Associated campaign ID
+        prompt:
+          type: string
+          description: Tactical brief or prompt
+        activityType:
+          type: string
+          enum: [AMP]
+          description: Activity type (always AMP)
+        tacticType:
+          type: string
+          enum: [INTELLIGENT_CAMPAIGNS]
+          description: Tactic type
+        channelCodes:
+          type: array
+          items:
+            type: string
+            enum: [DIGITAL-AUDIO, DISPLAY-WEB, DISPLAY-APP, CTV-BVOD, OLV, DOOH, SOCIAL]
+          description: Target channels (official codes)
+        countryCodes:
+          type: array
+          items:
+            type: string
+          description: Target countries
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    MediaBuy:
+      type: object
+      required: [id, name, tacticId, salesAgentId, mediaProductId, budget, cpm, createdAt, updatedAt]
+      properties:
+        id:
+          type: string
+          description: Unique media buy identifier
+        name:
+          type: string
+          description: Media buy name
+        description:
+          type: string
+          description: Media buy description
+        tacticId:
+          type: string
+          description: Associated tactic ID
+        salesAgentId:
+          type: string
+          description: Publisher/sales agent ID
+        mediaProductId:
+          type: string
+          description: Media product ID
+        budget:
+          type: object
+          properties:
+            amount:
+              type: number
+            currency:
+              type: string
+            dailyCap:
+              type: number
+            pacing:
+              type: string
+        cpm:
+          type: number
+          description: CPM pricing
+        signalCost:
+          type: number
+          description: Additional signal cost
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
