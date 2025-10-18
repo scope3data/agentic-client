@@ -71,11 +71,17 @@ export class Scope3Client {
       arguments: args as Record<string, unknown>,
     });
 
-    // MCP tools return content array, extract the JSON from text content
+    // MCP tools return content array, extract the response from text content
     if (result.content && Array.isArray(result.content) && result.content.length > 0) {
       const content = result.content[0];
       if (content.type === 'text') {
-        return JSON.parse(content.text) as TResponse;
+        // Try to parse as JSON first, if that fails return the text as-is
+        try {
+          return JSON.parse(content.text) as TResponse;
+        } catch {
+          // If not JSON, return the text wrapped in an object
+          return { message: content.text } as TResponse;
+        }
       }
     }
 
