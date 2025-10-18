@@ -13,7 +13,7 @@ import { MediaBuysResource } from './resources/media-buys';
 import { NotificationsResource } from './resources/notifications';
 import { ProductsResource } from './resources/products';
 
-export class Scope3SDK extends Scope3Client {
+export class Scope3AgenticClient extends Scope3Client {
   public readonly assets: AssetsResource;
   public readonly brandAgents: BrandAgentsResource;
   public readonly brandStandards: BrandStandardsResource;

@@ -1,10 +1,10 @@
-import { Scope3SDK } from '../sdk';
+import { Scope3AgenticClient } from '../sdk';
 
-describe('Scope3SDK', () => {
-  let client: Scope3SDK;
+describe('Scope3AgenticClient', () => {
+  let client: Scope3AgenticClient;
 
   beforeEach(() => {
-    client = new Scope3SDK({
+    client = new Scope3AgenticClient({
       apiKey: 'test-api-key',
     });
   });
@@ -29,7 +29,7 @@ describe('Scope3SDK', () => {
   });
 
   it('should accept custom base URL', () => {
-    const customClient = new Scope3SDK({
+    const customClient = new Scope3AgenticClient({
       apiKey: 'test-api-key',
       baseUrl: 'https://custom.api.com',
     });
@@ -37,7 +37,7 @@ describe('Scope3SDK', () => {
   });
 
   it('should accept custom timeout', () => {
-    const customClient = new Scope3SDK({
+    const customClient = new Scope3AgenticClient({
       apiKey: 'test-api-key',
       timeout: 60000,
     });

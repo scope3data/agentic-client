@@ -1,4 +1,6 @@
-export { Scope3SDK } from './sdk';
+export { Scope3AgenticClient } from './sdk';
+// Legacy export for backwards compatibility
+export { Scope3AgenticClient as Scope3SDK } from './sdk';
 export { WebhookServer } from './webhook-server';
 export type { ClientConfig, ToolResponse, Environment } from './types';
 export type { WebhookEvent, WebhookHandler, WebhookServerConfig } from './webhook-server';

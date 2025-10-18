@@ -23,9 +23,9 @@ npm install @scope3/agentic-client
 ## Quick Start
 
 ```typescript
-import { Scope3SDK } from '@scope3/agentic-client';
+import { Scope3AgenticClient } from '@scope3/agentic-client';
 
-const client = new Scope3SDK({
+const client = new Scope3AgenticClient({
   apiKey: process.env.SCOPE3_API_KEY,
 });
 
@@ -46,7 +46,7 @@ const campaign = await client.campaigns.create({
 ## Configuration
 
 ```typescript
-const client = new Scope3SDK({
+const client = new Scope3AgenticClient({
   apiKey: 'your-api-key',
   baseUrl: 'https://api.agentic.scope3.com', // optional, defaults to production
   timeout: 30000, // optional, request timeout in ms
