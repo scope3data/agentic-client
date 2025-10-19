@@ -48,7 +48,14 @@ paths:
       tags: [Assets]
       summary: Upload creative assets
       operationId: asset_upload
-      description: Upload creative assets (images, videos, audio) to Google Cloud Storage. Accepts base64-encoded file data and returns signed URLs (valid for 1 hour).
+      description: |
+        Upload creative assets (images, videos, audio) to Google Cloud Storage.
+
+        **REQUIRED FIELDS:**
+        - `brandAgentId`: Brand agent ID for file organization
+        - `assets`: Array of assets (each with name, contentType, data, assetType)
+
+        Returns signed URLs valid for 1 hour.
       requestBody:
         required: true
         content:
@@ -59,33 +66,14 @@ paths:
               properties:
                 brandAgentId:
                   type: string
-                  description: Brand agent ID for file organization
+                  description: '**REQUIRED**: Brand agent ID for file organization (e.g., brand_agent_123)'
+                  example: brand_agent_abc123
                 assets:
                   type: array
-                  description: Array of assets to upload
+                  description: '**REQUIRED**: Array of assets to upload. Each asset must have all required fields.'
+                  minItems: 1
                   items:
-                    type: object
-                    required: [name, contentType, data, assetType]
-                    properties:
-                      name:
-                        type: string
-                        description: Original filename
-                      contentType:
-                        type: string
-                        description: MIME type (e.g., image/png, video/mp4)
-                      data:
-                        type: string
-                        format: byte
-                        description: Base64-encoded file data
-                      assetType:
-                        type: string
-                        enum: [image, video, audio, logo, font]
-                        description: Type of asset
-                      tags:
-                        type: array
-                        items:
-                          type: string
-                        description: Optional tags for organization
+                    $ref: '#/components/schemas/AssetUpload'
       responses:
         '200':
           $ref: '#/components/responses/ToolResponse'
@@ -622,6 +610,10 @@ paths:
                   type: string
                   enum: [PUBLIC, PRIVATE]
                   description: Campaign visibility setting
+                creationType:
+                  type: string
+                  enum: [MANUAL, AUTO_SYNC]
+                  description: How the campaign was created
                 status:
                   type: string
                   enum: [ACTIVE, PAUSED, ARCHIVED]
@@ -873,11 +865,11 @@ paths:
               type: object
               properties:
                 brandAgentId:
-                  type: string
-                  description: Optional brand agent ID to filter creatives
+                  type: integer
+                  description: Optional internal brand agent ID to filter creatives
                 campaignId:
-                  type: string
-                  description: Optional campaign ID to filter creatives
+                  type: integer
+                  description: Optional internal campaign ID to filter creatives
       responses:
         '200':
           $ref: '#/components/responses/ToolResponse'
@@ -891,7 +883,12 @@ paths:
       tags: [Creatives]
       summary: Create creative
       operationId: creative_create
-      description: Create a new creative with specified details. Supports various format sources (ADCP, CREATIVE_AGENT, PUBLISHER) and assembly methods.
+      description: |
+        Create a new creative with specified details. Supports various format sources (ADCP, CREATIVE_AGENT, PUBLISHER) and assembly methods.
+
+        **Two workflows supported:**
+        1. **Separate upload**: Use asset_upload first, then reference asset IDs in content.assetIds
+        2. **Inline upload**: Upload assets directly in the `assets` array (automatically uploaded and linked)
       requestBody:
         required: true
         content:
@@ -902,38 +899,51 @@ paths:
               properties:
                 brandAgentId:
                   type: integer
-                  description: Internal database ID of the brand agent that will own this creative
+                  description: '**REQUIRED**: Internal database ID of the brand agent that will own this creative'
+                  example: 1
                 organizationId:
                   type: integer
                   description: Optional internal database ID of the organization
                 name:
                   type: string
-                  description: Name for the creative
+                  description: '**REQUIRED**: Name for the creative'
+                  example: Banner Ad 970x250
                 description:
                   type: string
                   description: Optional description of the creative
+                  example: Display banner for homepage
                 formatSource:
                   type: string
                   enum: [ADCP, CREATIVE_AGENT, PUBLISHER]
                   description: Format source type
+                  example: ADCP
                 formatId:
                   type: string
-                  description: Format identifier (e.g., "video/mp4", "display/banner")
+                  description: Format identifier (e.g., "display_970x250", "video/mp4")
+                  example: display_970x250
                 mediaUrl:
                   type: string
                   description: URL to the creative media file (video, image, etc.)
+                  example: https://example.com/banner.png
+                assets:
+                  type: array
+                  description: 'Optional: Upload assets inline with the creative. Automatically uploaded to GCS and linked.'
+                  items:
+                    $ref: '#/components/schemas/AssetUpload'
                 content:
                   type: object
-                  description: Creative content as JSON. Can include assetIds (array of asset IDs from asset_upload), htmlSnippet, vastTag, etc.
+                  description: Creative content as JSON. Can include assetIds (existing or from inline upload), htmlSnippet, vastTag, etc.
                   properties:
                     assetIds:
                       type: array
                       items:
                         type: string
-                      description: Array of asset IDs uploaded via asset_upload tool
+                      description: Array of existing asset IDs (from previous asset_upload). Inline uploaded assets are automatically added to this.
+                      example: [asset_abc123, asset_def456]
                     htmlSnippet:
                       type: string
                       description: HTML5 creative snippet
+                      example: <div>Ad content</div>
                     vastTag:
                       type: string
                       description: VAST XML tag for video ads
@@ -941,9 +951,11 @@ paths:
                   type: string
                   enum: [CREATIVE_AGENT, ACTIVATION, PUBLISHER]
                   description: Assembly method
+                  example: ACTIVATION
                 campaignId:
                   type: integer
                   description: Optional internal database ID of campaign to assign creative to
+                  example: 1
       responses:
         '200':
           description: Creative created successfully
@@ -957,7 +969,7 @@ paths:
                     example: true
                   message:
                     type: string
-                    description: Success message with creative details including creativeId (external string ID for use in media_buy_create/update) and internal ID
+                    description: Success message with creative details including creativeId (external string ID for use in media_buy_create/update), internal ID, and uploaded assets (if any)
                     example: |
                       ✅ **Creative Created Successfully!**
 
@@ -965,6 +977,8 @@ paths:
                       **Internal ID:** 16
                       **Name:** My Creative
                       **Status:** PENDING
+                      **Assets Uploaded:** 2
+                      **Asset IDs:** asset_abc123, asset_def456
                       **Created:** 2025-10-14T00:00:00.000Z
         '400':
           $ref: '#/components/responses/BadRequest'
@@ -1120,7 +1134,10 @@ paths:
       tags: [Creatives]
       summary: Sync creative with sales agents
       operationId: creative_sync_sales_agents
-      description: Sync a creative's formats and specifications with connected sales agents/publishers.
+      description: |
+        Sync a creative to sales agents using smart auto-detection or manual specification.
+        Features intelligent format matching and recent activity analysis (30-60 day lookback).
+        Provides detailed sync status and actionable next steps.
       requestBody:
         required: true
         content:
@@ -1132,6 +1149,29 @@ paths:
                 creativeId:
                   type: integer
                   description: Internal database ID of the creative to sync
+                autoDetect:
+                  type: object
+                  description: Smart auto-detection settings (default behavior)
+                  properties:
+                    daysBack:
+                      type: number
+                      description: Look at tactics from past N days (default 30, max 90)
+                      minimum: 1
+                      maximum: 90
+                    includeActive:
+                      type: boolean
+                      description: Include agents from active campaigns (default true)
+                campaignId:
+                  type: integer
+                  description: Internal database ID - sync to sales agents used by this campaign's tactics only
+                preApproval:
+                  type: boolean
+                  description: Request pre-approval before campaign launch (default false)
+                adcpAgentIds:
+                  type: array
+                  description: Explicitly specify ADCP agent IDs (overrides auto-detection)
+                  items:
+                    type: string
       responses:
         '200':
           $ref: '#/components/responses/ToolResponse'
@@ -1212,8 +1252,8 @@ paths:
                   description: Sales agent endpoint URL
                 protocol:
                   type: string
-                  enum: [REST, MCP, A2A, CUSTOM]
-                  description: Protocol type
+                  enum: [MCP, A2A]
+                  description: Protocol for endpoint URL calls
                 authenticationType:
                   type: string
                   enum: [API_KEY, OAUTH, NO_AUTH]
@@ -2179,6 +2219,47 @@ components:
                 description: Error message
 
   schemas:
+    AssetUpload:
+      type: object
+      required: [name, contentType, data, assetType]
+      properties:
+        name:
+          type: string
+          description: '**REQUIRED**: Original filename'
+          example: logo.png
+        contentType:
+          type: string
+          description: '**REQUIRED**: MIME type'
+          example: image/png
+          enum:
+            - image/png
+            - image/jpeg
+            - image/jpg
+            - image/gif
+            - image/webp
+            - video/mp4
+            - video/webm
+            - audio/mp3
+            - audio/wav
+            - font/woff
+            - font/woff2
+        data:
+          type: string
+          format: byte
+          description: '**REQUIRED**: Base64-encoded file data (without data:image/png;base64, prefix)'
+          example: iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==
+        assetType:
+          type: string
+          enum: [image, video, audio, logo, font]
+          description: '**REQUIRED**: Type of asset. Must be one of: image, video, audio, logo, font'
+          example: image
+        tags:
+          type: array
+          items:
+            type: string
+          description: Optional tags for organization
+          example: [brand, header, 2024]
+
     Budget:
       type: object
       required: [total, currency]

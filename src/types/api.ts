@@ -3,333 +3,344 @@
  * Do not make direct changes to the file.
  */
 
-
 export interface paths {
-  "/asset-upload": {
+  '/asset-upload': {
     /**
      * Upload creative assets
-     * @description Upload creative assets (images, videos, audio) to Google Cloud Storage. Accepts base64-encoded file data and returns signed URLs (valid for 1 hour).
+     * @description Upload creative assets (images, videos, audio) to Google Cloud Storage.
+     *
+     * **REQUIRED FIELDS:**
+     * - `brandAgentId`: Brand agent ID for file organization
+     * - `assets`: Array of assets (each with name, contentType, data, assetType)
+     *
+     * Returns signed URLs valid for 1 hour.
      */
-    post: operations["asset_upload"];
+    post: operations['asset_upload'];
   };
-  "/asset-list": {
+  '/asset-list': {
     /**
      * List creative assets
      * @description List creative assets stored in Google Cloud Storage. Filter by customer and/or brand agent.
      */
-    post: operations["asset_list"];
+    post: operations['asset_list'];
   };
-  "/brand-agent-list": {
+  '/brand-agent-list': {
     /**
      * List brand agents
      * @description List all brand agents (advertiser accounts) for the authenticated customer. Authentication is automatic - no parameters required.
      */
-    post: operations["brand_agent_list"];
+    post: operations['brand_agent_list'];
   };
-  "/brand-agent-create": {
+  '/brand-agent-create': {
     /**
      * Create brand agent
      * @description Create a new brand agent (advertiser account). This creates the top-level container that will own campaigns, creatives, audiences, standards, and measurement sources.
      */
-    post: operations["brand_agent_create"];
+    post: operations['brand_agent_create'];
   };
-  "/brand-agent-get": {
+  '/brand-agent-get': {
     /**
      * Get brand agent
      * @description Get detailed information about a specific brand agent (advertiser account) by ID.
      */
-    post: operations["brand_agent_get"];
+    post: operations['brand_agent_get'];
   };
-  "/brand-agent-update": {
+  '/brand-agent-update': {
     /**
      * Update brand agent
      * @description Update the name or description of an existing brand agent (advertiser account). This only updates metadata - campaigns, creatives, and other resources remain unchanged.
      */
-    post: operations["brand_agent_update"];
+    post: operations['brand_agent_update'];
   };
-  "/brand-agent-delete": {
+  '/brand-agent-delete': {
     /**
      * Delete brand agent
      * @description ⚠️ DANGER - Permanently delete a brand agent (advertiser account) and ALL associated data including campaigns, creatives, audiences, standards, and measurement sources. This action cannot be undone.
      */
-    post: operations["brand_agent_delete"];
+    post: operations['brand_agent_delete'];
   };
-  "/brand-standards-list": {
+  '/brand-standards-list': {
     /**
      * List brand standards
      * @description List all brand safety standards. Brand standards define safety rules and filtering criteria using AI-powered prompts.
      */
-    post: operations["brand_standards_list"];
+    post: operations['brand_standards_list'];
   };
-  "/brand-standards-create": {
+  '/brand-standards-create': {
     /**
      * Create brand standard
      * @description Create a new brand safety standard for a brand. The standard uses AI to classify content and enforce brand safety rules based on a natural language prompt.
      */
-    post: operations["brand_standards_create"];
+    post: operations['brand_standards_create'];
   };
-  "/brand-standards-delete": {
+  '/brand-standards-delete': {
     /**
      * Delete brand standard
      * @description ⚠️ DANGER - Permanently delete a brand standard. This will remove all safety rules and models associated with this standard.
      */
-    post: operations["brand_standards_delete"];
+    post: operations['brand_standards_delete'];
   };
-  "/brand-story-list": {
+  '/brand-story-list': {
     /**
      * List brand stories
      * @description List all brand stories for a brand. Brand stories are AI-powered target audience definitions using natural language prompts.
      */
-    post: operations["brand_story_list"];
+    post: operations['brand_story_list'];
   };
-  "/brand-story-create": {
+  '/brand-story-create': {
     /**
      * Create brand story
      * @description Create a new brand story for a brand. Brand stories are AI-powered target audience definitions that use natural language prompts to define audience profiles, demographics, and behavioral characteristics.
      */
-    post: operations["brand_story_create"];
+    post: operations['brand_story_create'];
   };
-  "/brand-story-update": {
+  '/brand-story-update': {
     /**
      * Update brand story
      * @description Update the audience definition prompt of an existing brand story. This creates a new model version with the updated definition.
      */
-    post: operations["brand_story_update"];
+    post: operations['brand_story_update'];
   };
-  "/brand-story-delete": {
+  '/brand-story-delete': {
     /**
      * Delete brand story
      * @description ⚠️ DANGER - Permanently delete a brand story. This will remove all audience definitions and models associated with this story.
      */
-    post: operations["brand_story_delete"];
+    post: operations['brand_story_delete'];
   };
-  "/campaign-list": {
+  '/campaign-list': {
     /**
      * List campaigns
      * @description List campaigns for the authenticated customer, with optional filtering.
      */
-    post: operations["campaign_list"];
+    post: operations['campaign_list'];
   };
-  "/campaign-create": {
+  '/campaign-create': {
     /**
      * Create campaign
      * @description Create a new campaign with natural language prompt. The backend will parse the prompt to extract targeting, budget, and creative requirements.
      */
-    post: operations["campaign_create"];
+    post: operations['campaign_create'];
   };
-  "/campaign-update": {
+  '/campaign-update': {
     /**
      * Update campaign
      * @description Update an existing campaign's settings.
      */
-    post: operations["campaign_update"];
+    post: operations['campaign_update'];
   };
-  "/campaign-delete": {
+  '/campaign-delete': {
     /**
      * Delete campaign
      * @description ⚠️ DANGER - Permanently delete a campaign and all associated data.
      */
-    post: operations["campaign_delete"];
+    post: operations['campaign_delete'];
   };
-  "/campaign-get-summary": {
+  '/campaign-get-summary': {
     /**
      * Get campaign summary
      * @description Get detailed summary information about a specific campaign.
      */
-    post: operations["campaign_get_summary"];
+    post: operations['campaign_get_summary'];
   };
-  "/campaign-list-tactics": {
+  '/campaign-list-tactics': {
     /**
      * List campaign tactics
      * @description List all tactics associated with a specific campaign.
      */
-    post: operations["campaign_list_strategies"];
+    post: operations['campaign_list_strategies'];
   };
-  "/campaign-validate-brief": {
+  '/campaign-validate-brief': {
     /**
      * Validate campaign brief
      * @description Validate a campaign brief to ensure it contains all necessary information.
      */
-    post: operations["campaign_validate_brief"];
+    post: operations['campaign_validate_brief'];
   };
-  "/channel-list": {
+  '/channel-list': {
     /**
      * List channels
      * @description List all available advertising channels.
      */
-    post: operations["channel_list"];
+    post: operations['channel_list'];
   };
-  "/creative-list": {
+  '/creative-list': {
     /**
      * List creatives
      * @description List creatives for the authenticated customer, with optional filtering.
      */
-    post: operations["creative_list"];
+    post: operations['creative_list'];
   };
-  "/creative-create": {
+  '/creative-create': {
     /**
      * Create creative
      * @description Create a new creative with specified details. Supports various format sources (ADCP, CREATIVE_AGENT, PUBLISHER) and assembly methods.
+     *
+     * **Two workflows supported:**
+     * 1. **Separate upload**: Use asset_upload first, then reference asset IDs in content.assetIds
+     * 2. **Inline upload**: Upload assets directly in the `assets` array (automatically uploaded and linked)
      */
-    post: operations["creative_create"];
+    post: operations['creative_create'];
   };
-  "/creative-get": {
+  '/creative-get': {
     /**
      * Get creative
      * @description Get detailed information about a specific creative.
      */
-    post: operations["creative_get"];
+    post: operations['creative_get'];
   };
-  "/creative-update": {
+  '/creative-update': {
     /**
      * Update creative
      * @description Update an existing creative's settings.
      */
-    post: operations["creative_update"];
+    post: operations['creative_update'];
   };
-  "/creative-delete": {
+  '/creative-delete': {
     /**
      * Delete creative
      * @description ⚠️ DANGER - Permanently delete a creative.
      */
-    post: operations["creative_delete"];
+    post: operations['creative_delete'];
   };
-  "/creative-assign": {
+  '/creative-assign': {
     /**
      * Assign creative to campaign
      * @description Assign a creative to a campaign. Automatically discovers and syncs the creative to all sales agents
      * associated with the campaign via active media buys. Returns auto-sync results including which agents
      * received the creative and their approval status.
      */
-    post: operations["creative_assign"];
+    post: operations['creative_assign'];
   };
-  "/creative-sync-sales-agents": {
+  '/creative-sync-sales-agents': {
     /**
      * Sync creative with sales agents
-     * @description Sync a creative's formats and specifications with connected sales agents/publishers.
+     * @description Sync a creative to sales agents using smart auto-detection or manual specification.
+     * Features intelligent format matching and recent activity analysis (30-60 day lookback).
+     * Provides detailed sync status and actionable next steps.
      */
-    post: operations["creative_sync_sales_agents"];
+    post: operations['creative_sync_sales_agents'];
   };
-  "/sales-agent-list": {
+  '/sales-agent-list': {
     /**
      * List sales agents
      * @description List all registered sales agents (publishers) for the authenticated customer.
      */
-    post: operations["sales_agent_list"];
+    post: operations['sales_agent_list'];
   };
-  "/sales-agent-get": {
+  '/sales-agent-get': {
     /**
      * Get sales agent
      * @description Get detailed information about a specific sales agent.
      */
-    post: operations["sales_agent_get"];
+    post: operations['sales_agent_get'];
   };
-  "/sales-agent-register": {
+  '/sales-agent-register': {
     /**
      * Register sales agent
      * @description Register a new sales agent. Creates a row in the adcp_agent table. Organization ID is auto-detected from customer if not provided.
      */
-    post: operations["sales_agent_register"];
+    post: operations['sales_agent_register'];
   };
-  "/sales-agent-account-list": {
+  '/sales-agent-account-list': {
     /**
      * List accounts for a sales agent
      * @description List all accounts registered by your organization for a specific sales agent.
      */
-    post: operations["sales_agent_account_list"];
+    post: operations['sales_agent_account_list'];
   };
-  "/sales-agent-account-register": {
+  '/sales-agent-account-register': {
     /**
      * Register account for sales agent
      * @description Register your organization's account to an existing sales agent. This allows you to access the sales agent's inventory and services.
      */
-    post: operations["sales_agent_account_register"];
+    post: operations['sales_agent_account_register'];
   };
-  "/sales-agent-unregister": {
+  '/sales-agent-unregister': {
     /**
      * Unregister sales agent completely
      * @description Completely unregister a sales agent - deactivates ALL customer accounts and disables the agent itself. Only the owner can perform this action.
      */
-    post: operations["sales_agent_unregister"];
+    post: operations['sales_agent_unregister'];
   };
-  "/sales-agent-account-unregister": {
+  '/sales-agent-account-unregister': {
     /**
      * Unregister your account with a sales agent
      * @description Unregister (deactivate) your organization's account with a sales agent. This only deactivates your account but doesn't affect the sales agent or other customers' accounts.
      */
-    post: operations["sales_agent_account_unregister"];
+    post: operations['sales_agent_account_unregister'];
   };
-  "/sales-agent-update": {
+  '/sales-agent-update': {
     /**
      * Update sales agent
      * @description Update a sales agent's core settings like name, description, or endpoint URL. Only the owner can perform this action.
      */
-    post: operations["sales_agent_update"];
+    post: operations['sales_agent_update'];
   };
-  "/sales-agent-account-update": {
+  '/sales-agent-account-update': {
     /**
      * Update sales agent account authentication
      * @description Update your organization's account authentication configuration for a sales agent. This endpoint only handles authentication updates.
      */
-    post: operations["sales_agent_account_update"];
+    post: operations['sales_agent_account_update'];
   };
-  "/tactic-list": {
+  '/tactic-list': {
     /**
      * List tactics
      * @description List all media buying tactics for the authenticated customer.
      */
-    post: operations["strategy_list"];
+    post: operations['strategy_list'];
   };
-  "/tactic-create": {
+  '/tactic-create': {
     /**
      * Create tactic
      * @description Create a new AMP media buy tactic for executing media buys with publishers. Tactics are automatically configured as activityType=AMP and tacticType=INTELLIGENT_CAMPAIGNS. Use channel_list to see valid channel codes.
      */
-    post: operations["strategy_create"];
+    post: operations['strategy_create'];
   };
-  "/tactic-get": {
+  '/tactic-get': {
     /**
      * Get tactic
      * @description Get detailed information about a specific tactic.
      */
-    post: operations["strategy_get"];
+    post: operations['strategy_get'];
   };
-  "/tactic-update": {
+  '/tactic-update': {
     /**
      * Update tactic
      * @description Update an existing tactic's configuration.
      */
-    post: operations["strategy_update"];
+    post: operations['strategy_update'];
   };
-  "/tactic-delete": {
+  '/tactic-delete': {
     /**
      * Delete tactic
      * @description ⚠️ DANGER - Permanently delete a tactic.
      */
-    post: operations["strategy_delete"];
+    post: operations['strategy_delete'];
   };
-  "/tactic-link-campaign": {
+  '/tactic-link-campaign': {
     /**
      * Link campaign to tactic
      * @description Link a campaign to a tactic for budget and execution management.
      */
-    post: operations["strategy_link_campaign"];
+    post: operations['strategy_link_campaign'];
   };
-  "/tactic-unlink-campaign": {
+  '/tactic-unlink-campaign': {
     /**
      * Unlink campaign from tactic
      * @description Unlink a campaign from a tactic.
      */
-    post: operations["strategy_unlink_campaign"];
+    post: operations['strategy_unlink_campaign'];
   };
-  "/media-buy-list": {
+  '/media-buy-list': {
     /**
      * List media buys
      * @description List all media buys for the authenticated customer.
      */
-    post: operations["media_buy_list"];
+    post: operations['media_buy_list'];
   };
-  "/media-buy-create": {
+  '/media-buy-create': {
     /**
      * Create media buy
      * @description Create a new media buy to execute a tactic with one or more publisher products. A media buy represents the actual execution of a tactic with budget allocation and pricing.
@@ -338,84 +349,84 @@ export interface paths {
      *
      * **Budget Validation**: The sum of product budget allocations must not exceed the total media buy budget. The system will validate this at creation time and show warnings if budget is under-allocated.
      */
-    post: operations["media_buy_create"];
+    post: operations['media_buy_create'];
   };
-  "/media-buy-get": {
+  '/media-buy-get': {
     /**
      * Get media buy
      * @description Get detailed information about a specific media buy.
      */
-    post: operations["media_buy_get"];
+    post: operations['media_buy_get'];
   };
-  "/media-buy-update": {
+  '/media-buy-update': {
     /**
      * Update media buy
      * @description Update an existing media buy's configuration.
      */
-    post: operations["media_buy_update"];
+    post: operations['media_buy_update'];
   };
-  "/media-buy-delete": {
+  '/media-buy-delete': {
     /**
      * Delete media buy
      * @description ⚠️ DANGER - Permanently delete a media buy.
      */
-    post: operations["media_buy_delete"];
+    post: operations['media_buy_delete'];
   };
-  "/media-buy-execute": {
+  '/media-buy-execute': {
     /**
      * Execute media buy
      * @description Execute a media buy by deploying it to the publisher platform.
      */
-    post: operations["media_buy_execute"];
+    post: operations['media_buy_execute'];
   };
-  "/notifications-list": {
+  '/notifications-list': {
     /**
      * List notifications
      * @description List notifications for the authenticated user.
      */
-    post: operations["notifications_list"];
+    post: operations['notifications_list'];
   };
-  "/notifications-mark-read": {
+  '/notifications-mark-read': {
     /**
      * Mark notification as read
      * @description Mark a specific notification as read.
      */
-    post: operations["notifications_mark_read"];
+    post: operations['notifications_mark_read'];
   };
-  "/notifications-mark-acknowledged": {
+  '/notifications-mark-acknowledged': {
     /**
      * Mark notification as acknowledged
      * @description Mark a specific notification as acknowledged.
      */
-    post: operations["notifications_mark_acknowledged"];
+    post: operations['notifications_mark_acknowledged'];
   };
-  "/notifications-mark-all-read": {
+  '/notifications-mark-all-read': {
     /**
      * Mark all notifications as read
      * @description Mark all notifications as read for the authenticated user.
      */
-    post: operations["notifications_mark_all_read"];
+    post: operations['notifications_mark_all_read'];
   };
-  "/media-product-list": {
+  '/media-product-list': {
     /**
      * List media products
      * @description List available media products from publishers.
      */
-    post: operations["media_product_list"];
+    post: operations['media_product_list'];
   };
-  "/media-product-discover": {
+  '/media-product-discover': {
     /**
      * Discover media products
      * @description Discover new media products from connected publishers.
      */
-    post: operations["media_product_discover"];
+    post: operations['media_product_discover'];
   };
-  "/media-product-sync": {
+  '/media-product-sync': {
     /**
      * Sync media products
      * @description Synchronize media product inventory with publisher systems.
      */
-    post: operations["media_product_sync"];
+    post: operations['media_product_sync'];
   };
 }
 
@@ -423,6 +434,51 @@ export type webhooks = Record<string, never>;
 
 export interface components {
   schemas: {
+    AssetUpload: {
+      /**
+       * @description **REQUIRED**: Original filename
+       * @example logo.png
+       */
+      name: string;
+      /**
+       * @description **REQUIRED**: MIME type
+       * @example image/png
+       * @enum {string}
+       */
+      contentType:
+        | 'image/png'
+        | 'image/jpeg'
+        | 'image/jpg'
+        | 'image/gif'
+        | 'image/webp'
+        | 'video/mp4'
+        | 'video/webm'
+        | 'audio/mp3'
+        | 'audio/wav'
+        | 'font/woff'
+        | 'font/woff2';
+      /**
+       * Format: byte
+       * @description **REQUIRED**: Base64-encoded file data (without data:image/png;base64, prefix)
+       * @example iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==
+       */
+      data: string;
+      /**
+       * @description **REQUIRED**: Type of asset. Must be one of: image, video, audio, logo, font
+       * @example image
+       * @enum {string}
+       */
+      assetType: 'image' | 'video' | 'audio' | 'logo' | 'font';
+      /**
+       * @description Optional tags for organization
+       * @example [
+       *   "brand",
+       *   "header",
+       *   2024
+       * ]
+       */
+      tags?: string[];
+    };
     Budget: {
       /** @description Total budget amount in cents (e.g., 5000000 = $50,000) */
       total: number;
@@ -430,14 +486,14 @@ export interface components {
        * @description Budget currency
        * @enum {string}
        */
-      currency: "USD" | "EUR" | "GBP" | "CAD" | "AUD";
+      currency: 'USD' | 'EUR' | 'GBP' | 'CAD' | 'AUD';
       /** @description Daily spending limit in cents */
       dailyCap?: number;
       /**
        * @description Budget pacing tactic
        * @enum {string}
        */
-      pacing?: "even" | "accelerated" | "front_loaded";
+      pacing?: 'even' | 'accelerated' | 'front_loaded';
     };
     ScoringWeights: {
       /** @description Weight for affinity scoring (0-1) */
@@ -472,8 +528,8 @@ export interface components {
        * @description Campaign status
        * @enum {string}
        */
-      status: "active" | "paused" | "completed" | "draft";
-      budget?: components["schemas"]["Budget"];
+      status: 'active' | 'paused' | 'completed' | 'draft';
+      budget?: components['schemas']['Budget'];
       /** @description Associated synthetic audience IDs */
       audienceIds?: string[];
       /** @description Associated creative asset IDs */
@@ -492,7 +548,7 @@ export interface components {
        * @description Creative asset type
        * @enum {string}
        */
-      type: "video" | "image" | "native" | "html5";
+      type: 'video' | 'image' | 'native' | 'html5';
       /**
        * Format: uri
        * @description Creative asset URL
@@ -524,14 +580,22 @@ export interface components {
        * @description Activity type (always AMP)
        * @enum {string}
        */
-      activityType: "AMP";
+      activityType: 'AMP';
       /**
        * @description Tactic type
        * @enum {string}
        */
-      tacticType: "INTELLIGENT_CAMPAIGNS";
+      tacticType: 'INTELLIGENT_CAMPAIGNS';
       /** @description Target channels (official codes) */
-      channelCodes?: ("DIGITAL-AUDIO" | "DISPLAY-WEB" | "DISPLAY-APP" | "CTV-BVOD" | "OLV" | "DOOH" | "SOCIAL")[];
+      channelCodes?: (
+        | 'DIGITAL-AUDIO'
+        | 'DISPLAY-WEB'
+        | 'DISPLAY-APP'
+        | 'CTV-BVOD'
+        | 'OLV'
+        | 'DOOH'
+        | 'SOCIAL'
+      )[];
       /** @description Target countries */
       countryCodes?: string[];
       /** Format: date-time */
@@ -572,7 +636,7 @@ export interface components {
     /** @description Successful tool execution */
     ToolResponse: {
       content: {
-        "application/json": {
+        'application/json': {
           /** @description Whether the operation succeeded */
           success?: boolean;
           /** @description Human-readable response message */
@@ -585,7 +649,7 @@ export interface components {
     /** @description Bad request - invalid parameters */
     BadRequest: {
       content: {
-        "application/json": {
+        'application/json': {
           /** @description Error message */
           error?: string;
           /** @description Additional error details */
@@ -596,7 +660,7 @@ export interface components {
     /** @description Unauthorized - invalid or missing authentication */
     Unauthorized: {
       content: {
-        "application/json": {
+        'application/json': {
           /** @description Error message */
           error?: string;
         };
@@ -605,7 +669,7 @@ export interface components {
     /** @description Resource not found */
     NotFound: {
       content: {
-        "application/json": {
+        'application/json': {
           /** @description Error message */
           error?: string;
         };
@@ -614,7 +678,7 @@ export interface components {
     /** @description Internal server error */
     InternalError: {
       content: {
-        "application/json": {
+        'application/json': {
           /** @description Error message */
           error?: string;
         };
@@ -632,44 +696,35 @@ export type $defs = Record<string, never>;
 export type external = Record<string, never>;
 
 export interface operations {
-
   /**
    * Upload creative assets
-   * @description Upload creative assets (images, videos, audio) to Google Cloud Storage. Accepts base64-encoded file data and returns signed URLs (valid for 1 hour).
+   * @description Upload creative assets (images, videos, audio) to Google Cloud Storage.
+   *
+   * **REQUIRED FIELDS:**
+   * - `brandAgentId`: Brand agent ID for file organization
+   * - `assets`: Array of assets (each with name, contentType, data, assetType)
+   *
+   * Returns signed URLs valid for 1 hour.
    */
   asset_upload: {
     requestBody: {
       content: {
-        "application/json": {
-          /** @description Brand agent ID for file organization */
+        'application/json': {
+          /**
+           * @description **REQUIRED**: Brand agent ID for file organization (e.g., brand_agent_123)
+           * @example brand_agent_abc123
+           */
           brandAgentId: string;
-          /** @description Array of assets to upload */
-          assets: ({
-              /** @description Original filename */
-              name: string;
-              /** @description MIME type (e.g., image/png, video/mp4) */
-              contentType: string;
-              /**
-               * Format: byte
-               * @description Base64-encoded file data
-               */
-              data: string;
-              /**
-               * @description Type of asset
-               * @enum {string}
-               */
-              assetType: "image" | "video" | "audio" | "logo" | "font";
-              /** @description Optional tags for organization */
-              tags?: string[];
-            })[];
+          /** @description **REQUIRED**: Array of assets to upload. Each asset must have all required fields. */
+          assets: components['schemas']['AssetUpload'][];
         };
       };
     };
     responses: {
-      200: components["responses"]["ToolResponse"];
-      400: components["responses"]["BadRequest"];
-      401: components["responses"]["Unauthorized"];
-      500: components["responses"]["InternalError"];
+      200: components['responses']['ToolResponse'];
+      400: components['responses']['BadRequest'];
+      401: components['responses']['Unauthorized'];
+      500: components['responses']['InternalError'];
     };
   };
   /**
@@ -679,16 +734,16 @@ export interface operations {
   asset_list: {
     requestBody: {
       content: {
-        "application/json": {
+        'application/json': {
           /** @description Optional brand agent ID to filter assets */
           brandAgentId?: string;
         };
       };
     };
     responses: {
-      200: components["responses"]["ToolResponse"];
-      401: components["responses"]["Unauthorized"];
-      500: components["responses"]["InternalError"];
+      200: components['responses']['ToolResponse'];
+      401: components['responses']['Unauthorized'];
+      500: components['responses']['InternalError'];
     };
   };
   /**
@@ -698,13 +753,13 @@ export interface operations {
   brand_agent_list: {
     requestBody: {
       content: {
-        "application/json": Record<string, never>;
+        'application/json': Record<string, never>;
       };
     };
     responses: {
-      200: components["responses"]["ToolResponse"];
-      401: components["responses"]["Unauthorized"];
-      500: components["responses"]["InternalError"];
+      200: components['responses']['ToolResponse'];
+      401: components['responses']['Unauthorized'];
+      500: components['responses']['InternalError'];
     };
   };
   /**
@@ -714,7 +769,7 @@ export interface operations {
   brand_agent_create: {
     requestBody: {
       content: {
-        "application/json": {
+        'application/json': {
           /** @description Name of the brand agent (advertiser account) */
           name: string;
           /** @description Optional description of the brand agent */
@@ -729,10 +784,10 @@ export interface operations {
       };
     };
     responses: {
-      200: components["responses"]["ToolResponse"];
-      400: components["responses"]["BadRequest"];
-      401: components["responses"]["Unauthorized"];
-      500: components["responses"]["InternalError"];
+      200: components['responses']['ToolResponse'];
+      400: components['responses']['BadRequest'];
+      401: components['responses']['Unauthorized'];
+      500: components['responses']['InternalError'];
     };
   };
   /**
@@ -742,17 +797,17 @@ export interface operations {
   brand_agent_get: {
     requestBody: {
       content: {
-        "application/json": {
+        'application/json': {
           /** @description ID of the brand agent to retrieve */
           brandAgentId: string;
         };
       };
     };
     responses: {
-      200: components["responses"]["ToolResponse"];
-      401: components["responses"]["Unauthorized"];
-      404: components["responses"]["NotFound"];
-      500: components["responses"]["InternalError"];
+      200: components['responses']['ToolResponse'];
+      401: components['responses']['Unauthorized'];
+      404: components['responses']['NotFound'];
+      500: components['responses']['InternalError'];
     };
   };
   /**
@@ -762,7 +817,7 @@ export interface operations {
   brand_agent_update: {
     requestBody: {
       content: {
-        "application/json": {
+        'application/json': {
           /** @description ID of the brand agent to update */
           brandAgentId: string;
           /** @description New name for the brand agent */
@@ -775,11 +830,11 @@ export interface operations {
       };
     };
     responses: {
-      200: components["responses"]["ToolResponse"];
-      400: components["responses"]["BadRequest"];
-      401: components["responses"]["Unauthorized"];
-      404: components["responses"]["NotFound"];
-      500: components["responses"]["InternalError"];
+      200: components['responses']['ToolResponse'];
+      400: components['responses']['BadRequest'];
+      401: components['responses']['Unauthorized'];
+      404: components['responses']['NotFound'];
+      500: components['responses']['InternalError'];
     };
   };
   /**
@@ -789,17 +844,17 @@ export interface operations {
   brand_agent_delete: {
     requestBody: {
       content: {
-        "application/json": {
+        'application/json': {
           /** @description ID of the brand agent to delete permanently */
           brandAgentId: string;
         };
       };
     };
     responses: {
-      200: components["responses"]["ToolResponse"];
-      401: components["responses"]["Unauthorized"];
-      404: components["responses"]["NotFound"];
-      500: components["responses"]["InternalError"];
+      200: components['responses']['ToolResponse'];
+      401: components['responses']['Unauthorized'];
+      404: components['responses']['NotFound'];
+      500: components['responses']['InternalError'];
     };
   };
   /**
@@ -809,7 +864,7 @@ export interface operations {
   brand_standards_list: {
     requestBody: {
       content: {
-        "application/json": {
+        'application/json': {
           /** @description Optional filtering criteria */
           where?: {
             /** @description Filter by name */
@@ -818,9 +873,9 @@ export interface operations {
           /** @description Optional ordering for results */
           orderBy?: {
             /** @enum {string} */
-            id?: "asc" | "desc";
+            id?: 'asc' | 'desc';
             /** @enum {string} */
-            name?: "asc" | "desc";
+            name?: 'asc' | 'desc';
           };
           /** @description Number of records to return (pagination) */
           take?: number;
@@ -830,9 +885,9 @@ export interface operations {
       };
     };
     responses: {
-      200: components["responses"]["ToolResponse"];
-      401: components["responses"]["Unauthorized"];
-      500: components["responses"]["InternalError"];
+      200: components['responses']['ToolResponse'];
+      401: components['responses']['Unauthorized'];
+      500: components['responses']['InternalError'];
     };
   };
   /**
@@ -842,7 +897,7 @@ export interface operations {
   brand_standards_create: {
     requestBody: {
       content: {
-        "application/json": {
+        'application/json': {
           /** @description ID of the brand to create standards for */
           brandAgentId: string;
           /** @description Name for the brand standard (optional - defaults to "{Brand Name} Standards") */
@@ -863,10 +918,10 @@ export interface operations {
       };
     };
     responses: {
-      200: components["responses"]["ToolResponse"];
-      400: components["responses"]["BadRequest"];
-      401: components["responses"]["Unauthorized"];
-      500: components["responses"]["InternalError"];
+      200: components['responses']['ToolResponse'];
+      400: components['responses']['BadRequest'];
+      401: components['responses']['Unauthorized'];
+      500: components['responses']['InternalError'];
     };
   };
   /**
@@ -876,17 +931,17 @@ export interface operations {
   brand_standards_delete: {
     requestBody: {
       content: {
-        "application/json": {
+        'application/json': {
           /** @description ID of the brand standard to delete */
           brandStandardId: string;
         };
       };
     };
     responses: {
-      200: components["responses"]["ToolResponse"];
-      401: components["responses"]["Unauthorized"];
-      404: components["responses"]["NotFound"];
-      500: components["responses"]["InternalError"];
+      200: components['responses']['ToolResponse'];
+      401: components['responses']['Unauthorized'];
+      404: components['responses']['NotFound'];
+      500: components['responses']['InternalError'];
     };
   };
   /**
@@ -896,16 +951,16 @@ export interface operations {
   brand_story_list: {
     requestBody: {
       content: {
-        "application/json": {
+        'application/json': {
           /** @description ID of the brand to list brand stories for */
           brandAgentId: string;
         };
       };
     };
     responses: {
-      200: components["responses"]["ToolResponse"];
-      401: components["responses"]["Unauthorized"];
-      500: components["responses"]["InternalError"];
+      200: components['responses']['ToolResponse'];
+      401: components['responses']['Unauthorized'];
+      500: components['responses']['InternalError'];
     };
   };
   /**
@@ -915,7 +970,7 @@ export interface operations {
   brand_story_create: {
     requestBody: {
       content: {
-        "application/json": {
+        'application/json': {
           /** @description ID of the brand to create a brand story for */
           brandAgentId: string;
           /** @description Name for the brand story (e.g., 'Tech Enthusiasts', 'Luxury Shoppers') */
@@ -934,10 +989,10 @@ export interface operations {
       };
     };
     responses: {
-      200: components["responses"]["ToolResponse"];
-      400: components["responses"]["BadRequest"];
-      401: components["responses"]["Unauthorized"];
-      500: components["responses"]["InternalError"];
+      200: components['responses']['ToolResponse'];
+      400: components['responses']['BadRequest'];
+      401: components['responses']['Unauthorized'];
+      500: components['responses']['InternalError'];
     };
   };
   /**
@@ -947,7 +1002,7 @@ export interface operations {
   brand_story_update: {
     requestBody: {
       content: {
-        "application/json": {
+        'application/json': {
           /** @description ID of the brand story to update */
           brandStoryId: string;
           /** @description New audience definition prompt */
@@ -956,11 +1011,11 @@ export interface operations {
       };
     };
     responses: {
-      200: components["responses"]["ToolResponse"];
-      400: components["responses"]["BadRequest"];
-      401: components["responses"]["Unauthorized"];
-      404: components["responses"]["NotFound"];
-      500: components["responses"]["InternalError"];
+      200: components['responses']['ToolResponse'];
+      400: components['responses']['BadRequest'];
+      401: components['responses']['Unauthorized'];
+      404: components['responses']['NotFound'];
+      500: components['responses']['InternalError'];
     };
   };
   /**
@@ -970,17 +1025,17 @@ export interface operations {
   brand_story_delete: {
     requestBody: {
       content: {
-        "application/json": {
+        'application/json': {
           /** @description ID of the brand story to delete */
           brandStoryId: string;
         };
       };
     };
     responses: {
-      200: components["responses"]["ToolResponse"];
-      401: components["responses"]["Unauthorized"];
-      404: components["responses"]["NotFound"];
-      500: components["responses"]["InternalError"];
+      200: components['responses']['ToolResponse'];
+      401: components['responses']['Unauthorized'];
+      404: components['responses']['NotFound'];
+      500: components['responses']['InternalError'];
     };
   };
   /**
@@ -990,14 +1045,14 @@ export interface operations {
   campaign_list: {
     requestBody: {
       content: {
-        "application/json": {
+        'application/json': {
           /** @description Optional brand agent ID to filter campaigns */
           brandAgentId?: string;
           /**
            * @description Optional status filter
            * @enum {string}
            */
-          status?: "ACTIVE" | "PAUSED" | "ARCHIVED";
+          status?: 'ACTIVE' | 'PAUSED' | 'ARCHIVED';
           /** @description Maximum number of campaigns to return (default 100) */
           limit?: number;
           /** @description Number of campaigns to skip for pagination */
@@ -1006,9 +1061,9 @@ export interface operations {
       };
     };
     responses: {
-      200: components["responses"]["ToolResponse"];
-      401: components["responses"]["Unauthorized"];
-      500: components["responses"]["InternalError"];
+      200: components['responses']['ToolResponse'];
+      401: components['responses']['Unauthorized'];
+      500: components['responses']['InternalError'];
     };
   };
   /**
@@ -1018,14 +1073,14 @@ export interface operations {
   campaign_create: {
     requestBody: {
       content: {
-        "application/json": {
+        'application/json': {
           /** @description Optional brand agent ID that will own this campaign */
           brandAgentId?: string;
           /** @description Optional name for the campaign (auto-generated if not provided) */
           name?: string;
           /** @description Natural language description of campaign requirements (e.g., 'Create a video campaign targeting tech enthusiasts with $50k budget') */
           prompt: string;
-          budget?: components["schemas"]["Budget"];
+          budget?: components['schemas']['Budget'];
           /**
            * Format: date-time
            * @description Campaign start date (ISO 8601 format)
@@ -1036,7 +1091,7 @@ export interface operations {
            * @description Campaign end date (ISO 8601 format)
            */
           endDate?: string;
-          scoringWeights?: components["schemas"]["ScoringWeights"];
+          scoringWeights?: components['schemas']['ScoringWeights'];
           /** @description Days for outcome measurement window */
           outcomeScoreWindowDays?: number;
           /** @description Array of segment IDs to associate with campaign */
@@ -1047,20 +1102,25 @@ export interface operations {
            * @description Campaign visibility setting
            * @enum {string}
            */
-          visibility?: "PUBLIC" | "PRIVATE";
+          visibility?: 'PUBLIC' | 'PRIVATE';
+          /**
+           * @description How the campaign was created
+           * @enum {string}
+           */
+          creationType?: 'MANUAL' | 'AUTO_SYNC';
           /**
            * @description Initial campaign status
            * @enum {string}
            */
-          status?: "ACTIVE" | "PAUSED" | "ARCHIVED";
+          status?: 'ACTIVE' | 'PAUSED' | 'ARCHIVED';
         };
       };
     };
     responses: {
-      200: components["responses"]["ToolResponse"];
-      400: components["responses"]["BadRequest"];
-      401: components["responses"]["Unauthorized"];
-      500: components["responses"]["InternalError"];
+      200: components['responses']['ToolResponse'];
+      400: components['responses']['BadRequest'];
+      401: components['responses']['Unauthorized'];
+      500: components['responses']['InternalError'];
     };
   };
   /**
@@ -1070,7 +1130,7 @@ export interface operations {
   campaign_update: {
     requestBody: {
       content: {
-        "application/json": {
+        'application/json': {
           /** @description ID of the campaign to update */
           campaignId: string;
           /** @description New name for the campaign */
@@ -1081,8 +1141,8 @@ export interface operations {
            * @description New status for the campaign
            * @enum {string}
            */
-          status?: "ACTIVE" | "PAUSED" | "ARCHIVED";
-          budget?: components["schemas"]["Budget"];
+          status?: 'ACTIVE' | 'PAUSED' | 'ARCHIVED';
+          budget?: components['schemas']['Budget'];
           /**
            * Format: date-time
            * @description Campaign start date (ISO 8601 format)
@@ -1112,16 +1172,16 @@ export interface operations {
            * @description Campaign visibility setting
            * @enum {string}
            */
-          visibility?: "PUBLIC" | "PRIVATE";
+          visibility?: 'PUBLIC' | 'PRIVATE';
         };
       };
     };
     responses: {
-      200: components["responses"]["ToolResponse"];
-      400: components["responses"]["BadRequest"];
-      401: components["responses"]["Unauthorized"];
-      404: components["responses"]["NotFound"];
-      500: components["responses"]["InternalError"];
+      200: components['responses']['ToolResponse'];
+      400: components['responses']['BadRequest'];
+      401: components['responses']['Unauthorized'];
+      404: components['responses']['NotFound'];
+      500: components['responses']['InternalError'];
     };
   };
   /**
@@ -1131,7 +1191,7 @@ export interface operations {
   campaign_delete: {
     requestBody: {
       content: {
-        "application/json": {
+        'application/json': {
           /** @description ID of the campaign to delete */
           campaignId: string;
           /** @description If true, permanently delete the campaign. Default false (soft delete/archive) */
@@ -1140,10 +1200,10 @@ export interface operations {
       };
     };
     responses: {
-      200: components["responses"]["ToolResponse"];
-      401: components["responses"]["Unauthorized"];
-      404: components["responses"]["NotFound"];
-      500: components["responses"]["InternalError"];
+      200: components['responses']['ToolResponse'];
+      401: components['responses']['Unauthorized'];
+      404: components['responses']['NotFound'];
+      500: components['responses']['InternalError'];
     };
   };
   /**
@@ -1153,17 +1213,17 @@ export interface operations {
   campaign_get_summary: {
     requestBody: {
       content: {
-        "application/json": {
+        'application/json': {
           /** @description ID of the campaign to retrieve */
           campaignId: string;
         };
       };
     };
     responses: {
-      200: components["responses"]["ToolResponse"];
-      401: components["responses"]["Unauthorized"];
-      404: components["responses"]["NotFound"];
-      500: components["responses"]["InternalError"];
+      200: components['responses']['ToolResponse'];
+      401: components['responses']['Unauthorized'];
+      404: components['responses']['NotFound'];
+      500: components['responses']['InternalError'];
     };
   };
   /**
@@ -1173,7 +1233,7 @@ export interface operations {
   campaign_list_strategies: {
     requestBody: {
       content: {
-        "application/json": {
+        'application/json': {
           /** @description ID of the campaign to list tactics for */
           campaignId: string;
           /** @description Include archived tactics (defaults to false) */
@@ -1182,10 +1242,10 @@ export interface operations {
       };
     };
     responses: {
-      200: components["responses"]["ToolResponse"];
-      401: components["responses"]["Unauthorized"];
-      404: components["responses"]["NotFound"];
-      500: components["responses"]["InternalError"];
+      200: components['responses']['ToolResponse'];
+      401: components['responses']['Unauthorized'];
+      404: components['responses']['NotFound'];
+      500: components['responses']['InternalError'];
     };
   };
   /**
@@ -1195,7 +1255,7 @@ export interface operations {
   campaign_validate_brief: {
     requestBody: {
       content: {
-        "application/json": {
+        'application/json': {
           /** @description Campaign brief to validate */
           brief: string;
           /** @description Optional brand agent ID for context-aware validation */
@@ -1209,10 +1269,10 @@ export interface operations {
       };
     };
     responses: {
-      200: components["responses"]["ToolResponse"];
-      400: components["responses"]["BadRequest"];
-      401: components["responses"]["Unauthorized"];
-      500: components["responses"]["InternalError"];
+      200: components['responses']['ToolResponse'];
+      400: components['responses']['BadRequest'];
+      401: components['responses']['Unauthorized'];
+      500: components['responses']['InternalError'];
     };
   };
   /**
@@ -1222,13 +1282,13 @@ export interface operations {
   channel_list: {
     requestBody: {
       content: {
-        "application/json": Record<string, never>;
+        'application/json': Record<string, never>;
       };
     };
     responses: {
-      200: components["responses"]["ToolResponse"];
-      401: components["responses"]["Unauthorized"];
-      500: components["responses"]["InternalError"];
+      200: components['responses']['ToolResponse'];
+      401: components['responses']['Unauthorized'];
+      500: components['responses']['InternalError'];
     };
   };
   /**
@@ -1238,60 +1298,95 @@ export interface operations {
   creative_list: {
     requestBody: {
       content: {
-        "application/json": {
-          /** @description Optional brand agent ID to filter creatives */
-          brandAgentId?: string;
-          /** @description Optional campaign ID to filter creatives */
-          campaignId?: string;
+        'application/json': {
+          /** @description Optional internal brand agent ID to filter creatives */
+          brandAgentId?: number;
+          /** @description Optional internal campaign ID to filter creatives */
+          campaignId?: number;
         };
       };
     };
     responses: {
-      200: components["responses"]["ToolResponse"];
-      401: components["responses"]["Unauthorized"];
-      500: components["responses"]["InternalError"];
+      200: components['responses']['ToolResponse'];
+      401: components['responses']['Unauthorized'];
+      500: components['responses']['InternalError'];
     };
   };
   /**
    * Create creative
    * @description Create a new creative with specified details. Supports various format sources (ADCP, CREATIVE_AGENT, PUBLISHER) and assembly methods.
+   *
+   * **Two workflows supported:**
+   * 1. **Separate upload**: Use asset_upload first, then reference asset IDs in content.assetIds
+   * 2. **Inline upload**: Upload assets directly in the `assets` array (automatically uploaded and linked)
    */
   creative_create: {
     requestBody: {
       content: {
-        "application/json": {
-          /** @description Internal database ID of the brand agent that will own this creative */
+        'application/json': {
+          /**
+           * @description **REQUIRED**: Internal database ID of the brand agent that will own this creative
+           * @example 1
+           */
           brandAgentId: number;
           /** @description Optional internal database ID of the organization */
           organizationId?: number;
-          /** @description Name for the creative */
+          /**
+           * @description **REQUIRED**: Name for the creative
+           * @example Banner Ad 970x250
+           */
           name: string;
-          /** @description Optional description of the creative */
+          /**
+           * @description Optional description of the creative
+           * @example Display banner for homepage
+           */
           description?: string;
           /**
            * @description Format source type
+           * @example ADCP
            * @enum {string}
            */
-          formatSource?: "ADCP" | "CREATIVE_AGENT" | "PUBLISHER";
-          /** @description Format identifier (e.g., "video/mp4", "display/banner") */
+          formatSource?: 'ADCP' | 'CREATIVE_AGENT' | 'PUBLISHER';
+          /**
+           * @description Format identifier (e.g., "display_970x250", "video/mp4")
+           * @example display_970x250
+           */
           formatId?: string;
-          /** @description URL to the creative media file (video, image, etc.) */
+          /**
+           * @description URL to the creative media file (video, image, etc.)
+           * @example https://example.com/banner.png
+           */
           mediaUrl?: string;
-          /** @description Creative content as JSON. Can include assetIds (array of asset IDs from asset_upload), htmlSnippet, vastTag, etc. */
+          /** @description Optional: Upload assets inline with the creative. Automatically uploaded to GCS and linked. */
+          assets?: components['schemas']['AssetUpload'][];
+          /** @description Creative content as JSON. Can include assetIds (existing or from inline upload), htmlSnippet, vastTag, etc. */
           content?: {
-            /** @description Array of asset IDs uploaded via asset_upload tool */
+            /**
+             * @description Array of existing asset IDs (from previous asset_upload). Inline uploaded assets are automatically added to this.
+             * @example [
+             *   "asset_abc123",
+             *   "asset_def456"
+             * ]
+             */
             assetIds?: string[];
-            /** @description HTML5 creative snippet */
+            /**
+             * @description HTML5 creative snippet
+             * @example <div>Ad content</div>
+             */
             htmlSnippet?: string;
             /** @description VAST XML tag for video ads */
             vastTag?: string;
           };
           /**
            * @description Assembly method
+           * @example ACTIVATION
            * @enum {string}
            */
-          assemblyMethod?: "CREATIVE_AGENT" | "ACTIVATION" | "PUBLISHER";
-          /** @description Optional internal database ID of campaign to assign creative to */
+          assemblyMethod?: 'CREATIVE_AGENT' | 'ACTIVATION' | 'PUBLISHER';
+          /**
+           * @description Optional internal database ID of campaign to assign creative to
+           * @example 1
+           */
           campaignId?: number;
         };
       };
@@ -1300,26 +1395,28 @@ export interface operations {
       /** @description Creative created successfully */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             /** @example true */
             success?: boolean;
             /**
-             * @description Success message with creative details including creativeId (external string ID for use in media_buy_create/update) and internal ID
+             * @description Success message with creative details including creativeId (external string ID for use in media_buy_create/update), internal ID, and uploaded assets (if any)
              * @example ✅ **Creative Created Successfully!**
              *
              * **Creative ID:** newcreativevideo_xntthe4w (use this for media_buy_create/update)
              * **Internal ID:** 16
              * **Name:** My Creative
              * **Status:** PENDING
+             * **Assets Uploaded:** 2
+             * **Asset IDs:** asset_abc123, asset_def456
              * **Created:** 2025-10-14T00:00:00.000Z
              */
             message?: string;
           };
         };
       };
-      400: components["responses"]["BadRequest"];
-      401: components["responses"]["Unauthorized"];
-      500: components["responses"]["InternalError"];
+      400: components['responses']['BadRequest'];
+      401: components['responses']['Unauthorized'];
+      500: components['responses']['InternalError'];
     };
   };
   /**
@@ -1329,17 +1426,17 @@ export interface operations {
   creative_get: {
     requestBody: {
       content: {
-        "application/json": {
+        'application/json': {
           /** @description Internal database ID of the creative to retrieve */
           creativeId: number;
         };
       };
     };
     responses: {
-      200: components["responses"]["ToolResponse"];
-      401: components["responses"]["Unauthorized"];
-      404: components["responses"]["NotFound"];
-      500: components["responses"]["InternalError"];
+      200: components['responses']['ToolResponse'];
+      401: components['responses']['Unauthorized'];
+      404: components['responses']['NotFound'];
+      500: components['responses']['InternalError'];
     };
   };
   /**
@@ -1349,7 +1446,7 @@ export interface operations {
   creative_update: {
     requestBody: {
       content: {
-        "application/json": {
+        'application/json': {
           /** @description Internal database ID of the creative to update */
           creativeId: number;
           /** @description New name for the creative */
@@ -1360,11 +1457,11 @@ export interface operations {
       };
     };
     responses: {
-      200: components["responses"]["ToolResponse"];
-      400: components["responses"]["BadRequest"];
-      401: components["responses"]["Unauthorized"];
-      404: components["responses"]["NotFound"];
-      500: components["responses"]["InternalError"];
+      200: components['responses']['ToolResponse'];
+      400: components['responses']['BadRequest'];
+      401: components['responses']['Unauthorized'];
+      404: components['responses']['NotFound'];
+      500: components['responses']['InternalError'];
     };
   };
   /**
@@ -1374,17 +1471,17 @@ export interface operations {
   creative_delete: {
     requestBody: {
       content: {
-        "application/json": {
+        'application/json': {
           /** @description Internal database ID of the creative to delete */
           creativeId: number;
         };
       };
     };
     responses: {
-      200: components["responses"]["ToolResponse"];
-      401: components["responses"]["Unauthorized"];
-      404: components["responses"]["NotFound"];
-      500: components["responses"]["InternalError"];
+      200: components['responses']['ToolResponse'];
+      401: components['responses']['Unauthorized'];
+      404: components['responses']['NotFound'];
+      500: components['responses']['InternalError'];
     };
   };
   /**
@@ -1396,7 +1493,7 @@ export interface operations {
   creative_assign: {
     requestBody: {
       content: {
-        "application/json": {
+        'application/json': {
           /** @description Internal database ID of the creative to assign */
           creativeId: number;
           /** @description Internal database ID of the campaign to assign creative to */
@@ -1408,43 +1505,58 @@ export interface operations {
       /** @description Creative assigned successfully with auto-sync results */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             content?: {
-                /** @example text */
-                type?: string;
-                /**
-                 * @description Summary of creative assignment including auto-sync results.
-                 * Shows which sales agents received the creative and their approval status.
-                 */
-                text?: string;
-              }[];
+              /** @example text */
+              type?: string;
+              /**
+               * @description Summary of creative assignment including auto-sync results.
+               * Shows which sales agents received the creative and their approval status.
+               */
+              text?: string;
+            }[];
           };
         };
       };
-      400: components["responses"]["BadRequest"];
-      401: components["responses"]["Unauthorized"];
-      404: components["responses"]["NotFound"];
-      500: components["responses"]["InternalError"];
+      400: components['responses']['BadRequest'];
+      401: components['responses']['Unauthorized'];
+      404: components['responses']['NotFound'];
+      500: components['responses']['InternalError'];
     };
   };
   /**
    * Sync creative with sales agents
-   * @description Sync a creative's formats and specifications with connected sales agents/publishers.
+   * @description Sync a creative to sales agents using smart auto-detection or manual specification.
+   * Features intelligent format matching and recent activity analysis (30-60 day lookback).
+   * Provides detailed sync status and actionable next steps.
    */
   creative_sync_sales_agents: {
     requestBody: {
       content: {
-        "application/json": {
+        'application/json': {
           /** @description Internal database ID of the creative to sync */
           creativeId: number;
+          /** @description Smart auto-detection settings (default behavior) */
+          autoDetect?: {
+            /** @description Look at tactics from past N days (default 30, max 90) */
+            daysBack?: number;
+            /** @description Include agents from active campaigns (default true) */
+            includeActive?: boolean;
+          };
+          /** @description Internal database ID - sync to sales agents used by this campaign's tactics only */
+          campaignId?: number;
+          /** @description Request pre-approval before campaign launch (default false) */
+          preApproval?: boolean;
+          /** @description Explicitly specify ADCP agent IDs (overrides auto-detection) */
+          adcpAgentIds?: string[];
         };
       };
     };
     responses: {
-      200: components["responses"]["ToolResponse"];
-      401: components["responses"]["Unauthorized"];
-      404: components["responses"]["NotFound"];
-      500: components["responses"]["InternalError"];
+      200: components['responses']['ToolResponse'];
+      401: components['responses']['Unauthorized'];
+      404: components['responses']['NotFound'];
+      500: components['responses']['InternalError'];
     };
   };
   /**
@@ -1454,13 +1566,13 @@ export interface operations {
   sales_agent_list: {
     requestBody: {
       content: {
-        "application/json": Record<string, never>;
+        'application/json': Record<string, never>;
       };
     };
     responses: {
-      200: components["responses"]["ToolResponse"];
-      401: components["responses"]["Unauthorized"];
-      500: components["responses"]["InternalError"];
+      200: components['responses']['ToolResponse'];
+      401: components['responses']['Unauthorized'];
+      500: components['responses']['InternalError'];
     };
   };
   /**
@@ -1470,17 +1582,17 @@ export interface operations {
   sales_agent_get: {
     requestBody: {
       content: {
-        "application/json": {
+        'application/json': {
           /** @description ID of the sales agent to retrieve */
           salesAgentId: string;
         };
       };
     };
     responses: {
-      200: components["responses"]["ToolResponse"];
-      401: components["responses"]["Unauthorized"];
-      404: components["responses"]["NotFound"];
-      500: components["responses"]["InternalError"];
+      200: components['responses']['ToolResponse'];
+      401: components['responses']['Unauthorized'];
+      404: components['responses']['NotFound'];
+      500: components['responses']['InternalError'];
     };
   };
   /**
@@ -1490,21 +1602,21 @@ export interface operations {
   sales_agent_register: {
     requestBody: {
       content: {
-        "application/json": {
+        'application/json': {
           /** @description Sales agent name */
           name: string;
           /** @description Sales agent endpoint URL */
           endpointUrl: string;
           /**
-           * @description Protocol type
+           * @description Protocol for endpoint URL calls
            * @enum {string}
            */
-          protocol: "REST" | "MCP" | "A2A" | "CUSTOM";
+          protocol: 'MCP' | 'A2A';
           /**
            * @description Authentication type
            * @enum {string}
            */
-          authenticationType: "API_KEY" | "OAUTH" | "NO_AUTH";
+          authenticationType: 'API_KEY' | 'OAUTH' | 'NO_AUTH';
           /** @description Sales agent description (optional) */
           description?: string;
           /** @description Organization ID (optional - auto-detected from customer if not provided) */
@@ -1515,10 +1627,10 @@ export interface operations {
       };
     };
     responses: {
-      200: components["responses"]["ToolResponse"];
-      400: components["responses"]["BadRequest"];
-      401: components["responses"]["Unauthorized"];
-      500: components["responses"]["InternalError"];
+      200: components['responses']['ToolResponse'];
+      400: components['responses']['BadRequest'];
+      401: components['responses']['Unauthorized'];
+      500: components['responses']['InternalError'];
     };
   };
   /**
@@ -1528,17 +1640,17 @@ export interface operations {
   sales_agent_account_list: {
     requestBody: {
       content: {
-        "application/json": {
+        'application/json': {
           /** @description ID of the sales agent */
           salesAgentId: string;
         };
       };
     };
     responses: {
-      200: components["responses"]["ToolResponse"];
-      401: components["responses"]["Unauthorized"];
-      404: components["responses"]["NotFound"];
-      500: components["responses"]["InternalError"];
+      200: components['responses']['ToolResponse'];
+      401: components['responses']['Unauthorized'];
+      404: components['responses']['NotFound'];
+      500: components['responses']['InternalError'];
     };
   };
   /**
@@ -1548,7 +1660,7 @@ export interface operations {
   sales_agent_account_register: {
     requestBody: {
       content: {
-        "application/json": {
+        'application/json': {
           /** @description Sales agent ID */
           salesAgentId: string;
           /** @description Account identifier */
@@ -1559,10 +1671,10 @@ export interface operations {
       };
     };
     responses: {
-      200: components["responses"]["ToolResponse"];
-      400: components["responses"]["BadRequest"];
-      401: components["responses"]["Unauthorized"];
-      500: components["responses"]["InternalError"];
+      200: components['responses']['ToolResponse'];
+      400: components['responses']['BadRequest'];
+      401: components['responses']['Unauthorized'];
+      500: components['responses']['InternalError'];
     };
   };
   /**
@@ -1572,7 +1684,7 @@ export interface operations {
   sales_agent_unregister: {
     requestBody: {
       content: {
-        "application/json": {
+        'application/json': {
           /** @description ID of the sales agent to unregister */
           salesAgentId: string;
           /** @description Must be true to confirm this destructive operation */
@@ -1581,10 +1693,10 @@ export interface operations {
       };
     };
     responses: {
-      200: components["responses"]["ToolResponse"];
-      401: components["responses"]["Unauthorized"];
-      404: components["responses"]["NotFound"];
-      500: components["responses"]["InternalError"];
+      200: components['responses']['ToolResponse'];
+      401: components['responses']['Unauthorized'];
+      404: components['responses']['NotFound'];
+      500: components['responses']['InternalError'];
     };
   };
   /**
@@ -1594,7 +1706,7 @@ export interface operations {
   sales_agent_account_unregister: {
     requestBody: {
       content: {
-        "application/json": {
+        'application/json': {
           /** @description ID of the sales agent to unregister your account from */
           salesAgentId: string;
           /** @description Must be true to confirm this destructive operation */
@@ -1603,10 +1715,10 @@ export interface operations {
       };
     };
     responses: {
-      200: components["responses"]["ToolResponse"];
-      401: components["responses"]["Unauthorized"];
-      404: components["responses"]["NotFound"];
-      500: components["responses"]["InternalError"];
+      200: components['responses']['ToolResponse'];
+      401: components['responses']['Unauthorized'];
+      404: components['responses']['NotFound'];
+      500: components['responses']['InternalError'];
     };
   };
   /**
@@ -1616,7 +1728,7 @@ export interface operations {
   sales_agent_update: {
     requestBody: {
       content: {
-        "application/json": {
+        'application/json': {
           /** @description ID of the sales agent to update */
           salesAgentId: string;
           /** @description New name */
@@ -1629,23 +1741,23 @@ export interface operations {
            * @description New protocol
            * @enum {string}
            */
-          protocol?: "REST" | "MCP" | "A2A" | "CUSTOM";
+          protocol?: 'REST' | 'MCP' | 'A2A' | 'CUSTOM';
           /**
            * @description New authentication type
            * @enum {string}
            */
-          authenticationType?: "API_KEY" | "OAUTH" | "NO_AUTH";
+          authenticationType?: 'API_KEY' | 'OAUTH' | 'NO_AUTH';
           /** @description Authentication configuration for the sales agent */
           authConfig?: Record<string, never>;
         };
       };
     };
     responses: {
-      200: components["responses"]["ToolResponse"];
-      400: components["responses"]["BadRequest"];
-      401: components["responses"]["Unauthorized"];
-      404: components["responses"]["NotFound"];
-      500: components["responses"]["InternalError"];
+      200: components['responses']['ToolResponse'];
+      400: components['responses']['BadRequest'];
+      401: components['responses']['Unauthorized'];
+      404: components['responses']['NotFound'];
+      500: components['responses']['InternalError'];
     };
   };
   /**
@@ -1655,7 +1767,7 @@ export interface operations {
   sales_agent_account_update: {
     requestBody: {
       content: {
-        "application/json": {
+        'application/json': {
           /** @description ID of the sales agent */
           salesAgentId: string;
           /** @description Account identifier to update */
@@ -1666,11 +1778,11 @@ export interface operations {
       };
     };
     responses: {
-      200: components["responses"]["ToolResponse"];
-      400: components["responses"]["BadRequest"];
-      401: components["responses"]["Unauthorized"];
-      404: components["responses"]["NotFound"];
-      500: components["responses"]["InternalError"];
+      200: components['responses']['ToolResponse'];
+      400: components['responses']['BadRequest'];
+      401: components['responses']['Unauthorized'];
+      404: components['responses']['NotFound'];
+      500: components['responses']['InternalError'];
     };
   };
   /**
@@ -1680,7 +1792,7 @@ export interface operations {
   strategy_list: {
     requestBody: {
       content: {
-        "application/json": {
+        'application/json': {
           /** @description Optional campaign ID to filter tactics */
           campaignId?: string;
           /** @description Include archived tactics (defaults to false) */
@@ -1689,9 +1801,9 @@ export interface operations {
       };
     };
     responses: {
-      200: components["responses"]["ToolResponse"];
-      401: components["responses"]["Unauthorized"];
-      500: components["responses"]["InternalError"];
+      200: components['responses']['ToolResponse'];
+      401: components['responses']['Unauthorized'];
+      500: components['responses']['InternalError'];
     };
   };
   /**
@@ -1701,7 +1813,7 @@ export interface operations {
   strategy_create: {
     requestBody: {
       content: {
-        "application/json": {
+        'application/json': {
           /** @description Name of the tactic */
           name: string;
           /** @description Campaign ID to link this tactic to (required) */
@@ -1709,17 +1821,25 @@ export interface operations {
           /** @description Optional tactical brief or prompt for this tactic */
           prompt?: string;
           /** @description Valid channel codes to target (also accepts friendly aliases like audio, web, app, ctv, video which are automatically mapped) */
-          channelCodes?: ("DIGITAL-AUDIO" | "DISPLAY-WEB" | "DISPLAY-APP" | "CTV-BVOD" | "OLV" | "DOOH" | "SOCIAL")[];
+          channelCodes?: (
+            | 'DIGITAL-AUDIO'
+            | 'DISPLAY-WEB'
+            | 'DISPLAY-APP'
+            | 'CTV-BVOD'
+            | 'OLV'
+            | 'DOOH'
+            | 'SOCIAL'
+          )[];
           /** @description Country codes to target (2-digit ISO codes) */
           countryCodes?: string[];
         };
       };
     };
     responses: {
-      200: components["responses"]["ToolResponse"];
-      400: components["responses"]["BadRequest"];
-      401: components["responses"]["Unauthorized"];
-      500: components["responses"]["InternalError"];
+      200: components['responses']['ToolResponse'];
+      400: components['responses']['BadRequest'];
+      401: components['responses']['Unauthorized'];
+      500: components['responses']['InternalError'];
     };
   };
   /**
@@ -1729,17 +1849,17 @@ export interface operations {
   strategy_get: {
     requestBody: {
       content: {
-        "application/json": {
+        'application/json': {
           /** @description ID of the tactic to retrieve */
           tacticId: string;
         };
       };
     };
     responses: {
-      200: components["responses"]["ToolResponse"];
-      401: components["responses"]["Unauthorized"];
-      404: components["responses"]["NotFound"];
-      500: components["responses"]["InternalError"];
+      200: components['responses']['ToolResponse'];
+      401: components['responses']['Unauthorized'];
+      404: components['responses']['NotFound'];
+      500: components['responses']['InternalError'];
     };
   };
   /**
@@ -1749,7 +1869,7 @@ export interface operations {
   strategy_update: {
     requestBody: {
       content: {
-        "application/json": {
+        'application/json': {
           /** @description ID of the tactic to update */
           tacticId: string;
           /** @description New name for the tactic */
@@ -1757,18 +1877,26 @@ export interface operations {
           /** @description New tactical brief */
           prompt?: string;
           /** @description Updated channel codes (also accepts friendly aliases like audio, web, app, ctv, video) */
-          channelCodes?: ("DIGITAL-AUDIO" | "DISPLAY-WEB" | "DISPLAY-APP" | "CTV-BVOD" | "OLV" | "DOOH" | "SOCIAL")[];
+          channelCodes?: (
+            | 'DIGITAL-AUDIO'
+            | 'DISPLAY-WEB'
+            | 'DISPLAY-APP'
+            | 'CTV-BVOD'
+            | 'OLV'
+            | 'DOOH'
+            | 'SOCIAL'
+          )[];
           /** @description Updated country codes */
           countryCodes?: string[];
         };
       };
     };
     responses: {
-      200: components["responses"]["ToolResponse"];
-      400: components["responses"]["BadRequest"];
-      401: components["responses"]["Unauthorized"];
-      404: components["responses"]["NotFound"];
-      500: components["responses"]["InternalError"];
+      200: components['responses']['ToolResponse'];
+      400: components['responses']['BadRequest'];
+      401: components['responses']['Unauthorized'];
+      404: components['responses']['NotFound'];
+      500: components['responses']['InternalError'];
     };
   };
   /**
@@ -1778,17 +1906,17 @@ export interface operations {
   strategy_delete: {
     requestBody: {
       content: {
-        "application/json": {
+        'application/json': {
           /** @description ID of the tactic to delete */
           tacticId: string;
         };
       };
     };
     responses: {
-      200: components["responses"]["ToolResponse"];
-      401: components["responses"]["Unauthorized"];
-      404: components["responses"]["NotFound"];
-      500: components["responses"]["InternalError"];
+      200: components['responses']['ToolResponse'];
+      401: components['responses']['Unauthorized'];
+      404: components['responses']['NotFound'];
+      500: components['responses']['InternalError'];
     };
   };
   /**
@@ -1798,7 +1926,7 @@ export interface operations {
   strategy_link_campaign: {
     requestBody: {
       content: {
-        "application/json": {
+        'application/json': {
           /** @description ID of the tactic */
           tacticId: string;
           /** @description ID of the campaign to link */
@@ -1807,11 +1935,11 @@ export interface operations {
       };
     };
     responses: {
-      200: components["responses"]["ToolResponse"];
-      400: components["responses"]["BadRequest"];
-      401: components["responses"]["Unauthorized"];
-      404: components["responses"]["NotFound"];
-      500: components["responses"]["InternalError"];
+      200: components['responses']['ToolResponse'];
+      400: components['responses']['BadRequest'];
+      401: components['responses']['Unauthorized'];
+      404: components['responses']['NotFound'];
+      500: components['responses']['InternalError'];
     };
   };
   /**
@@ -1821,7 +1949,7 @@ export interface operations {
   strategy_unlink_campaign: {
     requestBody: {
       content: {
-        "application/json": {
+        'application/json': {
           /** @description ID of the tactic */
           tacticId: string;
           /** @description ID of the campaign to unlink */
@@ -1830,11 +1958,11 @@ export interface operations {
       };
     };
     responses: {
-      200: components["responses"]["ToolResponse"];
-      400: components["responses"]["BadRequest"];
-      401: components["responses"]["Unauthorized"];
-      404: components["responses"]["NotFound"];
-      500: components["responses"]["InternalError"];
+      200: components['responses']['ToolResponse'];
+      400: components['responses']['BadRequest'];
+      401: components['responses']['Unauthorized'];
+      404: components['responses']['NotFound'];
+      500: components['responses']['InternalError'];
     };
   };
   /**
@@ -1844,7 +1972,7 @@ export interface operations {
   media_buy_list: {
     requestBody: {
       content: {
-        "application/json": {
+        'application/json': {
           /** @description Optional tactic ID to filter media buys */
           tacticId?: string;
           /** @description Optional campaign ID to filter media buys */
@@ -1855,9 +1983,9 @@ export interface operations {
       };
     };
     responses: {
-      200: components["responses"]["ToolResponse"];
-      401: components["responses"]["Unauthorized"];
-      500: components["responses"]["InternalError"];
+      200: components['responses']['ToolResponse'];
+      401: components['responses']['Unauthorized'];
+      500: components['responses']['InternalError'];
     };
   };
   /**
@@ -1871,7 +1999,7 @@ export interface operations {
   media_buy_create: {
     requestBody: {
       content: {
-        "application/json": {
+        'application/json': {
           /** @description ID of the tactic to execute */
           tacticId: string;
           /** @description Name of the media buy */
@@ -1880,21 +2008,21 @@ export interface operations {
           description?: string;
           /** @description Array of products to include in this media buy. At least one product is required. Each product will be validated with its sales agent. */
           products: {
-              /** @description Media product ID from publisher (will be validated with sales agent) */
-              mediaProductId: string;
-              /** @description Sales agent ID for this product */
-              salesAgentId: string;
-              /** @description Budget allocated to this specific product (optional, must not exceed total budget when summed across all products) */
-              budgetAmount?: number;
-              /** @description Currency for this product's budget (defaults to media buy currency) */
-              budgetCurrency?: string;
-              /** @description Base CPM price for this product */
-              pricingCpm?: number;
-              /** @description Additional signal cost for this product */
-              pricingSignalCost?: number;
-              /** @description Optional display order for organizing products */
-              displayOrder?: number;
-            }[];
+            /** @description Media product ID from publisher (will be validated with sales agent) */
+            mediaProductId: string;
+            /** @description Sales agent ID for this product */
+            salesAgentId: string;
+            /** @description Budget allocated to this specific product (optional, must not exceed total budget when summed across all products) */
+            budgetAmount?: number;
+            /** @description Currency for this product's budget (defaults to media buy currency) */
+            budgetCurrency?: string;
+            /** @description Base CPM price for this product */
+            pricingCpm?: number;
+            /** @description Additional signal cost for this product */
+            pricingSignalCost?: number;
+            /** @description Optional display order for organizing products */
+            displayOrder?: number;
+          }[];
           budget: {
             /** @description Total budget amount for this media buy */
             amount: number;
@@ -1906,7 +2034,7 @@ export interface operations {
              * @description Budget pacing tactic (defaults to even)
              * @enum {string}
              */
-            pacing?: "asap" | "even" | "front_loaded";
+            pacing?: 'asap' | 'even' | 'front_loaded';
           };
           /** @description Optional array of creative IDs (database IDs) to assign to this media buy. Creatives must be assigned to the campaign associated with this media buy's tactic. */
           creativeIds?: string[];
@@ -1914,10 +2042,10 @@ export interface operations {
       };
     };
     responses: {
-      200: components["responses"]["ToolResponse"];
-      400: components["responses"]["BadRequest"];
-      401: components["responses"]["Unauthorized"];
-      500: components["responses"]["InternalError"];
+      200: components['responses']['ToolResponse'];
+      400: components['responses']['BadRequest'];
+      401: components['responses']['Unauthorized'];
+      500: components['responses']['InternalError'];
     };
   };
   /**
@@ -1927,17 +2055,17 @@ export interface operations {
   media_buy_get: {
     requestBody: {
       content: {
-        "application/json": {
+        'application/json': {
           /** @description ID of the media buy to retrieve */
           mediaBuyId: string;
         };
       };
     };
     responses: {
-      200: components["responses"]["ToolResponse"];
-      401: components["responses"]["Unauthorized"];
-      404: components["responses"]["NotFound"];
-      500: components["responses"]["InternalError"];
+      200: components['responses']['ToolResponse'];
+      401: components['responses']['Unauthorized'];
+      404: components['responses']['NotFound'];
+      500: components['responses']['InternalError'];
     };
   };
   /**
@@ -1947,7 +2075,7 @@ export interface operations {
   media_buy_update: {
     requestBody: {
       content: {
-        "application/json": {
+        'application/json': {
           /** @description ID of the media buy to update */
           mediaBuyId: string;
           /** @description New name */
@@ -1956,7 +2084,7 @@ export interface operations {
             amount?: number;
             dailyCap?: number;
             /** @enum {string} */
-            pacing?: "asap" | "even" | "front_loaded";
+            pacing?: 'asap' | 'even' | 'front_loaded';
           };
           /** @description New CPM price */
           cpm?: number;
@@ -1966,11 +2094,11 @@ export interface operations {
       };
     };
     responses: {
-      200: components["responses"]["ToolResponse"];
-      400: components["responses"]["BadRequest"];
-      401: components["responses"]["Unauthorized"];
-      404: components["responses"]["NotFound"];
-      500: components["responses"]["InternalError"];
+      200: components['responses']['ToolResponse'];
+      400: components['responses']['BadRequest'];
+      401: components['responses']['Unauthorized'];
+      404: components['responses']['NotFound'];
+      500: components['responses']['InternalError'];
     };
   };
   /**
@@ -1980,17 +2108,17 @@ export interface operations {
   media_buy_delete: {
     requestBody: {
       content: {
-        "application/json": {
+        'application/json': {
           /** @description ID of the media buy to delete */
           mediaBuyId: string;
         };
       };
     };
     responses: {
-      200: components["responses"]["ToolResponse"];
-      401: components["responses"]["Unauthorized"];
-      404: components["responses"]["NotFound"];
-      500: components["responses"]["InternalError"];
+      200: components['responses']['ToolResponse'];
+      401: components['responses']['Unauthorized'];
+      404: components['responses']['NotFound'];
+      500: components['responses']['InternalError'];
     };
   };
   /**
@@ -2000,18 +2128,18 @@ export interface operations {
   media_buy_execute: {
     requestBody: {
       content: {
-        "application/json": {
+        'application/json': {
           /** @description ID of the media buy to execute */
           mediaBuyId: string;
         };
       };
     };
     responses: {
-      200: components["responses"]["ToolResponse"];
-      400: components["responses"]["BadRequest"];
-      401: components["responses"]["Unauthorized"];
-      404: components["responses"]["NotFound"];
-      500: components["responses"]["InternalError"];
+      200: components['responses']['ToolResponse'];
+      400: components['responses']['BadRequest'];
+      401: components['responses']['Unauthorized'];
+      404: components['responses']['NotFound'];
+      500: components['responses']['InternalError'];
     };
   };
   /**
@@ -2021,7 +2149,7 @@ export interface operations {
   notifications_list: {
     requestBody: {
       content: {
-        "application/json": {
+        'application/json': {
           /** @description Filter to only unread notifications */
           unreadOnly?: boolean;
           /** @description Maximum number of notifications to return */
@@ -2030,9 +2158,9 @@ export interface operations {
       };
     };
     responses: {
-      200: components["responses"]["ToolResponse"];
-      401: components["responses"]["Unauthorized"];
-      500: components["responses"]["InternalError"];
+      200: components['responses']['ToolResponse'];
+      401: components['responses']['Unauthorized'];
+      500: components['responses']['InternalError'];
     };
   };
   /**
@@ -2042,17 +2170,17 @@ export interface operations {
   notifications_mark_read: {
     requestBody: {
       content: {
-        "application/json": {
+        'application/json': {
           /** @description ID of the notification to mark as read */
           notificationId: string;
         };
       };
     };
     responses: {
-      200: components["responses"]["ToolResponse"];
-      401: components["responses"]["Unauthorized"];
-      404: components["responses"]["NotFound"];
-      500: components["responses"]["InternalError"];
+      200: components['responses']['ToolResponse'];
+      401: components['responses']['Unauthorized'];
+      404: components['responses']['NotFound'];
+      500: components['responses']['InternalError'];
     };
   };
   /**
@@ -2062,17 +2190,17 @@ export interface operations {
   notifications_mark_acknowledged: {
     requestBody: {
       content: {
-        "application/json": {
+        'application/json': {
           /** @description ID of the notification to mark as acknowledged */
           notificationId: string;
         };
       };
     };
     responses: {
-      200: components["responses"]["ToolResponse"];
-      401: components["responses"]["Unauthorized"];
-      404: components["responses"]["NotFound"];
-      500: components["responses"]["InternalError"];
+      200: components['responses']['ToolResponse'];
+      401: components['responses']['Unauthorized'];
+      404: components['responses']['NotFound'];
+      500: components['responses']['InternalError'];
     };
   };
   /**
@@ -2082,13 +2210,13 @@ export interface operations {
   notifications_mark_all_read: {
     requestBody: {
       content: {
-        "application/json": Record<string, never>;
+        'application/json': Record<string, never>;
       };
     };
     responses: {
-      200: components["responses"]["ToolResponse"];
-      401: components["responses"]["Unauthorized"];
-      500: components["responses"]["InternalError"];
+      200: components['responses']['ToolResponse'];
+      401: components['responses']['Unauthorized'];
+      500: components['responses']['InternalError'];
     };
   };
   /**
@@ -2098,16 +2226,16 @@ export interface operations {
   media_product_list: {
     requestBody: {
       content: {
-        "application/json": {
+        'application/json': {
           /** @description Optional sales agent ID to filter products */
           salesAgentId?: string;
         };
       };
     };
     responses: {
-      200: components["responses"]["ToolResponse"];
-      401: components["responses"]["Unauthorized"];
-      500: components["responses"]["InternalError"];
+      200: components['responses']['ToolResponse'];
+      401: components['responses']['Unauthorized'];
+      500: components['responses']['InternalError'];
     };
   };
   /**
@@ -2117,16 +2245,16 @@ export interface operations {
   media_product_discover: {
     requestBody: {
       content: {
-        "application/json": {
+        'application/json': {
           /** @description Sales agent ID to discover products from */
           salesAgentId?: string;
         };
       };
     };
     responses: {
-      200: components["responses"]["ToolResponse"];
-      401: components["responses"]["Unauthorized"];
-      500: components["responses"]["InternalError"];
+      200: components['responses']['ToolResponse'];
+      401: components['responses']['Unauthorized'];
+      500: components['responses']['InternalError'];
     };
   };
   /**
@@ -2136,17 +2264,17 @@ export interface operations {
   media_product_sync: {
     requestBody: {
       content: {
-        "application/json": {
+        'application/json': {
           /** @description Sales agent ID to sync products from */
           salesAgentId: string;
         };
       };
     };
     responses: {
-      200: components["responses"]["ToolResponse"];
-      401: components["responses"]["Unauthorized"];
-      404: components["responses"]["NotFound"];
-      500: components["responses"]["InternalError"];
+      200: components['responses']['ToolResponse'];
+      401: components['responses']['Unauthorized'];
+      404: components['responses']['NotFound'];
+      500: components['responses']['InternalError'];
     };
   };
 }

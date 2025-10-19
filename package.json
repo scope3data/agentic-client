@@ -5,12 +5,16 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "tsc",
+    "build": "npm run type-check && tsc",
     "dev": "tsc --watch",
     "test": "jest",
     "lint": "eslint src --ext .ts",
     "format": "prettier --write \"src/**/*.ts\"",
-    "generate-types": "openapi-typescript openapi.yaml -o src/types/api.ts"
+    "type-check": "tsc --noEmit",
+    "generate-types": "openapi-typescript openapi.yaml -o src/types/api.ts",
+    "update-schemas": "curl -f -o openapi.yaml https://docs.agentic.scope3.com/openapi.yaml && npm run generate-types",
+    "prepare": "husky",
+    "pretest": "npm run type-check"
   },
   "keywords": [
     "scope3",
@@ -32,10 +36,18 @@
     "@typescript-eslint/eslint-plugin": "^6.0.0",
     "@typescript-eslint/parser": "^6.0.0",
     "eslint": "^8.0.0",
+    "husky": "^9.0.0",
     "jest": "^29.5.0",
+    "lint-staged": "^15.0.0",
     "openapi-typescript": "^6.7.0",
     "prettier": "^3.0.0",
     "ts-jest": "^29.1.0",
     "typescript": "^5.3.0"
+  },
+  "lint-staged": {
+    "*.ts": [
+      "prettier --write",
+      "eslint --fix"
+    ]
   }
 }

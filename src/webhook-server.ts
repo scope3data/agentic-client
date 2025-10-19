@@ -1,10 +1,11 @@
-import express, { Express, Request, Response, NextFunction } from 'express';
+import express from 'express';
+import type { Express, Request, Response, NextFunction } from 'express';
 import { Server } from 'http';
 
-export interface WebhookEvent {
+export interface WebhookEvent<T = Record<string, unknown>> {
   type: string;
   timestamp: string;
-  data: any;
+  data: T;
 }
 
 export type WebhookHandler = (event: WebhookEvent) => Promise<void> | void;

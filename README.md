@@ -167,10 +167,16 @@ await webhookServer.stop();
 # Install dependencies
 npm install
 
-# Build the project
+# Update schemas from upstream (downloads latest OpenAPI spec)
+npm run update-schemas
+
+# Type check without building
+npm run type-check
+
+# Build the project (includes type checking)
 npm run build
 
-# Run tests
+# Run tests (includes pre-test type checking)
 npm test
 
 # Run linter
@@ -179,9 +185,33 @@ npm run lint
 # Format code
 npm run format
 
-# Generate types from OpenAPI spec
+# Generate types from local OpenAPI spec
 npm run generate-types
 ```
+
+### Type Safety
+
+This client is **fully typed** with no `any` types:
+
+- **Generated types** from OpenAPI spec using `openapi-typescript`
+- **Strict TypeScript** configuration enabled
+- **Pre-commit hooks** via Husky that run:
+  - Type checking (`tsc --noEmit`)
+  - Linting with auto-fix
+  - Code formatting
+- **CI validation** on every PR:
+  - Type checking
+  - Linting
+  - Format checking
+  - Test execution
+  - Build verification
+
+To update types when the upstream API changes:
+```bash
+npm run update-schemas
+```
+
+This downloads the latest OpenAPI spec and regenerates TypeScript types.
 
 ## Examples
 

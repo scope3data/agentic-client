@@ -1,0 +1,8 @@
+# Run lint-staged for TypeScript files
+npx lint-staged
+
+# Type check the entire project
+npm run type-check
+
+# Run tests
+npm test

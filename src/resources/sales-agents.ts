@@ -1,6 +1,15 @@
 import { Scope3Client } from '../client';
 import { ToolResponse } from '../types';
 
+export interface SalesAgentAuthConfig {
+  apiKey?: string;
+  clientId?: string;
+  clientSecret?: string;
+  accessToken?: string;
+  refreshToken?: string;
+  [key: string]: string | undefined;
+}
+
 export interface SalesAgentRegisterRequest {
   name: string;
   endpointUrl: string;
@@ -8,7 +17,7 @@ export interface SalesAgentRegisterRequest {
   authenticationType: 'API_KEY' | 'OAUTH' | 'NO_AUTH';
   description?: string;
   organizationId?: string;
-  authConfig?: Record<string, any>;
+  authConfig?: SalesAgentAuthConfig;
 }
 
 export interface SalesAgentGetRequest {
@@ -22,7 +31,7 @@ export interface SalesAgentUpdateRequest {
   endpointUrl?: string;
   protocol?: 'REST' | 'MCP' | 'A2A' | 'CUSTOM';
   authenticationType?: 'API_KEY' | 'OAUTH' | 'NO_AUTH';
-  authConfig?: Record<string, any>;
+  authConfig?: SalesAgentAuthConfig;
 }
 
 export interface SalesAgentUnregisterRequest {
@@ -37,13 +46,13 @@ export interface SalesAgentAccountListRequest {
 export interface SalesAgentAccountRegisterRequest {
   salesAgentId: string;
   accountIdentifier: string;
-  authConfig?: Record<string, any>;
+  authConfig?: SalesAgentAuthConfig;
 }
 
 export interface SalesAgentAccountUpdateRequest {
   salesAgentId: string;
   accountIdentifier: string;
-  authConfig: Record<string, any>;
+  authConfig: SalesAgentAuthConfig;
 }
 
 export interface SalesAgentAccountUnregisterRequest {
