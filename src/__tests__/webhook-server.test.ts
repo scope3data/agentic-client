@@ -1,4 +1,4 @@
-import { WebhookServer, WebhookEvent } from '../webhook-server';
+import { WebhookServer } from '../webhook-server';
 
 describe('WebhookServer', () => {
   let server: WebhookServer;
