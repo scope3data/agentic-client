@@ -213,6 +213,45 @@ npm run update-schemas
 
 This downloads the latest OpenAPI spec and regenerates TypeScript types.
 
+## Contributing
+
+### Versioning and Releases
+
+This project uses [Changesets](https://github.com/changesets/changesets) for version management and automated NPM publishing.
+
+#### Creating a Changeset
+
+When making changes that should be released, add a changeset:
+
+```bash
+npm run changeset
+```
+
+Follow the prompts to:
+1. Select the type of change (major, minor, patch)
+2. Describe the changes for the changelog
+
+The changeset file will be committed with your PR.
+
+#### Release Process
+
+When a PR with changesets is merged to `main`:
+1. The Release workflow creates a "Version Packages" PR
+2. This PR updates package versions and generates changelogs
+3. When the Version PR is merged, packages are automatically published to NPM
+
+**NPM Publishing:** Packages are published as `@scope3/agentic-client` with public access.
+
+#### CI Requirements
+
+Every PR to `main` must include a changeset. The CI will fail if no changeset is detected.
+
+To bypass this check (for docs/config changes), create an empty changeset:
+```bash
+npm run changeset
+# Select "patch" and leave the description empty
+```
+
 ## Examples
 
 See the `examples/` directory for more usage examples:
