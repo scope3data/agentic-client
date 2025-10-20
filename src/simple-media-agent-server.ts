@@ -3,7 +3,6 @@ import { SimpleMediaAgent } from './simple-media-agent.js';
 
 const scope3ApiKey = process.env.SCOPE3_API_KEY;
 const scope3BaseUrl = process.env.SCOPE3_BASE_URL;
-const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 8080;
 const minDailyBudget = process.env.MIN_DAILY_BUDGET
   ? parseFloat(process.env.MIN_DAILY_BUDGET)
   : 100;
@@ -19,17 +18,21 @@ if (!scope3ApiKey) {
 const agent = new SimpleMediaAgent({
   scope3ApiKey,
   scope3BaseUrl,
-  port,
   minDailyBudget,
   overallocationPercent,
+  name: 'simple-media-agent',
+  version: '1.0.0',
 });
 
-agent.start();
+agent.start().catch((error) => {
+  console.error('Fatal error:', error);
+  process.exit(1);
+});
 
-console.log(`
-Simple Media Agent Configuration:
-- Port: ${port}
+console.error(`
+Simple Media Agent
 - Scope3 Base URL: ${scope3BaseUrl || 'https://api.agentic.scope3.com'}
 - Min Daily Budget: $${minDailyBudget}
 - Overallocation: ${overallocationPercent}%
+- Protocol: MCP (stdio)
 `);

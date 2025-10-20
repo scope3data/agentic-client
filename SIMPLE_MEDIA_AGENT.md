@@ -1,13 +1,15 @@
 # Simple Media Agent
 
-A basic reference implementation of a media agent that implements the Media Agent Protocol.
+A basic reference implementation of a media agent using MCP (Model Context Protocol).
 
 ## Overview
 
-This simple media agent demonstrates a passthrough strategy:
-1. **Get Proposed Tactics**: Fetches products from all registered sales agents and proposes budget allocation based on floor prices
-2. **Manage Tactic**: When assigned, creates media buys by allocating budget to the N cheapest products
-3. **Reallocation**: Responds to daily reporting signals to reallocate budget based on performance
+This media agent exposes MCP tools that Scope3 platform calls to manage media buying:
+
+- **get_proposed_tactics**: Fetches products from sales agents and proposes budget allocation based on floor prices
+- **manage_tactic**: When assigned, creates media buys by allocating budget to the N cheapest products with overallocation
+
+**Protocol**: MCP (stdio) - All communication via MCP, no HTTP server needed!
 
 ## Algorithm
 
@@ -21,11 +23,6 @@ This simple media agent demonstrates a passthrough strategy:
 
 **Example**: For a $10,000 campaign with 40% overallocation, the agent allocates $14,000 across media buys. This ensures you hit your $10,000 spend target even with underdelivery.
 
-### Reallocation
-- Listens for daily `reporting-complete` webhook
-- Analyzes performance data from all media buys
-- Reallocates budget based on performance (TODO: implement reallocation logic)
-
 ## Installation
 
 ```bash
@@ -34,15 +31,16 @@ npm install @scope3/agentic-client
 
 ## Usage
 
-### As a Standalone Server
+### As MCP Server (Standalone)
 
 ```bash
 export SCOPE3_API_KEY=your_api_key
-export PORT=8080
 export MIN_DAILY_BUDGET=100
 export OVERALLOCATION_PERCENT=40
 npx simple-media-agent
 ```
+
+The agent runs as an MCP server on stdio. Scope3 platform calls it via MCP protocol.
 
 ### Programmatically
 
@@ -52,12 +50,13 @@ import { SimpleMediaAgent } from '@scope3/agentic-client';
 const agent = new SimpleMediaAgent({
   scope3ApiKey: process.env.SCOPE3_API_KEY,
   scope3BaseUrl: 'https://api.agentic.scope3.com',
-  port: 8080,
   minDailyBudget: 100,
   overallocationPercent: 40,
+  name: 'my-media-agent',
+  version: '1.0.0',
 });
 
-agent.start();
+await agent.start();
 ```
 
 ## Configuration
@@ -66,132 +65,137 @@ agent.start();
 
 - `SCOPE3_API_KEY` (required): Your Scope3 API key
 - `SCOPE3_BASE_URL` (optional): Scope3 API base URL (default: https://api.agentic.scope3.com)
-- `PORT` (optional): Port to listen on (default: 8080)
 - `MIN_DAILY_BUDGET` (optional): Minimum daily budget per product in USD (default: 100)
 - `OVERALLOCATION_PERCENT` (optional): Overallocation percentage to ensure delivery (default: 40)
 
-## Endpoints
+## MCP Tools
 
-The agent implements all required Media Agent Protocol endpoints:
+The agent exposes two MCP tools:
 
-### POST /get-proposed-tactics
-Returns tactic proposals based on available products and floor prices.
+### `get_proposed_tactics`
 
-**Request:**
-```json
-{
-  "campaignId": "campaign-123",
-  "budgetRange": { "min": 10000, "max": 50000, "currency": "USD" },
-  "channels": ["display", "video"],
-  "countries": ["US", "CA"],
-  "brief": "Campaign brief text",
-  "seatId": "seat-123"
-}
-```
+Get tactic proposals based on available products and floor prices.
 
-**Response:**
+**Parameters:**
+- `campaignId` (required): Campaign ID
+- `seatId` (required): Seat/account ID
+- `budgetRange` (optional): Budget range with min/max/currency
+- `channels` (optional): Array of media channels
+- `countries` (optional): Array of ISO country codes
+
+**Returns:**
 ```json
 {
   "proposedTactics": [
     {
       "tacticId": "simple-passthrough-campaign-123",
-      "execution": "Passthrough strategy: distribute budget across N products",
+      "execution": "Passthrough strategy with 40% overallocation...",
       "budgetCapacity": 50000,
       "pricing": {
         "method": "passthrough",
         "estimatedCpm": 2.50,
         "currency": "USD"
       },
-      "sku": "simple-passthrough"
+      "metadata": {
+        "productCount": 25,
+        "avgFloorPrice": 2.50,
+        "overallocationPercent": 40
+      }
     }
   ]
 }
 ```
 
-### POST /manage-tactic
-Accepts tactic assignment and creates media buys.
+### `manage_tactic`
 
-### POST /tactic-context-updated
-Handles tactic context changes (budget, schedule, etc.).
+Accept tactic assignment and create media buys.
 
-### POST /tactic-creatives-updated
-Handles creative updates.
+**Parameters:**
+- `tacticId` (required): Tactic ID from proposal
+- `tacticContext` (required): Tactic details including budget
+- `brandAgentId` (required): Brand agent ID
+- `seatId` (required): Seat/account ID
 
-### POST /tactic-feedback
-Receives performance feedback from orchestrator.
-
-### POST /webhook/reporting-complete
-Handles daily reporting complete signal and triggers reallocation.
-
-**Request:**
+**Returns:**
 ```json
 {
-  "tacticId": "tactic-123",
-  "reportingData": {
-    "date": "2025-10-20",
-    "impressions": 100000,
-    "spend": 250.00
+  "acknowledged": true,
+  "mediaBuysCreated": 5,
+  "allocations": [
+    {
+      "productId": "prod-123",
+      "budget": 2800,
+      "cpm": 2.10
+    }
+  ]
+}
+```
+
+## Architecture
+
+```
+Scope3 Platform → MCP (stdio) → Simple Media Agent → Scope3 API
+                                        ↓
+                                  Create Media Buys
+```
+
+The agent:
+1. Receives MCP tool calls from Scope3 platform
+2. Fetches products from sales agents via Scope3 API
+3. Calculates budget allocation with overallocation
+4. Creates media buys via Scope3 API
+5. Returns results via MCP response
+
+## Extending the Agent
+
+This is a reference implementation. To build your own:
+
+### Custom Product Selection
+```typescript
+// Filter products by viewability
+const highViewabilityProducts = allProducts.filter(p =>
+  p.metadata?.viewability >= 0.85
+);
+```
+
+### Custom Budget Allocation
+```typescript
+// Weight by performance, not just equal division
+const budgetPerProduct = allocatedBudget * product.performanceScore / totalScore;
+```
+
+### Add More Tools
+```typescript
+this.server.addTool({
+  name: 'reallocate_budget',
+  description: 'Reallocate budget based on performance',
+  parameters: z.object({
+    tacticId: z.string(),
+    performanceData: z.object({}).passthrough(),
+  }),
+  execute: async (args) => {
+    // Custom reallocation logic
+  },
+});
+```
+
+## Example: Claude Desktop Configuration
+
+Add to your Claude Desktop MCP config:
+
+```json
+{
+  "mcpServers": {
+    "simple-media-agent": {
+      "command": "npx",
+      "args": ["simple-media-agent"],
+      "env": {
+        "SCOPE3_API_KEY": "your_key",
+        "OVERALLOCATION_PERCENT": "40"
+      }
+    }
   }
 }
 ```
 
-## Connecting to the MCP Server
-
-To use this agent with the MCP server:
-
-1. Start the simple media agent:
-   ```bash
-   export SCOPE3_API_KEY=your_api_key
-   npx simple-media-agent
-   ```
-
-2. Start the MCP server pointing to the media agent:
-   ```bash
-   export MEDIA_AGENT_URL=http://localhost:8080
-   npx scope3-media-agent
-   ```
-
-3. The MCP server will now proxy calls to your simple media agent
-
-## Extending the Agent
-
-This is a reference implementation. To build your own media agent:
-
-1. **Custom Product Selection**: Modify `handleGetProposedTactics` to filter/rank products differently
-2. **Budget Allocation**: Update `calculateBudgetAllocation` with your own algorithm
-3. **Reallocation Logic**: Implement performance-based reallocation in `handleReportingComplete`
-4. **Optimization**: Add ML models, historical data analysis, or custom signals
-
-## Example Custom Extensions
-
-### Use Brand Story for Targeting
-```typescript
-const productsResponse = await this.scope3.products.discover({
-  salesAgentId: agent.id,
-  brandStoryId: tacticContext.brandStoryId,
-});
-```
-
-### Optimize for vCPM
-```typescript
-// Filter products by viewability
-const highViewabilityProducts = allProducts.filter(p =>
-  p.viewability >= 0.85
-);
-```
-
-### Performance-Based Reallocation
-```typescript
-// In handleReportingComplete
-const sortedByPerformance = mediaBuys.sort((a, b) =>
-  b.performanceIndex - a.performanceIndex
-);
-
-// Increase budget for top performers
-for (const mediaBuy of sortedByPerformance.slice(0, 3)) {
-  await this.scope3.mediaBuys.update({
-    mediaBuyId: mediaBuy.id,
-    budget: { amount: mediaBuy.budget * 1.2 },
-  });
-}
-```
+Then in Claude: "Use get_proposed_tactics to propose tactics for campaign XYZ with $50,000 budget"

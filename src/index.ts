@@ -2,11 +2,9 @@ export { Scope3AgenticClient } from './sdk';
 // Legacy export for backwards compatibility
 export { Scope3AgenticClient as Scope3SDK } from './sdk';
 export { WebhookServer } from './webhook-server';
-export { MediaAgentMCP } from './media-agent-mcp';
 export { SimpleMediaAgent } from './simple-media-agent';
 export type { ClientConfig, ToolResponse, Environment } from './types';
 export type { WebhookEvent, WebhookHandler, WebhookServerConfig } from './webhook-server';
-export type { MediaAgentMCPConfig } from './media-agent-mcp';
 
 export * from './resources/assets';
 export * from './resources/brand-agents';
