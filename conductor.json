@@ -1,0 +1,31 @@
+{
+  "name": "Scope3 Agentic Client",
+  "description": "TypeScript client for Scope3 Agentic API using MCP protocol",
+  "version": "0.1.0",
+  "setup": {
+    "commands": [
+      {
+        "command": "npm install",
+        "description": "Install dependencies and set up git hooks (Husky)"
+      }
+    ]
+  },
+  "scripts": {
+    "dev": {
+      "command": "npm run build -- --watch",
+      "description": "Build in watch mode for development"
+    },
+    "test": {
+      "command": "npm test",
+      "description": "Run all tests"
+    },
+    "type-check": {
+      "command": "npm run type-check",
+      "description": "Check TypeScript types without building"
+    },
+    "update-schemas": {
+      "command": "npm run update-schemas",
+      "description": "Download latest OpenAPI spec and regenerate TypeScript types"
+    }
+  }
+}

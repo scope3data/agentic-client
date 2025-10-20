@@ -1,0 +1,9 @@
+#!/bin/sh
+# Run lint-staged for TypeScript files
+npx lint-staged
+
+# Only run type-check and tests if TypeScript files were staged
+if git diff --cached --name-only | grep -q '\.ts$'; then
+  npm run type-check
+  npm test
+fi
