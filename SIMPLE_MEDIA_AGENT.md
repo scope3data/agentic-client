@@ -14,9 +14,12 @@ This simple media agent demonstrates a passthrough strategy:
 ### Budget Allocation
 - Fetches all products from registered sales agents
 - Sorts products by floor price (cheapest first)
+- **Applies overallocation** (default 40%) to ensure delivery targets are met
 - Calculates N = number of products where daily budget ≥ min daily budget (default $100)
 - Selects N cheapest products
-- Divides total budget equally among N products
+- Divides overallocated budget equally among N products
+
+**Example**: For a $10,000 campaign with 40% overallocation, the agent allocates $14,000 across media buys. This ensures you hit your $10,000 spend target even with underdelivery.
 
 ### Reallocation
 - Listens for daily `reporting-complete` webhook
@@ -37,6 +40,7 @@ npm install @scope3/agentic-client
 export SCOPE3_API_KEY=your_api_key
 export PORT=8080
 export MIN_DAILY_BUDGET=100
+export OVERALLOCATION_PERCENT=40
 npx simple-media-agent
 ```
 
@@ -50,6 +54,7 @@ const agent = new SimpleMediaAgent({
   scope3BaseUrl: 'https://api.agentic.scope3.com',
   port: 8080,
   minDailyBudget: 100,
+  overallocationPercent: 40,
 });
 
 agent.start();
@@ -63,6 +68,7 @@ agent.start();
 - `SCOPE3_BASE_URL` (optional): Scope3 API base URL (default: https://api.agentic.scope3.com)
 - `PORT` (optional): Port to listen on (default: 8080)
 - `MIN_DAILY_BUDGET` (optional): Minimum daily budget per product in USD (default: 100)
+- `OVERALLOCATION_PERCENT` (optional): Overallocation percentage to ensure delivery (default: 40)
 
 ## Endpoints
 

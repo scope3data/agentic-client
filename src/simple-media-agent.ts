@@ -7,6 +7,7 @@ interface SimpleMediaAgentConfig {
   scope3ApiKey: string;
   scope3BaseUrl?: string;
   minDailyBudget?: number;
+  overallocationPercent?: number;
 }
 
 interface Product {
@@ -36,6 +37,7 @@ export class SimpleMediaAgent {
       scope3ApiKey: config.scope3ApiKey,
       scope3BaseUrl: config.scope3BaseUrl || 'https://api.agentic.scope3.com',
       minDailyBudget: config.minDailyBudget || 100,
+      overallocationPercent: config.overallocationPercent || 40,
     };
 
     this.scope3 = new Scope3AgenticClient({
@@ -210,10 +212,15 @@ export class SimpleMediaAgent {
   ): MediaBuyAllocation[] {
     if (products.length === 0) return [];
 
+    // Apply overallocation to ensure delivery
+    // If we want to spend $100/day, allocate $140/day to hit the target
+    const overallocationMultiplier = 1 + this.config.overallocationPercent / 100;
+    const allocatedBudget = totalBudget * overallocationMultiplier;
+
     // Calculate N = number of products where daily budget >= minDailyBudget
     // Assume campaign runs for 30 days for this calculation
     const assumedDays = 30;
-    const maxProducts = Math.floor(totalBudget / assumedDays / this.config.minDailyBudget);
+    const maxProducts = Math.floor(allocatedBudget / assumedDays / this.config.minDailyBudget);
     const n = Math.min(maxProducts, products.length);
 
     if (n === 0) return [];
@@ -221,8 +228,8 @@ export class SimpleMediaAgent {
     // Take N cheapest products
     const selectedProducts = products.slice(0, n);
 
-    // Divide budget equally
-    const budgetPerProduct = totalBudget / n;
+    // Divide budget equally with overallocation applied
+    const budgetPerProduct = allocatedBudget / n;
 
     return selectedProducts.map((product) => ({
       productId: product.id,

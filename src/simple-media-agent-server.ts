@@ -7,6 +7,9 @@ const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 8080;
 const minDailyBudget = process.env.MIN_DAILY_BUDGET
   ? parseFloat(process.env.MIN_DAILY_BUDGET)
   : 100;
+const overallocationPercent = process.env.OVERALLOCATION_PERCENT
+  ? parseFloat(process.env.OVERALLOCATION_PERCENT)
+  : 40;
 
 if (!scope3ApiKey) {
   console.error('Error: SCOPE3_API_KEY environment variable is required');
@@ -18,6 +21,7 @@ const agent = new SimpleMediaAgent({
   scope3BaseUrl,
   port,
   minDailyBudget,
+  overallocationPercent,
 });
 
 agent.start();
@@ -27,4 +31,5 @@ Simple Media Agent Configuration:
 - Port: ${port}
 - Scope3 Base URL: ${scope3BaseUrl || 'https://api.agentic.scope3.com'}
 - Min Daily Budget: $${minDailyBudget}
+- Overallocation: ${overallocationPercent}%
 `);
