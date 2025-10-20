@@ -4,6 +4,9 @@
   "description": "TypeScript client for the Scope3 Agentic API with AdCP webhook support",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "bin": {
+    "scope3-media-agent": "dist/media-agent-server.js"
+  },
   "scripts": {
     "build": "npm run type-check && tsc",
     "dev": "tsc --watch",
@@ -12,6 +15,7 @@
     "format": "prettier --write \"src/**/*.ts\"",
     "type-check": "tsc --noEmit",
     "generate-types": "openapi-typescript openapi.yaml -o src/types/api.ts",
+    "generate-media-agent-types": "openapi-typescript media-agent-openapi.yaml -o src/types/media-agent-api.ts",
     "update-schemas": "curl -f -o openapi.yaml https://docs.agentic.scope3.com/openapi.yaml && npm run generate-types",
     "prepare": "husky",
     "pretest": "npm run type-check",

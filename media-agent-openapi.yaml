@@ -1,0 +1,784 @@
+openapi: 3.0.0
+info:
+  title: Media Agent Protocol
+  version: 1.0.0
+  description: |
+    Protocol specification for media agents to implement on their own infrastructure.
+
+    Media agents are autonomous systems that optimize media buying on behalf of advertisers.
+    When you build a media agent, you implement these endpoints on YOUR servers, and Scope3's
+    platform will call them to get tactic proposals, assign tactics, and send updates.
+
+    This is similar to how sales agents work - you implement the protocol on your infrastructure,
+    not in Scope3's codebase.
+
+servers:
+  - url: https://media-agent.yourcompany.com
+    description: Your media agent server (you implement this)
+
+tags:
+  - name: Tactic Proposals
+    description: Endpoints Scope3 calls to get your tactic proposals
+  - name: Tactic Management
+    description: Endpoints for managing assigned tactics
+  - name: Tactic Updates
+    description: Notifications about changes to tactics you're managing
+
+paths:
+  /get-proposed-tactics:
+    post:
+      tags: [Tactic Proposals]
+      summary: Get tactic proposals from your agent
+      operationId: get_proposed_tactics
+      description: |
+        Scope3 calls this endpoint when setting up a campaign to ask what tactics
+        your agent can handle and how you would approach execution.
+
+        Analyze the campaign and respond with proposed tactics, budget capacity,
+        and your pricing model.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GetProposedTacticsRequest'
+      responses:
+        '200':
+          description: Tactic proposals from your agent
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetProposedTacticsResponse'
+        '400':
+          description: Invalid request
+        '500':
+          description: Internal error
+
+  /manage-tactic:
+    post:
+      tags: [Tactic Management]
+      summary: Accept or decline tactic assignment
+      operationId: manage_tactic
+      description: |
+        Scope3 calls this when your agent is assigned to manage a tactic.
+        You should acknowledge and begin setup, or decline if you can't fulfill it.
+
+        The tactic context contains everything you need: budget, schedule,
+        targeting constraints, creatives, and any custom fields.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ManageTacticRequest'
+      responses:
+        '200':
+          description: Acknowledgment of tactic assignment
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ManageTacticResponse'
+        '400':
+          description: Invalid request
+
+  /tactic-context-updated:
+    post:
+      tags: [Tactic Updates]
+      summary: Notification of tactic changes
+      operationId: tactic_context_updated
+      description: |
+        Scope3 calls this when a tactic is modified by the user or their agent.
+        Changes may include budget adjustments, schedule changes, or other updates.
+
+        Your agent MUST handle these changes as they may impact targeting,
+        delivery, or budget allocation.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TacticContextUpdatedRequest'
+      responses:
+        '200':
+          description: Acknowledged
+        '400':
+          description: Invalid request
+
+  /tactic-creatives-updated:
+    post:
+      tags: [Tactic Updates]
+      summary: Notification of creative changes
+      operationId: tactic_creatives_updated
+      description: |
+        Scope3 calls this when creatives are added, removed, or modified for a tactic.
+
+        Update your media buys to use the new creative assets.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TacticCreativesUpdatedRequest'
+      responses:
+        '200':
+          description: Acknowledged
+        '400':
+          description: Invalid request
+
+  /tactic-feedback:
+    post:
+      tags: [Tactic Updates]
+      summary: Performance feedback from orchestrator
+      operationId: tactic_feedback
+      description: |
+        Scope3 sends performance feedback to help you optimize delivery.
+
+        - deliveryIndex: 100 = on target, <100 = under-delivering, >100 = over-delivering
+        - performanceIndex: 100 = maximum, relative to target or other tactics
+
+        Your agent MAY use this to adjust targeting, budget allocation, or other settings.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TacticFeedbackRequest'
+      responses:
+        '200':
+          description: Acknowledged
+        '400':
+          description: Invalid request
+
+components:
+  securitySchemes:
+    apiKey:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: API key for authenticating Scope3's requests to your server
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT bearer token for OAuth-based authentication
+    basic:
+      type: http
+      scheme: basic
+      description: Basic authentication with username/password
+
+  schemas:
+    BudgetRange:
+      type: object
+      description: Budget range for campaign planning (buyer typically won't reveal full budget)
+      properties:
+        min:
+          type: number
+          description: Minimum budget available
+          example: 50000
+        max:
+          type: number
+          description: Maximum budget available
+          example: 150000
+        currency:
+          type: string
+          description: Currency for budget (ISO 4217 code)
+          default: USD
+          example: USD
+
+    TacticPricing:
+      type: object
+      required:
+        - method
+        - rate
+      properties:
+        method:
+          type: string
+          enum: [passthrough, revshare, cost_per_unit]
+          description: How the media agent charges for this tactic (passthrough, revshare, or cost_per_unit)
+          example: revshare
+        rate:
+          type: number
+          description: Rate for the pricing method (e.g., 0.15 for 15% revshare, 2.50 for $2.50 CPM)
+          example: 0.15
+        currency:
+          type: string
+          description: Currency for pricing (ISO 4217 code)
+          default: USD
+          example: USD
+
+    CustomField:
+      type: object
+      properties:
+        fieldName:
+          type: string
+          description: Name of the custom field
+          example: targetVCPM
+        fieldType:
+          type: string
+          enum: [string, number, boolean, array, object]
+          description: Data type of the field
+          example: number
+        description:
+          type: string
+          description: Help text explaining what this field does
+          example: Target vCPM in USD
+
+    GetProposedTacticsRequest:
+      type: object
+      required:
+        - campaignId
+        - seatId
+      properties:
+        campaignId:
+          type: string
+          description: Campaign ID
+          example: camp_123
+        budgetRange:
+          $ref: '#/components/schemas/BudgetRange'
+        startDate:
+          type: string
+          format: date-time
+          description: Campaign start date in UTC (ISO 8601 format)
+          example: '2025-01-01T00:00:00Z'
+        endDate:
+          type: string
+          format: date-time
+          description: Campaign end date in UTC (ISO 8601 format)
+          example: '2025-01-31T23:59:59Z'
+        channels:
+          type: array
+          items:
+            type: string
+            enum: [display, video, audio, native, ctv]
+          description: Advertising channels (aligned with AdCP channel schema)
+          example: [display, video]
+        countries:
+          type: array
+          items:
+            type: string
+          description: ISO 3166-1 alpha-2 country codes
+          example: [US, CA]
+        objectives:
+          type: array
+          items:
+            type: string
+          description: Campaign objectives/outcomes (e.g., awareness, consideration, conversion)
+          example: [awareness, consideration]
+        brief:
+          type: string
+          description: Campaign brief text
+          example: Launch campaign for new product...
+        acceptedPricingMethods:
+          type: array
+          items:
+            type: string
+            enum: [cpm, vcpm, cpc, cpcv, cpv, cpp, flat_rate]
+          description: AdCP pricing models acceptable to the buyer for sales agent pricing
+          example: [cpm, vcpm, flat_rate]
+        promotedOfferings:
+          $ref: '#/components/schemas/PromotedOfferings'
+        seatId:
+          type: string
+          description: Seat/account ID for this request
+          example: seat_456
+
+    ProposedTactic:
+      type: object
+      required:
+        - tacticId
+        - execution
+        - budgetCapacity
+        - pricing
+      properties:
+        tacticId:
+          type: string
+          description: Unique identifier for this proposed tactic (you generate this)
+          example: premium-vcpm-display
+        execution:
+          type: string
+          description: How you would execute this tactic
+          example: Target premium inventory at $2.50 vCPM with 85% viewability
+        budgetCapacity:
+          type: number
+          description: Maximum budget you can effectively manage
+          example: 50000
+        pricing:
+          $ref: '#/components/schemas/TacticPricing'
+        sku:
+          type: string
+          description: Identifier for this tactic type
+          example: premium-vcpm
+        customFieldsRequired:
+          type: array
+          items:
+            $ref: '#/components/schemas/CustomField'
+          description: Custom fields needed to execute this tactic
+
+    GetProposedTacticsResponse:
+      type: object
+      properties:
+        proposedTactics:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProposedTactic'
+          description: List of tactics you can handle (empty array if none)
+
+    TacticContext:
+      type: object
+      properties:
+        budget:
+          type: number
+          description: Budget allocated
+          example: 50000
+        budgetCurrency:
+          type: string
+          description: Currency for budget (ISO 4217 code)
+          default: USD
+          example: USD
+        startDate:
+          type: string
+          format: date-time
+          description: Tactic start date in UTC (ISO 8601 format)
+          example: '2025-01-01T00:00:00Z'
+        endDate:
+          type: string
+          format: date-time
+          description: Tactic end date in UTC (ISO 8601 format)
+          example: '2025-01-31T23:59:59Z'
+        channel:
+          type: string
+          enum: [display, video, audio, native, ctv]
+          description: Advertising channel (aligned with AdCP channel schema)
+          example: display
+        countries:
+          type: array
+          items:
+            type: string
+          description: Target countries
+          example: [US]
+        creatives:
+          type: array
+          items:
+            $ref: '#/components/schemas/Creative'
+          description: Creative assets to use (uses Creative from main schema)
+        brandStandards:
+          type: array
+          items:
+            $ref: '#/components/schemas/BrandStandard'
+          description: Brand safety and suitability requirements (uses BrandStandard from main schema)
+
+    ManageTacticRequest:
+      type: object
+      required:
+        - tacticId
+        - tacticContext
+        - brandAgentId
+        - seatId
+      properties:
+        tacticId:
+          type: string
+          description: ID of the tactic (matches one you proposed)
+          example: premium-vcpm-display
+        tacticContext:
+          $ref: '#/components/schemas/TacticContext'
+        brandAgentId:
+          type: string
+          description: Brand agent (advertiser) for this campaign
+          example: ba_123
+        seatId:
+          type: string
+          description: Seat/account ID
+          example: seat_456
+        customFields:
+          type: object
+          description: Custom fields provided by advertiser
+          example: { targetVCPM: 2.5 }
+
+    ManageTacticResponse:
+      type: object
+      required:
+        - acknowledged
+      properties:
+        acknowledged:
+          type: boolean
+          description: true to accept assignment, false to decline
+          example: true
+        reason:
+          type: string
+          description: Optional reason if declining
+          example: Insufficient budget for effective optimization
+
+    PatchOperation:
+      type: object
+      properties:
+        op:
+          type: string
+          enum: [add, remove, replace]
+          description: Patch operation type
+          example: replace
+        path:
+          type: string
+          description: JSON Pointer to changed field
+          example: /budget
+        value:
+          description: New value for the field
+
+    TacticContextUpdatedRequest:
+      type: object
+      required:
+        - tacticId
+        - tactic
+        - patch
+      properties:
+        tacticId:
+          type: string
+          description: Tactic ID
+          example: premium-vcpm-display
+        tactic:
+          type: object
+          description: Current tactic state (after changes)
+        patch:
+          type: array
+          items:
+            $ref: '#/components/schemas/PatchOperation'
+          description: Changes in JSON Patch format (RFC 6902)
+
+    TacticCreativesUpdatedRequest:
+      type: object
+      required:
+        - tacticId
+        - creatives
+        - patch
+      properties:
+        tacticId:
+          type: string
+          description: Tactic ID
+          example: premium-vcpm-display
+        creatives:
+          type: array
+          items:
+            $ref: '#/components/schemas/Creative'
+          description: Updated creative assets
+        patch:
+          type: array
+          items:
+            $ref: '#/components/schemas/PatchOperation'
+          description: Changes to creatives array in JSON Patch format
+
+    Creative:
+      type: object
+      required:
+        - creativeId
+        - name
+        - status
+        - createdAt
+        - updatedAt
+      properties:
+        creativeId:
+          type: string
+          description: Unique identifier for the creative
+          example: cr_001
+        name:
+          type: string
+          description: Name of the creative
+          example: Summer Campaign Banner
+        status:
+          type: string
+          description: Status of the creative
+          example: ACTIVE
+        campaignId:
+          type: string
+          description: Campaign this creative belongs to (optional)
+          example: camp_123
+        createdAt:
+          type: string
+          format: date-time
+          description: When the creative was created (ISO 8601 UTC)
+          example: '2025-01-01T00:00:00Z'
+        updatedAt:
+          type: string
+          format: date-time
+          description: When the creative was last updated (ISO 8601 UTC)
+          example: '2025-01-15T14:30:00Z'
+
+    BrandStandard:
+      type: object
+      required:
+        - id
+        - name
+        - countryCodes
+        - channelCodes
+        - brands
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the brand standard
+          example: bs_001
+        name:
+          type: string
+          description: Name of the brand standard
+          example: Premium Brand Safety
+        description:
+          type: string
+          description: Description of the standard (optional)
+          example: High viewability requirements for premium inventory
+        countryCodes:
+          type: array
+          items:
+            type: string
+          description: ISO 3166-1 alpha-2 country codes this standard applies to
+          example: [US, CA]
+        channelCodes:
+          type: array
+          items:
+            type: string
+          description: Channels this standard applies to
+          example: [display, video]
+        brands:
+          type: array
+          items:
+            type: string
+          description: Brand names this standard applies to
+          example: [Brand A, Brand B]
+        createdAt:
+          type: string
+          format: date-time
+          description: When the standard was created (ISO 8601 UTC)
+          example: '2025-01-01T00:00:00Z'
+        updatedAt:
+          type: string
+          format: date-time
+          description: When the standard was last updated (ISO 8601 UTC)
+          example: '2025-01-15T14:30:00Z'
+
+    TacticFeedbackRequest:
+      type: object
+      required:
+        - tacticId
+        - startDate
+        - endDate
+        - deliveryIndex
+        - performanceIndex
+      properties:
+        tacticId:
+          type: string
+          description: Tactic ID
+          example: premium-vcpm-display
+        startDate:
+          type: string
+          format: date-time
+          description: Start of feedback interval in UTC (ISO 8601 format)
+          example: '2025-01-01T00:00:00Z'
+        endDate:
+          type: string
+          format: date-time
+          description: End of feedback interval in UTC (ISO 8601 format)
+          example: '2025-01-07T23:59:59Z'
+        deliveryIndex:
+          type: number
+          description: Delivery performance (100 = on target)
+          example: 95
+        performanceIndex:
+          type: number
+          description: Performance vs target or peers (100 = maximum)
+          example: 110
+
+    PromotedOfferings:
+      type: object
+      description: Complete offering specification combining brand manifest, product selectors, and inline offerings (AdCP spec)
+      required:
+        - brand_manifest
+      properties:
+        brand_manifest:
+          oneOf:
+            - $ref: '#/components/schemas/BrandManifest'
+            - type: string
+              description: URL reference to a hosted brand manifest
+              example: https://brand.example.com/manifest.json
+          description: Brand information manifest (inline object or URL reference)
+        product_selectors:
+          type: object
+          description: Optional product catalog selectors
+          properties:
+            product_ids:
+              type: array
+              items:
+                type: string
+              description: Specific product IDs to promote
+              example: [prod_123, prod_456]
+        offerings:
+          type: array
+          description: Inline offerings for campaigns without a product catalog
+          items:
+            type: object
+            required:
+              - name
+            properties:
+              name:
+                type: string
+                description: Offering name
+                example: Winter Sale
+              description:
+                type: string
+                description: Description of what's being offered
+                example: 20% off all winter products
+              assets:
+                type: array
+                description: Assets specific to this offering
+                items:
+                  type: object
+
+    BrandManifest:
+      type: object
+      description: Brand information manifest containing assets, themes, and guidelines (AdCP spec)
+      properties:
+        url:
+          type: string
+          format: uri
+          description: Primary brand URL for context and asset discovery
+          example: https://brand.example.com
+        name:
+          type: string
+          description: Brand or business name
+          example: Acme Corporation
+        logos:
+          type: array
+          description: Brand logo assets with semantic tags
+          items:
+            type: object
+            required:
+              - url
+            properties:
+              url:
+                type: string
+                format: uri
+                description: URL to the logo asset
+                example: https://cdn.example.com/logo.png
+              tags:
+                type: array
+                items:
+                  type: string
+                description: Semantic tags (e.g., 'dark', 'light', 'square', 'horizontal', 'icon')
+                example: [dark, horizontal]
+              width:
+                type: number
+                description: Logo width in pixels
+                example: 200
+              height:
+                type: number
+                description: Logo height in pixels
+                example: 50
+        colors:
+          type: object
+          description: Brand color palette
+          properties:
+            primary:
+              type: string
+              description: Primary brand color (hex)
+              example: '#0D9373'
+            secondary:
+              type: string
+              description: Secondary brand color (hex)
+              example: '#07C983'
+            accent:
+              type: string
+              description: Accent color (hex)
+            background:
+              type: string
+              description: Background color (hex)
+            text:
+              type: string
+              description: Text color (hex)
+        fonts:
+          type: object
+          description: Brand typography guidelines
+          properties:
+            primary:
+              type: string
+              description: Primary font family name
+              example: Inter
+            secondary:
+              type: string
+              description: Secondary font family name
+              example: Georgia
+            font_urls:
+              type: array
+              items:
+                type: string
+                format: uri
+              description: URLs to web font files if using custom fonts
+        tone:
+          type: string
+          description: Brand voice and messaging tone
+          example: professional
+        tagline:
+          type: string
+          description: Brand tagline or slogan
+          example: Innovation that moves you forward
+        product_catalog:
+          type: object
+          description: Product catalog information for e-commerce advertisers (enables SKU-level creative generation)
+          required:
+            - feed_url
+          properties:
+            feed_url:
+              type: string
+              format: uri
+              description: URL to product catalog feed
+              example: https://brand.example.com/products.xml
+            feed_format:
+              type: string
+              enum: [google_merchant_center, facebook_catalog, custom]
+              description: Format of the product feed
+            categories:
+              type: array
+              items:
+                type: string
+              description: Product categories available in the catalog
+              example: [electronics, apparel, home_goods]
+            last_updated:
+              type: string
+              format: date-time
+              description: When the product catalog was last updated
+            update_frequency:
+              type: string
+              enum: [realtime, hourly, daily, weekly]
+              description: How frequently the product catalog is updated
+        industry:
+          type: string
+          description: Industry or vertical
+          example: retail
+        target_audience:
+          type: string
+          description: Primary target audience description
+          example: Tech-savvy millennials aged 25-40
+        disclaimers:
+          type: array
+          description: Legal disclaimers or required text that must appear in creatives
+          items:
+            type: object
+            required:
+              - text
+            properties:
+              text:
+                type: string
+                description: Disclaimer text
+              context:
+                type: string
+                description: When this disclaimer applies (e.g., financial_products, all)
+              required:
+                type: boolean
+                description: Whether this disclaimer must appear
+        contact:
+          type: object
+          description: Brand contact information
+          properties:
+            email:
+              type: string
+              format: email
+              description: Contact email
+            phone:
+              type: string
+              description: Contact phone number
