@@ -4,25 +4,12 @@
  */
 
 export interface paths {
-  '/asset-upload': {
+  '/mcp-initialize': {
     /**
-     * Upload creative assets
-     * @description Upload creative assets (images, videos, audio) to Google Cloud Storage.
-     *
-     * **REQUIRED FIELDS:**
-     * - `brandAgentId`: Brand agent ID for file organization
-     * - `assets`: Array of assets (each with name, contentType, data, assetType)
-     *
-     * Returns signed URLs valid for 1 hour.
+     * Initialize MCP session
+     * @description Initialize a new MCP session. This must be called before using any tools. The session ID should be generated as a UUID and included in the mcp-session-id header for all subsequent requests.
      */
-    post: operations['asset_upload'];
-  };
-  '/asset-list': {
-    /**
-     * List creative assets
-     * @description List creative assets stored in Google Cloud Storage. Filter by customer and/or brand agent.
-     */
-    post: operations['asset_list'];
+    post: operations['mcp_initialize'];
   };
   '/brand-agent-list': {
     /**
@@ -31,13 +18,6 @@ export interface paths {
      */
     post: operations['brand_agent_list'];
   };
-  '/brand-agent-create': {
-    /**
-     * Create brand agent
-     * @description Create a new brand agent (advertiser account). This creates the top-level container that will own campaigns, creatives, audiences, standards, and measurement sources.
-     */
-    post: operations['brand_agent_create'];
-  };
   '/brand-agent-get': {
     /**
      * Get brand agent
@@ -45,73 +25,31 @@ export interface paths {
      */
     post: operations['brand_agent_get'];
   };
+  '/brand-agent-create': {
+    /**
+     * Create brand agent
+     * @description Create a new brand agent (advertiser account). This creates the top-level container that will own campaigns, creatives, audiences, standards, and measurement sources.
+     */
+    post: operations['brand_agent_create'];
+  };
   '/brand-agent-update': {
     /**
      * Update brand agent
-     * @description Update the name or description of an existing brand agent (advertiser account). This only updates metadata - campaigns, creatives, and other resources remain unchanged.
+     * @description Update an existing brand agent with new information.
      */
     post: operations['brand_agent_update'];
   };
   '/brand-agent-delete': {
     /**
      * Delete brand agent
-     * @description ⚠️ DANGER - Permanently delete a brand agent (advertiser account) and ALL associated data including campaigns, creatives, audiences, standards, and measurement sources. This action cannot be undone.
+     * @description Delete a brand agent. This will also delete all associated campaigns, creatives, and other resources.
      */
     post: operations['brand_agent_delete'];
-  };
-  '/brand-standards-list': {
-    /**
-     * List brand standards
-     * @description List all brand safety standards. Brand standards define safety rules and filtering criteria using AI-powered prompts.
-     */
-    post: operations['brand_standards_list'];
-  };
-  '/brand-standards-create': {
-    /**
-     * Create brand standard
-     * @description Create a new brand safety standard for a brand. The standard uses AI to classify content and enforce brand safety rules based on a natural language prompt.
-     */
-    post: operations['brand_standards_create'];
-  };
-  '/brand-standards-delete': {
-    /**
-     * Delete brand standard
-     * @description ⚠️ DANGER - Permanently delete a brand standard. This will remove all safety rules and models associated with this standard.
-     */
-    post: operations['brand_standards_delete'];
-  };
-  '/brand-story-list': {
-    /**
-     * List brand stories
-     * @description List all brand stories for a brand. Brand stories are AI-powered target audience definitions using natural language prompts.
-     */
-    post: operations['brand_story_list'];
-  };
-  '/brand-story-create': {
-    /**
-     * Create brand story
-     * @description Create a new brand story for a brand. Brand stories are AI-powered target audience definitions that use natural language prompts to define audience profiles, demographics, and behavioral characteristics.
-     */
-    post: operations['brand_story_create'];
-  };
-  '/brand-story-update': {
-    /**
-     * Update brand story
-     * @description Update the audience definition prompt of an existing brand story. This creates a new model version with the updated definition.
-     */
-    post: operations['brand_story_update'];
-  };
-  '/brand-story-delete': {
-    /**
-     * Delete brand story
-     * @description ⚠️ DANGER - Permanently delete a brand story. This will remove all audience definitions and models associated with this story.
-     */
-    post: operations['brand_story_delete'];
   };
   '/campaign-list': {
     /**
      * List campaigns
-     * @description List campaigns for the authenticated customer, with optional filtering.
+     * @description List all campaigns with optional filtering by brand agent.
      */
     post: operations['campaign_list'];
   };
@@ -122,24 +60,31 @@ export interface paths {
      */
     post: operations['campaign_create'];
   };
+  '/campaign-get': {
+    /**
+     * Get campaign
+     * @description Get detailed information about a specific campaign.
+     */
+    post: operations['campaign_get'];
+  };
   '/campaign-update': {
     /**
      * Update campaign
-     * @description Update an existing campaign's settings.
+     * @description Update an existing campaign with new information.
      */
     post: operations['campaign_update'];
   };
   '/campaign-delete': {
     /**
      * Delete campaign
-     * @description ⚠️ DANGER - Permanently delete a campaign and all associated data.
+     * @description Delete a campaign and all associated resources.
      */
     post: operations['campaign_delete'];
   };
   '/campaign-get-summary': {
     /**
      * Get campaign summary
-     * @description Get detailed summary information about a specific campaign.
+     * @description Get a high-level summary of a campaign including key metrics and status.
      */
     post: operations['campaign_get_summary'];
   };
@@ -148,39 +93,105 @@ export interface paths {
      * List campaign tactics
      * @description List all tactics associated with a specific campaign.
      */
-    post: operations['campaign_list_strategies'];
+    post: operations['campaign_list_tactics'];
   };
   '/campaign-validate-brief': {
     /**
      * Validate campaign brief
-     * @description Validate a campaign brief to ensure it contains all necessary information.
+     * @description Validate a campaign brief to ensure it contains all necessary information for campaign creation.
      */
     post: operations['campaign_validate_brief'];
+  };
+  '/asset-list': {
+    /**
+     * List assets
+     * @description List all uploaded assets with optional filtering by brand agent.
+     */
+    post: operations['asset_list'];
+  };
+  '/brand-standards-create': {
+    /**
+     * Create brand standards
+     * @description Create brand standards including guidelines, tone of voice, visual requirements, and content rules for a brand agent.
+     */
+    post: operations['brand_standards_create'];
+  };
+  '/brand-standards-delete': {
+    /**
+     * Delete brand standards
+     * @description Delete brand standards for a brand agent.
+     */
+    post: operations['brand_standards_delete'];
+  };
+  '/brand-standards-list': {
+    /**
+     * List brand standards
+     * @description List all brand standards with optional filtering by brand agent.
+     */
+    post: operations['brand_standards_list'];
+  };
+  '/brand-story-create': {
+    /**
+     * Create brand story
+     * @description Create a brand story containing the narrative, history, values, and key messaging for a brand agent.
+     */
+    post: operations['brand_story_create'];
+  };
+  '/brand-story-update': {
+    /**
+     * Update brand story
+     * @description Update an existing brand story with new information.
+     */
+    post: operations['brand_story_update'];
+  };
+  '/brand-story-delete': {
+    /**
+     * Delete brand story
+     * @description Delete a brand story.
+     */
+    post: operations['brand_story_delete'];
+  };
+  '/brand-story-list': {
+    /**
+     * List brand stories
+     * @description List all brand stories with optional filtering by brand agent.
+     */
+    post: operations['brand_story_list'];
   };
   '/channel-list': {
     /**
      * List channels
-     * @description List all available advertising channels.
+     * @description List all available advertising channels and platforms.
      */
     post: operations['channel_list'];
   };
-  '/creative-list': {
+  '/creative-assign': {
     /**
-     * List creatives
-     * @description List creatives for the authenticated customer, with optional filtering.
+     * Assign creative
+     * @description Assign a creative to a tactic or media buy.
      */
-    post: operations['creative_list'];
+    post: operations['creative_assign'];
   };
   '/creative-create': {
     /**
      * Create creative
-     * @description Create a new creative with specified details. Supports various format sources (ADCP, CREATIVE_AGENT, PUBLISHER) and assembly methods.
-     *
-     * **Two workflows supported:**
-     * 1. **Separate upload**: Use asset_upload first, then reference asset IDs in content.assetIds
-     * 2. **Inline upload**: Upload assets directly in the `assets` array (automatically uploaded and linked)
+     * @description Create a new creative with assets, copy, and targeting specifications.
      */
     post: operations['creative_create'];
+  };
+  '/creative-update': {
+    /**
+     * Update creative
+     * @description Update an existing creative with new assets, copy, or specifications.
+     */
+    post: operations['creative_update'];
+  };
+  '/creative-delete': {
+    /**
+     * Delete creative
+     * @description Delete a creative and remove it from any associated tactics or media buys.
+     */
+    post: operations['creative_delete'];
   };
   '/creative-get': {
     /**
@@ -189,167 +200,47 @@ export interface paths {
      */
     post: operations['creative_get'];
   };
-  '/creative-update': {
+  '/creative-list': {
     /**
-     * Update creative
-     * @description Update an existing creative's settings.
+     * List creatives
+     * @description List all creatives with optional filtering by brand agent or campaign.
      */
-    post: operations['creative_update'];
-  };
-  '/creative-delete': {
-    /**
-     * Delete creative
-     * @description ⚠️ DANGER - Permanently delete a creative.
-     */
-    post: operations['creative_delete'];
-  };
-  '/creative-assign': {
-    /**
-     * Assign creative to campaign
-     * @description Assign a creative to a campaign. Automatically discovers and syncs the creative to all sales agents
-     * associated with the campaign via active media buys. Returns auto-sync results including which agents
-     * received the creative and their approval status.
-     */
-    post: operations['creative_assign'];
+    post: operations['creative_list'];
   };
   '/creative-sync-sales-agents': {
     /**
-     * Sync creative with sales agents
-     * @description Sync a creative to sales agents using smart auto-detection or manual specification.
-     * Features intelligent format matching and recent activity analysis (30-60 day lookback).
-     * Provides detailed sync status and actionable next steps.
+     * Sync creatives to sales agents
+     * @description Synchronize creatives to connected sales agents (DSPs, publisher platforms).
      */
     post: operations['creative_sync_sales_agents'];
-  };
-  '/sales-agent-list': {
-    /**
-     * List sales agents
-     * @description List all registered sales agents (publishers) for the authenticated customer.
-     */
-    post: operations['sales_agent_list'];
-  };
-  '/sales-agent-get': {
-    /**
-     * Get sales agent
-     * @description Get detailed information about a specific sales agent.
-     */
-    post: operations['sales_agent_get'];
-  };
-  '/sales-agent-register': {
-    /**
-     * Register sales agent
-     * @description Register a new sales agent. Creates a row in the adcp_agent table. Organization ID is auto-detected from customer if not provided.
-     */
-    post: operations['sales_agent_register'];
-  };
-  '/sales-agent-account-list': {
-    /**
-     * List accounts for a sales agent
-     * @description List all accounts registered by your organization for a specific sales agent.
-     */
-    post: operations['sales_agent_account_list'];
-  };
-  '/sales-agent-account-register': {
-    /**
-     * Register account for sales agent
-     * @description Register your organization's account to an existing sales agent. This allows you to access the sales agent's inventory and services.
-     */
-    post: operations['sales_agent_account_register'];
-  };
-  '/sales-agent-unregister': {
-    /**
-     * Unregister sales agent completely
-     * @description Completely unregister a sales agent - deactivates ALL customer accounts and disables the agent itself. Only the owner can perform this action.
-     */
-    post: operations['sales_agent_unregister'];
-  };
-  '/sales-agent-account-unregister': {
-    /**
-     * Unregister your account with a sales agent
-     * @description Unregister (deactivate) your organization's account with a sales agent. This only deactivates your account but doesn't affect the sales agent or other customers' accounts.
-     */
-    post: operations['sales_agent_account_unregister'];
-  };
-  '/sales-agent-update': {
-    /**
-     * Update sales agent
-     * @description Update a sales agent's core settings like name, description, or endpoint URL. Only the owner can perform this action.
-     */
-    post: operations['sales_agent_update'];
-  };
-  '/sales-agent-account-update': {
-    /**
-     * Update sales agent account authentication
-     * @description Update your organization's account authentication configuration for a sales agent. This endpoint only handles authentication updates.
-     */
-    post: operations['sales_agent_account_update'];
-  };
-  '/tactic-list': {
-    /**
-     * List tactics
-     * @description List all media buying tactics for the authenticated customer.
-     */
-    post: operations['strategy_list'];
-  };
-  '/tactic-create': {
-    /**
-     * Create tactic
-     * @description Create a new AMP media buy tactic for executing media buys with publishers. Tactics are automatically configured as activityType=AMP and tacticType=INTELLIGENT_CAMPAIGNS. Use channel_list to see valid channel codes.
-     */
-    post: operations['strategy_create'];
-  };
-  '/tactic-get': {
-    /**
-     * Get tactic
-     * @description Get detailed information about a specific tactic.
-     */
-    post: operations['strategy_get'];
-  };
-  '/tactic-update': {
-    /**
-     * Update tactic
-     * @description Update an existing tactic's configuration.
-     */
-    post: operations['strategy_update'];
-  };
-  '/tactic-delete': {
-    /**
-     * Delete tactic
-     * @description ⚠️ DANGER - Permanently delete a tactic.
-     */
-    post: operations['strategy_delete'];
-  };
-  '/tactic-link-campaign': {
-    /**
-     * Link campaign to tactic
-     * @description Link a campaign to a tactic for budget and execution management.
-     */
-    post: operations['strategy_link_campaign'];
-  };
-  '/tactic-unlink-campaign': {
-    /**
-     * Unlink campaign from tactic
-     * @description Unlink a campaign from a tactic.
-     */
-    post: operations['strategy_unlink_campaign'];
-  };
-  '/media-buy-list': {
-    /**
-     * List media buys
-     * @description List all media buys for the authenticated customer.
-     */
-    post: operations['media_buy_list'];
   };
   '/media-buy-create': {
     /**
      * Create media buy
-     * @description Create a new media buy to execute a tactic with one or more publisher products. A media buy represents the actual execution of a tactic with budget allocation and pricing.
-     *
-     * **Multi-Product Support**: Media buys now support multiple products from different sales agents in a single buy. Each product can have its own budget allocation and pricing. During execution, each unique sales agent will receive a separate ADCP submission.
-     *
-     * **Budget Validation**: The sum of product budget allocations must not exceed the total media buy budget. The system will validate this at creation time and show warnings if budget is under-allocated.
+     * @description Create a new media buy with budget, targeting, and creative specifications.
      */
     post: operations['media_buy_create'];
+  };
+  '/media-buy-update': {
+    /**
+     * Update media buy
+     * @description Update an existing media buy with new budget, targeting, or creative assignments.
+     */
+    post: operations['media_buy_update'];
+  };
+  '/media-buy-delete': {
+    /**
+     * Delete media buy
+     * @description Delete a media buy and cancel any active placements.
+     */
+    post: operations['media_buy_delete'];
+  };
+  '/media-buy-execute': {
+    /**
+     * Execute media buy
+     * @description Execute a media buy, sending it to the configured sales agents for placement.
+     */
+    post: operations['media_buy_execute'];
   };
   '/media-buy-get': {
     /**
@@ -358,31 +249,24 @@ export interface paths {
      */
     post: operations['media_buy_get'];
   };
-  '/media-buy-update': {
+  '/media-buy-list': {
     /**
-     * Update media buy
-     * @description Update an existing media buy's configuration.
+     * List media buys
+     * @description List all media buys with optional filtering by brand agent, campaign, or status.
      */
-    post: operations['media_buy_update'];
+    post: operations['media_buy_list'];
   };
-  '/media-buy-delete': {
+  '/media-buy-validate-budget': {
     /**
-     * Delete media buy
-     * @description ⚠️ DANGER - Permanently delete a media buy.
+     * Validate media buy budget
+     * @description Validate a media buy budget against campaign constraints and available funds.
      */
-    post: operations['media_buy_delete'];
-  };
-  '/media-buy-execute': {
-    /**
-     * Execute media buy
-     * @description Execute a media buy by deploying it to the publisher platform.
-     */
-    post: operations['media_buy_execute'];
+    post: operations['media_buy_validate_budget'];
   };
   '/notifications-list': {
     /**
      * List notifications
-     * @description List notifications for the authenticated user.
+     * @description List notifications for the authenticated user with optional filtering by status.
      */
     post: operations['notifications_list'];
   };
@@ -403,30 +287,170 @@ export interface paths {
   '/notifications-mark-all-read': {
     /**
      * Mark all notifications as read
-     * @description Mark all notifications as read for the authenticated user.
+     * @description Mark all notifications for the authenticated user as read.
      */
     post: operations['notifications_mark_all_read'];
-  };
-  '/media-product-list': {
-    /**
-     * List media products
-     * @description List available media products from publishers.
-     */
-    post: operations['media_product_list'];
   };
   '/media-product-discover': {
     /**
      * Discover media products
-     * @description Discover new media products from connected publishers.
+     * @description Discover available media products from connected sales agents based on targeting criteria.
      */
     post: operations['media_product_discover'];
+  };
+  '/media-product-save': {
+    /**
+     * Save media product
+     * @description Save a discovered media product for future use in media buys.
+     */
+    post: operations['media_product_save'];
+  };
+  '/media-product-list': {
+    /**
+     * List media products
+     * @description List saved media products with optional filtering.
+     */
+    post: operations['media_product_list'];
   };
   '/media-product-sync': {
     /**
      * Sync media products
-     * @description Synchronize media product inventory with publisher systems.
+     * @description Synchronize media product catalog from connected sales agents.
      */
     post: operations['media_product_sync'];
+  };
+  '/sales-agent-get': {
+    /**
+     * Get sales agent
+     * @description Get detailed information about a specific sales agent (DSP, publisher platform).
+     */
+    post: operations['sales_agent_get'];
+  };
+  '/sales-agent-list': {
+    /**
+     * List sales agents
+     * @description List all registered sales agents (DSPs, publisher platforms).
+     */
+    post: operations['sales_agent_list'];
+  };
+  '/sales-agent-register': {
+    /**
+     * Register sales agent
+     * @description Register a new sales agent (DSP, publisher platform) for media buying.
+     */
+    post: operations['sales_agent_register'];
+  };
+  '/sales-agent-unregister': {
+    /**
+     * Unregister sales agent
+     * @description Unregister a sales agent and disconnect it from the platform.
+     */
+    post: operations['sales_agent_unregister'];
+  };
+  '/sales-agent-update': {
+    /**
+     * Update sales agent
+     * @description Update sales agent configuration and credentials.
+     */
+    post: operations['sales_agent_update'];
+  };
+  '/sales-agent-account-list': {
+    /**
+     * List sales agent accounts
+     * @description List all accounts (seats, advertisers) within a sales agent.
+     */
+    post: operations['sales_agent_account_list'];
+  };
+  '/sales-agent-account-register': {
+    /**
+     * Register sales agent account
+     * @description Register a new account (seat, advertiser) within a sales agent.
+     */
+    post: operations['sales_agent_account_register'];
+  };
+  '/sales-agent-account-unregister': {
+    /**
+     * Unregister sales agent account
+     * @description Unregister an account from a sales agent.
+     */
+    post: operations['sales_agent_account_unregister'];
+  };
+  '/sales-agent-account-update': {
+    /**
+     * Update sales agent account
+     * @description Update account configuration within a sales agent.
+     */
+    post: operations['sales_agent_account_update'];
+  };
+  '/tactic-create': {
+    /**
+     * Create tactic
+     * @description Create a new tactic defining how to achieve campaign objectives.
+     */
+    post: operations['tactic_create'];
+  };
+  '/tactic-update': {
+    /**
+     * Update tactic
+     * @description Update an existing tactic with new targeting, budget, or creative requirements.
+     */
+    post: operations['tactic_update'];
+  };
+  '/tactic-delete': {
+    /**
+     * Delete tactic
+     * @description Delete a tactic and all associated media buys.
+     */
+    post: operations['tactic_delete'];
+  };
+  '/tactic-get': {
+    /**
+     * Get tactic
+     * @description Get detailed information about a specific tactic.
+     */
+    post: operations['tactic_get'];
+  };
+  '/tactic-list': {
+    /**
+     * List tactics
+     * @description List all tactics with optional filtering by brand agent or campaign.
+     */
+    post: operations['tactic_list'];
+  };
+  '/tactic-link-campaign': {
+    /**
+     * Link tactic to campaign
+     * @description Link a tactic to a campaign.
+     */
+    post: operations['tactic_link_campaign'];
+  };
+  '/tactic-unlink-campaign': {
+    /**
+     * Unlink tactic from campaign
+     * @description Unlink a tactic from a campaign.
+     */
+    post: operations['tactic_unlink_campaign'];
+  };
+  '/webhook-register': {
+    /**
+     * Register webhook
+     * @description Register a webhook to receive real-time notifications about events.
+     */
+    post: operations['webhook_register'];
+  };
+  '/webhook-list': {
+    /**
+     * List webhooks
+     * @description List all registered webhooks.
+     */
+    post: operations['webhook_list'];
+  };
+  '/webhook-delete': {
+    /**
+     * Delete webhook
+     * @description Delete a registered webhook.
+     */
+    post: operations['webhook_delete'];
   };
 }
 
@@ -434,257 +458,1309 @@ export type webhooks = Record<string, never>;
 
 export interface components {
   schemas: {
-    AssetUpload: {
+    ListAssetsInput: {
+      /** @description Optional brand agent ID to filter assets */
+      brandAgentId?: number;
+    };
+    /** @description Parameters for listing brand agents. Authentication is automatic. */
+    ListBrandAgentsInput: {
+      /** @description Prisma-style where clause for filtering agents */
+      where?: {
+        [key: string]: unknown;
+      };
+      /** @description Prisma-style orderBy clause */
+      orderBy?: {
+        [key: string]: unknown;
+      };
       /**
-       * @description **REQUIRED**: Original filename
-       * @example logo.png
+       * @description Number of records to return
+       * @example 10
+       */
+      take?: number;
+      /**
+       * @description Number of records to skip
+       * @example 0
+       */
+      skip?: number;
+      /** @description Fields to use for distinct selection */
+      distinct?: string[];
+    };
+    /** @description Parameters for retrieving a specific brand agent */
+    GetBrandAgentInput: {
+      /**
+       * @description The unique identifier for the brand agent
+       * @example 123
+       */
+      brandAgentId: number;
+    };
+    /** @description Parameters for creating a new brand agent */
+    CreateBrandAgentInput: {
+      /**
+       * @description Name of the brand agent (advertiser account)
+       * @example Nike Global Campaigns
        */
       name: string;
       /**
-       * @description **REQUIRED**: MIME type
-       * @example image/png
-       * @enum {string}
+       * @description Optional description of the brand agent
+       * @example Brand agent for Nike global advertising campaigns
        */
-      contentType:
-        | 'image/png'
-        | 'image/jpeg'
-        | 'image/jpg'
-        | 'image/gif'
-        | 'image/webp'
-        | 'video/mp4'
-        | 'video/webm'
-        | 'audio/mp3'
-        | 'audio/wav'
-        | 'font/woff'
-        | 'font/woff2';
-      /**
-       * Format: byte
-       * @description **REQUIRED**: Base64-encoded file data (without data:image/png;base64, prefix)
-       * @example iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==
-       */
-      data: string;
-      /**
-       * @description **REQUIRED**: Type of asset. Must be one of: image, video, audio, logo, font
-       * @example image
-       * @enum {string}
-       */
-      assetType: 'image' | 'video' | 'audio' | 'logo' | 'font';
-      /**
-       * @description Optional tags for organization
-       * @example [
-       *   "brand",
-       *   "header",
-       *   2024
-       * ]
-       */
-      tags?: string[];
-    };
-    Budget: {
-      /** @description Total budget amount in cents (e.g., 5000000 = $50,000) */
-      total: number;
-      /**
-       * @description Budget currency
-       * @enum {string}
-       */
-      currency: 'USD' | 'EUR' | 'GBP' | 'CAD' | 'AUD';
-      /** @description Daily spending limit in cents */
-      dailyCap?: number;
-      /**
-       * @description Budget pacing tactic
-       * @enum {string}
-       */
-      pacing?: 'even' | 'accelerated' | 'front_loaded';
-    };
-    ScoringWeights: {
-      /** @description Weight for affinity scoring (0-1) */
-      affinity?: number;
-      /** @description Weight for outcome scoring (0-1) */
-      outcome?: number;
-      /** @description Weight for quality scoring (0-1) */
-      quality?: number;
-    };
-    BrandAgent: {
-      /** @description Unique brand agent identifier */
-      id: string;
-      /** @description Brand agent name */
-      name: string;
-      /** @description Brand agent description */
       description?: string;
-      /** Format: date-time */
-      createdAt: string;
-      /** Format: date-time */
-      updatedAt: string;
-    };
-    Campaign: {
-      /** @description Unique campaign identifier */
-      id: string;
-      /** @description Campaign name */
-      name: string;
-      /** @description Natural language campaign description */
-      prompt: string;
-      /** @description Parent brand agent ID */
-      brandAgentId: string;
-      /**
-       * @description Campaign status
-       * @enum {string}
-       */
-      status: 'active' | 'paused' | 'completed' | 'draft';
-      budget?: components['schemas']['Budget'];
-      /** @description Associated synthetic audience IDs */
-      audienceIds?: string[];
-      /** @description Associated creative asset IDs */
-      creativeIds?: string[];
-      /** Format: date-time */
-      createdAt: string;
-      /** Format: date-time */
-      updatedAt: string;
-    };
-    Creative: {
-      /** @description Unique creative identifier */
-      id: string;
-      /** @description Creative name */
-      name: string;
-      /**
-       * @description Creative asset type
-       * @enum {string}
-       */
-      type: 'video' | 'image' | 'native' | 'html5';
       /**
        * Format: uri
-       * @description Creative asset URL
+       * @description URL to the brand manifest
+       * @example https://example.com/brand-manifest
        */
-      url: string;
-      /** @description Parent brand agent ID */
-      brandAgentId: string;
-      /** @description Creative headline text */
-      headline?: string;
-      /** @description Creative body text */
-      body?: string;
-      /** @description Call-to-action text */
-      cta?: string;
-      /** Format: date-time */
-      createdAt: string;
-      /** Format: date-time */
-      updatedAt: string;
-    };
-    Tactic: {
-      /** @description Unique tactic identifier */
-      id: string;
-      /** @description Tactic name */
-      name: string;
-      /** @description Associated campaign ID */
-      campaignId: string;
-      /** @description Tactical brief or prompt */
-      prompt?: string;
+      manifestUrl?: string;
       /**
-       * @description Activity type (always AMP)
-       * @enum {string}
+       * @description Advertising channels to enable
+       * @example [
+       *   "app",
+       *   "display",
+       *   "ctv"
+       * ]
        */
-      activityType: 'AMP';
+      channels?: ('ctv' | 'video' | 'display' | 'app' | 'social')[];
       /**
-       * @description Tactic type
-       * @enum {string}
+       * @description Country codes (ISO 3166-1 alpha-2)
+       * @example [
+       *   "US",
+       *   "CA",
+       *   "GB"
+       * ]
        */
-      tacticType: 'INTELLIGENT_CAMPAIGNS';
-      /** @description Target channels (official codes) */
-      channelCodes?: (
-        | 'DIGITAL-AUDIO'
-        | 'DISPLAY-WEB'
-        | 'DISPLAY-APP'
-        | 'CTV-BVOD'
-        | 'OLV'
-        | 'DOOH'
-        | 'SOCIAL'
-      )[];
-      /** @description Target countries */
       countryCodes?: string[];
-      /** Format: date-time */
-      createdAt: string;
-      /** Format: date-time */
-      updatedAt: string;
+      /**
+       * @description Language codes (ISO 639-1)
+       * @example [
+       *   "en",
+       *   "es",
+       *   "fr"
+       * ]
+       */
+      languages?: string[];
     };
-    MediaBuy: {
-      /** @description Unique media buy identifier */
-      id: string;
-      /** @description Media buy name */
-      name: string;
-      /** @description Media buy description */
+    /** @description Parameters for updating a brand agent */
+    UpdateBrandAgentInput: {
+      /**
+       * @description The unique identifier for the brand agent
+       * @example 123
+       */
+      brandAgentId: number;
+      /** @description Updated name of the brand agent */
+      name?: string;
+      /** @description Updated description */
       description?: string;
-      /** @description Associated tactic ID */
-      tacticId: string;
-      /** @description Publisher/sales agent ID */
-      salesAgentId: string;
-      /** @description Media product ID */
-      mediaProductId: string;
+      /**
+       * Format: uri
+       * @description Updated URL to the brand manifest
+       * @example https://example.com/brand-manifest
+       */
+      manifestUrl?: string;
+      /** @description Updated channels */
+      channels?: ('ctv' | 'video' | 'display' | 'app' | 'social')[];
+      /** @description Updated country codes */
+      countryCodes?: string[];
+      /** @description Updated language codes */
+      languages?: string[];
+    };
+    /** @description Parameters for deleting a brand agent */
+    DeleteBrandAgentInput: {
+      /**
+       * @description The unique identifier for the brand agent to delete
+       * @example 123
+       */
+      brandAgentId: number;
+    };
+    CreateBrandStandardInput: {
+      /** @description Brand agent ID */
+      brandAgentId: number;
+      /** @description Standard name */
+      name?: string;
+      /** @description Standard description */
+      description?: string;
+      /** @description Brand standards prompt */
+      prompt: string;
+      /** @description Whether this is the primary standard */
+      isPrimary?: boolean;
+      /** @description Country codes */
+      countries?: string[];
+      /** @description Channel types */
+      channels?: ('ctv' | 'video' | 'display' | 'app' | 'social')[];
+      /** @description Brand names */
+      brands?: string[];
+    };
+    DeleteBrandStandardInput: {
+      /** @description Brand standard ID */
+      brandStandardId: string;
+    };
+    ListBrandStandardsInput: {
+      /** @description Prisma-style where clause for filtering standards */
+      where?: {
+        [key: string]: unknown;
+      };
+      /** @description Prisma-style orderBy clause */
+      orderBy?: {
+        [key: string]: unknown;
+      };
+      /** @description Number of records to return */
+      take?: number;
+      /** @description Number of records to skip */
+      skip?: number;
+      /** @description Fields to use for distinct selection */
+      distinct?: string[];
+    };
+    CreateBrandStoryInput: {
+      /** @description Brand agent ID (bigint or string) */
+      brandAgentId: number | string;
+      /** @description Story name */
+      name: string;
+      /** @description Story description */
+      description?: string;
+      /** @description Brand story prompt */
+      prompt?: string;
+      /** @description Whether this is the primary story */
+      isPrimary: boolean;
+      /** @description Channel codes */
+      channelCodes?: ('ctv' | 'video' | 'display' | 'app' | 'social')[];
+      /** @description Country codes */
+      countryCodes?: string[];
+      /** @description Brand names */
+      brands?: string[];
+      /** @description Language codes */
+      languages?: string[];
+    };
+    UpdateBrandStoryInput: {
+      /** @description Story name */
+      name?: string;
+      /** @description Previous model ID (bigint or string) */
+      previousModelId: number | string;
+      /** @description Updated brand story prompt */
+      prompt: string;
+    };
+    DeleteBrandStoryInput: {
+      /** @description Brand story ID */
+      brandStoryId: string;
+    };
+    ListBrandStoriesInput: {
+      /** @description Filtering criteria */
+      where?: {
+        [key: string]: unknown;
+      };
+      /** @description Ordering criteria */
+      orderBy?: {
+        [key: string]: unknown;
+      };
+      /** @description Number of records to return */
+      take?: number;
+      /** @description Number of records to skip */
+      skip?: number;
+      /** @description Fields to use for distinct selection */
+      distinct?: string[];
+    };
+    /** @description Parameters for listing campaigns */
+    ListCampaignsInput: {
+      /**
+       * @description Filter by brand agent ID
+       * @example 123
+       */
+      brandAgentId?: number;
+      /**
+       * @description Filter by campaign status
+       * @enum {string}
+       */
+      status?: 'ACTIVE' | 'PAUSED' | 'ARCHIVED' | 'DRAFT';
+      /**
+       * @description Number of results to return
+       * @example 50
+       */
+      limit?: number;
+      /**
+       * @description Number of results to skip for pagination
+       * @example 0
+       */
+      offset?: number;
+    };
+    /** @description Parameters for creating a new campaign */
+    CreateCampaignInput: {
+      /**
+       * @description Brand agent ID that will own this campaign
+       * @example 123
+       */
+      brandAgentId: number;
+      /**
+       * @description Optional name for the campaign (auto-generated if not provided)
+       * @example Summer 2025 Tech Campaign
+       */
+      name?: string;
+      /**
+       * @description Natural language description of campaign requirements. The backend will parse this to extract targeting, budget, and creative requirements.
+       * @example Create a video campaign targeting tech enthusiasts aged 25-45 with $50k budget
+       */
+      prompt: string;
+      /** @description Budget configuration for the campaign */
+      budget?: {
+        total: number;
+        /** @default USD */
+        currency?: string;
+        dailyCap?: number;
+        /** @enum {string} */
+        pacing?: 'EVEN' | 'ASAP' | 'FRONTLOADED';
+      };
+      /**
+       * Format: date-time
+       * @description Campaign start date (ISO 8601 format)
+       * @example 2025-01-15T00:00:00Z
+       */
+      startDate?: string;
+      /**
+       * Format: date-time
+       * @description Campaign end date (ISO 8601 format)
+       * @example 2025-03-31T23:59:59Z
+       */
+      endDate?: string;
+      /** @description Scoring weights for campaign optimization */
+      scoringWeights?: {
+        affinity?: number;
+        outcome?: number;
+        quality?: number;
+      };
+      /**
+       * @description Number of days for outcome measurement window
+       * @example 30
+       */
+      outcomeScoreWindowDays?: number;
+      /**
+       * @description Initial campaign status
+       * @enum {string}
+       */
+      status?: 'ACTIVE' | 'PAUSED' | 'ARCHIVED' | 'DRAFT';
+    };
+    /** @description Parameters for retrieving a specific campaign */
+    GetCampaignInput: {
+      /**
+       * @description The unique identifier for the campaign
+       * @example cmp_987654321
+       */
+      campaignId: string;
+    };
+    /** @description Parameters for updating a campaign */
+    UpdateCampaignInput: {
+      /**
+       * @description The unique identifier for the campaign
+       * @example cmp_987654321
+       */
+      campaignId: string;
+      /** @description Updated campaign name */
+      name?: string;
+      /** @description Updated campaign prompt */
+      prompt?: string;
+      /** @description Updated budget configuration */
+      budget?: {
+        total?: number;
+        /** @default USD */
+        currency?: string;
+        dailyCap?: number;
+        /** @enum {string} */
+        pacing?: 'EVEN' | 'ASAP' | 'FRONTLOADED';
+      };
+      /**
+       * Format: date-time
+       * @description Updated start date
+       */
+      startDate?: string;
+      /**
+       * Format: date-time
+       * @description Updated end date
+       */
+      endDate?: string;
+      /** @description Updated scoring weights */
+      scoringWeights?: {
+        affinity?: number;
+        outcome?: number;
+        quality?: number;
+      };
+      /** @description Updated outcome score window days */
+      outcomeScoreWindowDays?: number;
+      /**
+       * @description Updated campaign status
+       * @enum {string}
+       */
+      status?: 'ACTIVE' | 'PAUSED' | 'ARCHIVED' | 'DRAFT';
+      /** @description Expected version for optimistic locking */
+      expectedVersion?: number;
+    };
+    /** @description Parameters for deleting a campaign */
+    DeleteCampaignInput: {
+      /**
+       * @description The unique identifier for the campaign to delete
+       * @example cmp_987654321
+       */
+      campaignId: string;
+    };
+    GetCampaignSummaryInput: {
+      /** @description Campaign ID */
+      campaignId: string;
+    };
+    ListCampaignTacticsInput: {
+      /** @description Campaign ID */
+      campaignId: string;
+    };
+    ValidateBriefInput: {
+      /** @description Campaign brief text */
+      brief: string;
+    };
+    ListChannelsInput: Record<string, never>;
+    AssignCreativeInput: {
+      creativeId: string;
+      campaignId: string;
+    };
+    CreateCreativeInput: {
+      brandAgentId: number;
+      organizationId?: string;
+      name: string;
+      description?: string;
+      /** @enum {string} */
+      formatSource?: 'ADCP' | 'CREATIVE_AGENT' | 'PUBLISHER';
+      formatId?: string;
+      mediaUrl?: string;
+      /** @description Optional: Upload assets inline with the creative. Each asset requires: name, contentType, data (base64), and assetType. */
+      assets?: {
+        /** @description Filename (e.g., banner.png) */
+        name: string;
+        /** @description MIME type (e.g., image/png, image/jpeg) */
+        contentType: string;
+        /**
+         * Format: byte
+         * @description Base64-encoded file data (without data:image/png;base64, prefix)
+         */
+        data: string;
+        /**
+         * @description Type of asset
+         * @enum {string}
+         */
+        assetType: 'image' | 'video' | 'audio' | 'logo' | 'font';
+        /** @description Optional tags */
+        tags?: string[];
+      }[];
+      content?: {
+        [key: string]: unknown;
+      };
+      /** @enum {string} */
+      assemblyMethod?: 'CREATIVE_AGENT' | 'ACTIVATION' | 'PUBLISHER';
+      /** @description Optional campaign ID (object ID) to assign creative to */
+      campaignId?: string;
+      version?: string;
+      registeredBy?: string;
+    };
+    UpdateCreativeInput: {
+      creativeId: string;
+      name?: string;
+      description?: string;
+      assetIds?: string[];
+    };
+    DeleteCreativeInput: {
+      creativeId: string;
+    };
+    GetCreativeInput: {
+      creativeId: string;
+    };
+    ListCreativesInput: {
+      campaignId?: number;
+      brandAgentId?: number;
+      /** @enum {string} */
+      formatSource?: 'ADCP' | 'CREATIVE_AGENT' | 'PUBLISHER';
+      /** @enum {string} */
+      status?: 'ACTIVE' | 'PAUSED' | 'ARCHIVED' | 'DRAFT';
+      take?: number;
+      skip?: number;
+    };
+    SyncSalesAgentsInput: {
+      creativeId: string;
+    };
+    CreateMediaBuyInput: {
+      tacticId: number;
+      name: string;
+      description?: string;
+      products: {
+        mediaProductId: string;
+        salesAgentId: string;
+        budgetAmount?: number;
+        budgetCurrency?: string;
+        pricingCpm?: number;
+        pricingSignalCost?: number;
+        displayOrder?: number;
+      }[];
+      creativeIds?: string[];
       budget: {
+        amount: number;
+        currency: string;
+        dailyCap?: number;
+        /** @enum {string} */
+        pacing: 'asap' | 'even' | 'front_loaded';
+      };
+    };
+    UpdateMediaBuyInput: {
+      mediaBuyId: string;
+      name?: string;
+      description?: string;
+      budget?: {
         amount?: number;
         currency?: string;
         dailyCap?: number;
-        pacing?: string;
+        /** @enum {string} */
+        pacing?: 'asap' | 'even' | 'front_loaded';
       };
-      /** @description CPM pricing */
-      cpm: number;
-      /** @description Additional signal cost */
-      signalCost?: number;
+      /** @enum {string} */
+      status?:
+        | 'DRAFT'
+        | 'PENDING_APPROVAL'
+        | 'ACTIVE'
+        | 'PAUSED'
+        | 'COMPLETED'
+        | 'FAILED'
+        | 'REJECTED';
+      creativeIds?: string[];
+    };
+    DeleteMediaBuyInput: {
+      mediaBuyId: string;
+    };
+    ExecuteMediaBuyInput: {
+      mediaBuyId: string;
+    };
+    GetMediaBuyInput: {
+      mediaBuyId: string;
+    };
+    ListMediaBuysInput: {
+      tacticId?: number;
+      /** @enum {string} */
+      status?:
+        | 'DRAFT'
+        | 'PENDING_APPROVAL'
+        | 'ACTIVE'
+        | 'PAUSED'
+        | 'COMPLETED'
+        | 'FAILED'
+        | 'REJECTED';
+      take?: number;
+      skip?: number;
+    };
+    ValidateMediaBuyBudgetInput: {
+      tacticId: number;
+      newBudgetAmount: number;
+    };
+    ListNotificationsInput: {
+      read?: boolean;
+      take?: number;
+      skip?: number;
+    };
+    MarkNotificationReadInput: {
+      notificationId: string;
+    };
+    MarkNotificationAcknowledgedInput: {
+      notificationId: string;
+    };
+    MarkAllNotificationsReadInput: Record<string, never>;
+    DiscoverProductsInput: {
+      campaignBrief?: string;
+      brandManifestUrl?: string;
+      /** @enum {string} */
+      deliveryType?: 'guaranteed' | 'non_guaranteed';
+      formats?: ('audio' | 'display' | 'html5' | 'native' | 'video')[];
+      /** @enum {string} */
+      inventoryType?: 'premium' | 'run_of_site' | 'targeted_package';
+      maxCpm?: number;
+      minCpm?: number;
+      publisherIds?: string[];
+      salesAgentId?: number;
+    };
+    SaveProductInput: {
+      productId: string;
+      name: string;
+      description: string;
+      publisherId: string;
+      publisherName: string;
+      /** @enum {string} */
+      deliveryType: 'guaranteed' | 'non_guaranteed';
+      /** @enum {string} */
+      inventoryType: 'premium' | 'run_of_site' | 'targeted_package';
+      creativeFormats?:
+        | string[]
+        | {
+            agent_url: string;
+            id: string;
+          }[];
+      /** @enum {string} */
+      pricingModel: 'auction' | 'fixed_cpm';
+      fixedCpm?: number;
+      floorCpm?: number;
+      targetCpm?: number;
+      pricingOptions?: {
+        [key: string]: unknown;
+      }[];
+      supportedTargeting?: string[];
+      adcpAgentId?: string;
+    };
+    ListProductsInput: {
+      take?: number;
+      skip?: number;
+    };
+    SyncProductsInput: {
+      sourceId: string;
+    };
+    GetSalesAgentInput: {
+      agentId: string;
+    };
+    ListSalesAgentsInput: Record<string, never>;
+    RegisterSalesAgentInput: {
+      name: string;
+      description?: string;
+      /** Format: uri */
+      endpointUrl: string;
+      /** @enum {string} */
+      protocol: 'MCP' | 'A2A';
+      /** @enum {string} */
+      authenticationType: 'API_KEY' | 'OAUTH' | 'NO_AUTH';
+      organizationId?: string;
+      authConfig?: {
+        [key: string]: unknown;
+      };
+    };
+    UnregisterSalesAgentInput: {
+      agentId: string;
+    };
+    UpdateSalesAgentInput: {
+      agentId: string;
+      name?: string;
+      organization?: string;
+    };
+    ListSalesAgentAccountsInput: {
+      agentId: string;
+    };
+    RegisterSalesAgentAccountInput: {
+      salesAgentId: string;
+      accountIdentifier: string;
+      authConfig?: {
+        [key: string]: unknown;
+      };
+    };
+    UnregisterSalesAgentAccountInput: {
+      accountId: string;
+    };
+    UpdateSalesAgentAccountInput: {
+      accountId: string;
+      accountData: {
+        [key: string]: unknown;
+      };
+    };
+    CreateTacticInput: {
+      campaignId: string;
+      name: string;
+      prompt?: string;
+      channelCodes?: ('ctv' | 'video' | 'display' | 'app' | 'social')[];
+      countryCodes?: string[];
+    };
+    UpdateTacticInput: {
+      tacticId: number;
+      name?: string;
+      prompt?: string;
+      channelCodes?: ('ctv' | 'video' | 'display' | 'app' | 'social')[];
+      countryCodes?: string[];
+    };
+    DeleteTacticInput: {
+      tacticId: number;
+    };
+    GetTacticInput: {
+      tacticId: number;
+    };
+    ListTacticsInput: {
+      campaignId?: string;
+      take?: number;
+      skip?: number;
+    };
+    LinkCampaignToTacticInput: {
+      tacticId: number;
+      campaignId: string;
+    };
+    UnlinkCampaignFromTacticInput: {
+      tacticId: number;
+      campaignId: string;
+    };
+    RegisterWebhookInput: {
+      brandAgentId?: number;
+      endpoint: {
+        /** Format: uri */
+        url: string;
+        /** @enum {string} */
+        method: 'POST' | 'PUT';
+        headers?: {
+          [key: string]: string;
+        };
+        authentication?: {
+          /** @enum {string} */
+          type: 'bearer' | 'basic' | 'hmac';
+          credentials: string;
+        };
+      };
+      eventTypes: string[];
+      filters?: {
+        campaigns?: string[];
+        tactics?: string[];
+        creatives?: string[];
+        mediaBuys?: string[];
+        metrics?: string[];
+        /** @enum {string} */
+        minSeverity?: 'info' | 'warning' | 'critical';
+      };
+      retryPolicy?: {
+        maxRetries?: number;
+        backoffMultiplier?: number;
+        maxBackoffSeconds?: number;
+      };
+    };
+    ListWebhooksInput: {
+      take?: number;
+      skip?: number;
+    };
+    DeleteWebhookInput: {
+      webhookId: string;
+    };
+    BrandAgentUpdate: {
+      id: number;
+      name: string;
+      description?: string;
+      /** Format: uri */
+      manifestUrl?: string;
+      customerId: number;
       /** Format: date-time */
       createdAt: string;
       /** Format: date-time */
       updatedAt: string;
     };
-  };
-  responses: {
-    /** @description Successful tool execution */
-    ToolResponse: {
-      content: {
-        'application/json': {
-          /** @description Whether the operation succeeded */
-          success?: boolean;
-          /** @description Human-readable response message */
-          message?: string;
-          /** @description Response data (varies by tool) */
-          data?: Record<string, never>;
-        };
-      };
+    BrandStandardsCreate: {
+      id: string;
+      name: string;
+      description?: string;
+      countryCodes: string[];
+      channelCodes: string[];
+      brands: string[];
+      /** Format: date-time */
+      createdAt: string;
+      /** Format: date-time */
+      updatedAt: string;
     };
-    /** @description Bad request - invalid parameters */
+    CampaignUpdate: {
+      id: string;
+      name: string;
+      status: string;
+      /** Format: date-time */
+      createdAt: string;
+      /** Format: date-time */
+      updatedAt: string;
+    };
+    CreativeGet: {
+      creativeId: string;
+      name: string;
+      status: string;
+      campaignId?: string;
+      /** Format: date-time */
+      createdAt: string;
+      /** Format: date-time */
+      updatedAt: string;
+    };
+    MediaBuyGet: {
+      id: string;
+      tacticId: number;
+      status: string;
+      /** Format: date-time */
+      archivedAt?: string;
+      /** Format: date-time */
+      createdAt: string;
+      /** Format: date-time */
+      updatedAt: string;
+    };
+    TacticGet: {
+      id: number;
+      name: string;
+      prompt?: string;
+      campaignIds?: string[];
+      channelCodes: string[];
+      countryCodes: string[];
+      mediaBuyCount?: number;
+      /** Format: date-time */
+      createdAt: string;
+      /** Format: date-time */
+      updatedAt: string;
+      /** Format: date-time */
+      archivedAt?: string;
+    };
+    MCPContent: {
+      /** @enum {string} */
+      type: 'text';
+      text: string;
+    };
+    /** @description Bad request error response */
     BadRequest: {
-      content: {
-        'application/json': {
-          /** @description Error message */
-          error?: string;
-          /** @description Additional error details */
-          details?: Record<string, never>;
-        };
-      };
+      error: string;
+      message?: string;
     };
-    /** @description Unauthorized - invalid or missing authentication */
+    /** @description Unauthorized error response */
     Unauthorized: {
-      content: {
-        'application/json': {
-          /** @description Error message */
-          error?: string;
-        };
-      };
+      error: string;
+      message?: string;
     };
-    /** @description Resource not found */
-    NotFound: {
-      content: {
-        'application/json': {
-          /** @description Error message */
-          error?: string;
-        };
-      };
-    };
-    /** @description Internal server error */
+    /** @description Internal server error response */
     InternalError: {
-      content: {
-        'application/json': {
-          /** @description Error message */
-          error?: string;
-        };
+      error: string;
+      message?: string;
+    };
+    AssetList: {
+      total: number;
+      items: {
+        assetId: string;
+        originalFilename: string;
+        assetType: string;
+        size: number;
+        brandAgentId: string;
+        customerId: number;
+        signedUrl: string;
+        tags?: string[];
+      }[];
+    };
+    BrandAgentList: {
+      brandAgents: components['schemas']['BrandAgentUpdateOutput'][];
+      total: number;
+    };
+    BrandAgentDelete: {
+      success: boolean;
+      deletedId: number;
+    };
+    BrandStandardsDelete: {
+      success: boolean;
+      id: string;
+    };
+    BrandStandardsList: {
+      total: number;
+      items: components['schemas']['BrandStandardsCreateOutput'][];
+    };
+    BrandStoryCreate: {
+      id: string;
+      name: string;
+      brandAgentId?: string;
+      countryCodes?: string[];
+      channelCodes?: string[];
+      languages?: string[];
+      brands?: string[];
+      /** Format: date-time */
+      createdAt: string;
+      /** Format: date-time */
+      updatedAt: string;
+    };
+    BrandStoryUpdate: {
+      id: string;
+      name: string;
+      prompt?: string;
+      status?: string;
+      /** Format: date-time */
+      createdAt: string;
+      /** Format: date-time */
+      updatedAt: string;
+    };
+    BrandStoryDelete: {
+      success: boolean;
+      id: string;
+    };
+    BrandStoryList: {
+      total: number;
+      items: {
+        id: string;
+        name: string;
+        description?: string;
+        status: string;
+        type: string;
+        /** Format: date-time */
+        createdAt: string;
+        /** Format: date-time */
+        updatedAt: string;
+      }[];
+    };
+    CampaignList: {
+      campaigns: components['schemas']['CampaignUpdateOutput'][];
+      total: number;
+    };
+    CampaignDelete: {
+      success: boolean;
+      deletedId: string;
+    };
+    CampaignGetSummary: {
+      campaignId: string;
+      summary: {
+        [key: string]: unknown;
       };
+    };
+    CampaignListTactics: {
+      tactics: unknown[];
+      total: number;
+    };
+    CampaignValidateBrief: {
+      valid: boolean;
+      feedback?: string;
+    };
+    ChannelList: {
+      total: number;
+      items: {
+        channel: string;
+        displayName: string;
+      }[];
+    };
+    CreativeAssign: {
+      success: boolean;
+      creativeId: string;
+      campaignId: string;
+    };
+    CreativeDelete: {
+      success: boolean;
+      id: string;
+    };
+    CreativeList: {
+      items: components['schemas']['CreativeGetOutput'][];
+      total: number;
+    };
+    CreativeSyncSalesAgents: {
+      success: boolean;
+      creativeId: string;
+      campaignId?: string;
+    };
+    MediaBuyDelete: {
+      success: boolean;
+      id: string;
+    };
+    MediaBuyExecute: {
+      success: boolean;
+      mediaBuyId: string;
+      status: string;
+      adcpMediaBuyId?: string;
+      adcpStatus?: string;
+    };
+    MediaBuyList: {
+      total: number;
+      items: components['schemas']['MediaBuyGetOutput'][];
+    };
+    MediaBuyValidateBudget: {
+      valid: boolean;
+      message?: string;
+    };
+    NotificationsList: {
+      total: number;
+      hasMore: boolean;
+      items: {
+        id: string;
+        type: string;
+        data: {
+          [key: string]: unknown;
+        };
+        read: boolean;
+        acknowledged: boolean;
+        /** Format: date-time */
+        createdAt: string;
+      }[];
+    };
+    NotificationsMarkRead: {
+      success: boolean;
+      notificationId: string;
+    };
+    NotificationsMarkAcknowledged: {
+      success: boolean;
+      notificationId: string;
+    };
+    NotificationsMarkAllRead: {
+      success: boolean;
+      count: number;
+    };
+    MediaProductDiscover: {
+      success: boolean;
+      productsFound: number;
+      productsSaved: number;
+      successfulAgents: number;
+      failedAgents: number;
+      products: {
+        productId: string;
+        name: string;
+        publisherName: string;
+        salesAgentId?: string;
+        salesAgentName?: string;
+        /** @enum {string} */
+        deliveryType: 'guaranteed' | 'non_guaranteed';
+        /** @enum {string} */
+        inventoryType: 'premium' | 'run_of_site' | 'targeted_package';
+        creativeFormats?:
+          | string[]
+          | {
+              agent_url: string;
+              id: string;
+            }[];
+        fixedCpm?: number;
+        floorCpm?: number;
+        targetCpm?: number;
+      }[];
+    };
+    MediaProductSave: {
+      id: string;
+      productId: string;
+      name: string;
+      publisherId: string;
+      publisherName: string;
+      customerId: number;
+      /** Format: date-time */
+      createdAt: string;
+      /** Format: date-time */
+      updatedAt: string;
+    };
+    MediaProductList: {
+      total: number;
+      items: {
+        id: string;
+        productId: string;
+        name: string;
+        salesAgent?: string;
+        salesAgentId?: string;
+        salesAgentName?: string;
+        /** @enum {string} */
+        deliveryType: 'guaranteed' | 'non_guaranteed';
+        format?: string;
+        creativeFormats?:
+          | string[]
+          | {
+              agent_url: string;
+              id: string;
+            }[];
+      }[];
+    };
+    MediaProductSync: {
+      success: boolean;
+      productsSaved: number;
+    };
+    SalesAgentGet: {
+      id: number;
+      name: string;
+      status: string;
+      relationship: string;
+      endpointUrl: string;
+      protocol: string;
+      authenticationType: string;
+      description?: string;
+      customerAccountCount: number;
+      organizationId?: string;
+      registeredBy?: string;
+      /** Format: date-time */
+      createdAt: string;
+      /** Format: date-time */
+      updatedAt: string;
+    };
+    SalesAgentList: {
+      total: number;
+      items: {
+        id: number;
+        name: string;
+        status: string;
+        relationship: string;
+        endpointUrl: string;
+        protocol: string;
+        customerAccountCount: number;
+      }[];
+    };
+    SalesAgentRegister: {
+      id: number;
+      name: string;
+      status: string;
+      endpointUrl: string;
+    };
+    SalesAgentUnregister: {
+      success: boolean;
+      id: string;
+    };
+    SalesAgentUpdate: {
+      id: string;
+      name: string;
+      status: string;
+    };
+    SalesAgentAccountList: {
+      total: number;
+      items: {
+        id: string;
+        accountIdentifier: string;
+        status: string;
+        registeredBy?: string;
+        /** Format: date-time */
+        createdAt: string;
+        /** Format: date-time */
+        updatedAt: string;
+      }[];
+    };
+    SalesAgentAccountRegister: {
+      accountId: string;
+      adcpAgentId: string;
+      status: string;
+    };
+    SalesAgentAccountUnregister: {
+      success: boolean;
+      salesAgentId: string;
+    };
+    SalesAgentAccountUpdate: {
+      id: string;
+      status: string;
+    };
+    TacticCreate: {
+      id: number;
+      name: string;
+      prompt?: string;
+      campaignId: string;
+      channelCodes: string[];
+      countryCodes: string[];
+      /** Format: date-time */
+      createdAt: string;
+    };
+    TacticDelete: {
+      success: boolean;
+      tacticId: number;
+    };
+    TacticList: {
+      total: number;
+      items: components['schemas']['TacticGetOutput'][];
+    };
+    TacticLinkCampaign: {
+      success: boolean;
+      tacticId: number;
+      campaignId: string;
+    };
+    TacticUnlinkCampaign: {
+      success: boolean;
+      tacticId: number;
+      campaignId: string;
+    };
+    WebhookRegister: {
+      id: string;
+      brandAgentId?: number;
+      endpoint: {
+        url: string;
+        method: string;
+        authenticationType?: string;
+      };
+      eventTypes: string[];
+      filters?: {
+        campaigns?: string[];
+        tactics?: string[];
+        creatives?: string[];
+        mediaBuys?: string[];
+        metrics?: string[];
+        minSeverity?: string;
+      };
+      retryPolicy: {
+        maxRetries: number;
+        backoffMultiplier: number;
+        maxBackoffSeconds: number;
+      };
+      status: string;
+      testResult: {
+        success: boolean;
+        statusCode?: number;
+        error?: string;
+      };
+    };
+    WebhookList: {
+      total: number;
+      items: {
+        id: string;
+        status: string;
+        endpoint: {
+          url: string;
+          method: string;
+          authenticationType?: string;
+        };
+        eventTypes: string[];
+        brandAgentId?: number;
+        failureCount: number;
+        /** Format: date-time */
+        lastSuccess?: string | null;
+        /** Format: date-time */
+        lastFailure?: string | null;
+        /** Format: date-time */
+        createdAt: string;
+      }[];
+    };
+    WebhookDelete: {
+      success: boolean;
+      webhookId: string;
+    };
+    BrandAgentUpdateOutput: {
+      id: number;
+      name: string;
+      description?: string;
+      /** Format: uri */
+      manifestUrl?: string;
+      customerId: number;
+      /** Format: date-time */
+      createdAt: string;
+      /** Format: date-time */
+      updatedAt: string;
+    };
+    BrandStandardsCreateOutput: {
+      id: string;
+      name: string;
+      description?: string;
+      countryCodes: string[];
+      channelCodes: string[];
+      brands: string[];
+      /** Format: date-time */
+      createdAt: string;
+      /** Format: date-time */
+      updatedAt: string;
+    };
+    CampaignUpdateOutput: {
+      id: string;
+      name: string;
+      status: string;
+      /** Format: date-time */
+      createdAt: string;
+      /** Format: date-time */
+      updatedAt: string;
+    };
+    CreativeGetOutput: {
+      creativeId: string;
+      name: string;
+      status: string;
+      campaignId?: string;
+      /** Format: date-time */
+      createdAt: string;
+      /** Format: date-time */
+      updatedAt: string;
+    };
+    MediaBuyGetOutput: {
+      id: string;
+      tacticId: number;
+      status: string;
+      /** Format: date-time */
+      archivedAt?: string;
+      /** Format: date-time */
+      createdAt: string;
+      /** Format: date-time */
+      updatedAt: string;
+    };
+    TacticGetOutput: {
+      id: number;
+      name: string;
+      prompt?: string;
+      campaignIds?: string[];
+      channelCodes: string[];
+      countryCodes: string[];
+      mediaBuyCount?: number;
+      /** Format: date-time */
+      createdAt: string;
+      /** Format: date-time */
+      updatedAt: string;
+      /** Format: date-time */
+      archivedAt?: string;
+    };
+    BrandAgentGet: {
+      id: number;
+      name: string;
+      description?: string;
+      /** Format: uri */
+      manifestUrl?: string;
+      customerId: number;
+      /** Format: date-time */
+      createdAt: string;
+      /** Format: date-time */
+      updatedAt: string;
+    };
+    BrandAgentCreate: {
+      id: number;
+      name: string;
+      description?: string;
+      /** Format: uri */
+      manifestUrl?: string;
+      customerId: number;
+      /** Format: date-time */
+      createdAt: string;
+      /** Format: date-time */
+      updatedAt: string;
+    };
+    CampaignCreate: {
+      id: string;
+      name: string;
+      status: string;
+      /** Format: date-time */
+      createdAt: string;
+      /** Format: date-time */
+      updatedAt: string;
+    };
+    CampaignGet: {
+      id: string;
+      name: string;
+      status: string;
+      /** Format: date-time */
+      createdAt: string;
+      /** Format: date-time */
+      updatedAt: string;
+    };
+    CreativeCreate: {
+      creativeId: string;
+      name: string;
+      status: string;
+      campaignId?: string;
+      /** Format: date-time */
+      createdAt: string;
+      /** Format: date-time */
+      updatedAt: string;
+    };
+    CreativeUpdate: {
+      creativeId: string;
+      name: string;
+      status: string;
+      campaignId?: string;
+      /** Format: date-time */
+      createdAt: string;
+      /** Format: date-time */
+      updatedAt: string;
+    };
+    MediaBuyCreate: {
+      id: string;
+      tacticId: number;
+      status: string;
+      /** Format: date-time */
+      archivedAt?: string;
+      /** Format: date-time */
+      createdAt: string;
+      /** Format: date-time */
+      updatedAt: string;
+    };
+    MediaBuyUpdate: {
+      id: string;
+      tacticId: number;
+      status: string;
+      /** Format: date-time */
+      archivedAt?: string;
+      /** Format: date-time */
+      createdAt: string;
+      /** Format: date-time */
+      updatedAt: string;
+    };
+    TacticUpdate: {
+      id: number;
+      name: string;
+      prompt?: string;
+      campaignIds?: string[];
+      channelCodes: string[];
+      countryCodes: string[];
+      mediaBuyCount?: number;
+      /** Format: date-time */
+      createdAt: string;
+      /** Format: date-time */
+      updatedAt: string;
+      /** Format: date-time */
+      archivedAt?: string;
     };
   };
+  responses: never;
   parameters: never;
   requestBodies: never;
   headers: never;
@@ -697,53 +1773,61 @@ export type external = Record<string, never>;
 
 export interface operations {
   /**
-   * Upload creative assets
-   * @description Upload creative assets (images, videos, audio) to Google Cloud Storage.
-   *
-   * **REQUIRED FIELDS:**
-   * - `brandAgentId`: Brand agent ID for file organization
-   * - `assets`: Array of assets (each with name, contentType, data, assetType)
-   *
-   * Returns signed URLs valid for 1 hour.
+   * Initialize MCP session
+   * @description Initialize a new MCP session. This must be called before using any tools. The session ID should be generated as a UUID and included in the mcp-session-id header for all subsequent requests.
    */
-  asset_upload: {
+  mcp_initialize: {
+    parameters: {
+      header: {
+        /** @description MCP session identifier (UUID). Generate a new UUID for session initialization. */
+        'mcp-session-id': string;
+      };
+    };
     requestBody: {
       content: {
         'application/json': {
-          /**
-           * @description **REQUIRED**: Brand agent ID for file organization (e.g., brand_agent_123)
-           * @example brand_agent_abc123
-           */
-          brandAgentId: string;
-          /** @description **REQUIRED**: Array of assets to upload. Each asset must have all required fields. */
-          assets: components['schemas']['AssetUpload'][];
+          /** @enum {string} */
+          jsonrpc: '2.0';
+          id: string | number;
+          /** @enum {string} */
+          method: 'initialize';
+          params: {
+            /** @example 2024-11-05 */
+            protocolVersion: string;
+            capabilities: Record<string, never>;
+            clientInfo: {
+              name: string;
+              version: string;
+            };
+          };
         };
       };
     };
     responses: {
-      200: components['responses']['ToolResponse'];
-      400: components['responses']['BadRequest'];
-      401: components['responses']['Unauthorized'];
-      500: components['responses']['InternalError'];
-    };
-  };
-  /**
-   * List creative assets
-   * @description List creative assets stored in Google Cloud Storage. Filter by customer and/or brand agent.
-   */
-  asset_list: {
-    requestBody: {
-      content: {
-        'application/json': {
-          /** @description Optional brand agent ID to filter assets */
-          brandAgentId?: string;
+      /** @description Session initialized successfully */
+      200: {
+        content: {
+          'application/json': {
+            /** @enum {string} */
+            jsonrpc?: '2.0';
+            id?: string | number;
+            result?: {
+              protocolVersion?: string;
+              capabilities?: Record<string, never>;
+              serverInfo?: {
+                name?: string;
+                version?: string;
+              };
+            };
+          };
         };
       };
-    };
-    responses: {
-      200: components['responses']['ToolResponse'];
-      401: components['responses']['Unauthorized'];
-      500: components['responses']['InternalError'];
+      /** @description Unauthorized */
+      401: {
+        content: {
+          'application/json': components['schemas']['Unauthorized'];
+        };
+      };
     };
   };
   /**
@@ -751,43 +1835,49 @@ export interface operations {
    * @description List all brand agents (advertiser accounts) for the authenticated customer. Authentication is automatic - no parameters required.
    */
   brand_agent_list: {
-    requestBody: {
-      content: {
-        'application/json': Record<string, never>;
+    parameters: {
+      header: {
+        /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
+        'mcp-session-id': string;
       };
     };
-    responses: {
-      200: components['responses']['ToolResponse'];
-      401: components['responses']['Unauthorized'];
-      500: components['responses']['InternalError'];
-    };
-  };
-  /**
-   * Create brand agent
-   * @description Create a new brand agent (advertiser account). This creates the top-level container that will own campaigns, creatives, audiences, standards, and measurement sources.
-   */
-  brand_agent_create: {
     requestBody: {
       content: {
         'application/json': {
-          /** @description Name of the brand agent (advertiser account) */
-          name: string;
-          /** @description Optional description of the brand agent */
-          description?: string;
-          /** @description Friendly name for easy identification (e.g., 'Nike' for 'Nike c/o Kinesso') */
-          nickname?: string;
-          /** @description Your internal ID for this brand agent (e.g., client code or account ID) */
-          externalId?: string;
-          /** @description Domains where users will be sent from all campaigns/creatives */
-          advertiserDomains?: string[];
+          /** @enum {string} */
+          tool: 'brand_agent_list';
+          arguments: components['schemas']['ListBrandAgentsInput'];
         };
       };
     };
     responses: {
-      200: components['responses']['ToolResponse'];
-      400: components['responses']['BadRequest'];
-      401: components['responses']['Unauthorized'];
-      500: components['responses']['InternalError'];
+      /** @description Successful response */
+      200: {
+        content: {
+          'application/json': {
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['BrandAgentList'];
+          };
+        };
+      };
+      /** @description Bad request */
+      400: {
+        content: {
+          'application/json': components['schemas']['BadRequest'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          'application/json': components['schemas']['Unauthorized'];
+        };
+      };
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['InternalError'];
+        };
+      };
     };
   };
   /**
@@ -795,275 +1885,249 @@ export interface operations {
    * @description Get detailed information about a specific brand agent (advertiser account) by ID.
    */
   brand_agent_get: {
+    parameters: {
+      header: {
+        /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
+        'mcp-session-id': string;
+      };
+    };
     requestBody: {
       content: {
         'application/json': {
-          /** @description ID of the brand agent to retrieve */
-          brandAgentId: string;
+          /** @enum {string} */
+          tool: 'brand_agent_get';
+          arguments: components['schemas']['GetBrandAgentInput'];
         };
       };
     };
     responses: {
-      200: components['responses']['ToolResponse'];
-      401: components['responses']['Unauthorized'];
-      404: components['responses']['NotFound'];
-      500: components['responses']['InternalError'];
+      /** @description Successful response */
+      200: {
+        content: {
+          'application/json': {
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['BrandAgentUpdateOutput'];
+          };
+        };
+      };
+      /** @description Bad request */
+      400: {
+        content: {
+          'application/json': components['schemas']['BadRequest'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          'application/json': components['schemas']['Unauthorized'];
+        };
+      };
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['InternalError'];
+        };
+      };
+    };
+  };
+  /**
+   * Create brand agent
+   * @description Create a new brand agent (advertiser account). This creates the top-level container that will own campaigns, creatives, audiences, standards, and measurement sources.
+   */
+  brand_agent_create: {
+    parameters: {
+      header: {
+        /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
+        'mcp-session-id': string;
+      };
+    };
+    requestBody: {
+      content: {
+        'application/json': {
+          /** @enum {string} */
+          tool: 'brand_agent_create';
+          arguments: components['schemas']['CreateBrandAgentInput'];
+        };
+      };
+    };
+    responses: {
+      /** @description Successful response */
+      200: {
+        content: {
+          'application/json': {
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['BrandAgentUpdateOutput'];
+          };
+        };
+      };
+      /** @description Bad request */
+      400: {
+        content: {
+          'application/json': components['schemas']['BadRequest'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          'application/json': components['schemas']['Unauthorized'];
+        };
+      };
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['InternalError'];
+        };
+      };
     };
   };
   /**
    * Update brand agent
-   * @description Update the name or description of an existing brand agent (advertiser account). This only updates metadata - campaigns, creatives, and other resources remain unchanged.
+   * @description Update an existing brand agent with new information.
    */
   brand_agent_update: {
+    parameters: {
+      header: {
+        /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
+        'mcp-session-id': string;
+      };
+    };
     requestBody: {
       content: {
         'application/json': {
-          /** @description ID of the brand agent to update */
-          brandAgentId: string;
-          /** @description New name for the brand agent */
-          name?: string;
-          /** @description New description for the brand agent */
-          description?: string;
-          /** @description Enable/disable tactic seed data cooperative participation */
-          tacticSeedDataCoop?: boolean;
+          /** @enum {string} */
+          tool: 'brand_agent_update';
+          arguments: components['schemas']['UpdateBrandAgentInput'];
         };
       };
     };
     responses: {
-      200: components['responses']['ToolResponse'];
-      400: components['responses']['BadRequest'];
-      401: components['responses']['Unauthorized'];
-      404: components['responses']['NotFound'];
-      500: components['responses']['InternalError'];
+      /** @description Successful response */
+      200: {
+        content: {
+          'application/json': {
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['BrandAgentUpdateOutput'];
+          };
+        };
+      };
+      /** @description Bad request */
+      400: {
+        content: {
+          'application/json': components['schemas']['BadRequest'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          'application/json': components['schemas']['Unauthorized'];
+        };
+      };
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['InternalError'];
+        };
+      };
     };
   };
   /**
    * Delete brand agent
-   * @description ⚠️ DANGER - Permanently delete a brand agent (advertiser account) and ALL associated data including campaigns, creatives, audiences, standards, and measurement sources. This action cannot be undone.
+   * @description Delete a brand agent. This will also delete all associated campaigns, creatives, and other resources.
    */
   brand_agent_delete: {
+    parameters: {
+      header: {
+        /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
+        'mcp-session-id': string;
+      };
+    };
     requestBody: {
       content: {
         'application/json': {
-          /** @description ID of the brand agent to delete permanently */
-          brandAgentId: string;
+          /** @enum {string} */
+          tool: 'brand_agent_delete';
+          arguments: components['schemas']['DeleteBrandAgentInput'];
         };
       };
     };
     responses: {
-      200: components['responses']['ToolResponse'];
-      401: components['responses']['Unauthorized'];
-      404: components['responses']['NotFound'];
-      500: components['responses']['InternalError'];
-    };
-  };
-  /**
-   * List brand standards
-   * @description List all brand safety standards. Brand standards define safety rules and filtering criteria using AI-powered prompts.
-   */
-  brand_standards_list: {
-    requestBody: {
-      content: {
-        'application/json': {
-          /** @description Optional filtering criteria */
-          where?: {
-            /** @description Filter by name */
-            name?: string;
+      /** @description Successful response */
+      200: {
+        content: {
+          'application/json': {
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['BrandAgentDelete'];
           };
-          /** @description Optional ordering for results */
-          orderBy?: {
-            /** @enum {string} */
-            id?: 'asc' | 'desc';
-            /** @enum {string} */
-            name?: 'asc' | 'desc';
-          };
-          /** @description Number of records to return (pagination) */
-          take?: number;
-          /** @description Number of records to skip (pagination) */
-          skip?: number;
         };
       };
-    };
-    responses: {
-      200: components['responses']['ToolResponse'];
-      401: components['responses']['Unauthorized'];
-      500: components['responses']['InternalError'];
-    };
-  };
-  /**
-   * Create brand standard
-   * @description Create a new brand safety standard for a brand. The standard uses AI to classify content and enforce brand safety rules based on a natural language prompt.
-   */
-  brand_standards_create: {
-    requestBody: {
-      content: {
-        'application/json': {
-          /** @description ID of the brand to create standards for */
-          brandAgentId: string;
-          /** @description Name for the brand standard (optional - defaults to "{Brand Name} Standards") */
-          name?: string;
-          /** @description Natural language prompt defining the brand safety standards, content restrictions, and enforcement rules */
-          prompt: string;
-          /** @description Description for the brand standard */
-          description?: string;
-          /** @description Whether to create the standard as archived */
-          isArchived?: boolean;
-          /** @description List of country codes to target (e.g., ['US', 'CA']) */
-          countries?: string[];
-          /** @description List of channels to target (e.g., ['web', 'social']) */
-          channels?: string[];
-          /** @description List of specific brands this applies to */
-          brands?: string[];
+      /** @description Bad request */
+      400: {
+        content: {
+          'application/json': components['schemas']['BadRequest'];
         };
       };
-    };
-    responses: {
-      200: components['responses']['ToolResponse'];
-      400: components['responses']['BadRequest'];
-      401: components['responses']['Unauthorized'];
-      500: components['responses']['InternalError'];
-    };
-  };
-  /**
-   * Delete brand standard
-   * @description ⚠️ DANGER - Permanently delete a brand standard. This will remove all safety rules and models associated with this standard.
-   */
-  brand_standards_delete: {
-    requestBody: {
-      content: {
-        'application/json': {
-          /** @description ID of the brand standard to delete */
-          brandStandardId: string;
+      /** @description Unauthorized */
+      401: {
+        content: {
+          'application/json': components['schemas']['Unauthorized'];
         };
       };
-    };
-    responses: {
-      200: components['responses']['ToolResponse'];
-      401: components['responses']['Unauthorized'];
-      404: components['responses']['NotFound'];
-      500: components['responses']['InternalError'];
-    };
-  };
-  /**
-   * List brand stories
-   * @description List all brand stories for a brand. Brand stories are AI-powered target audience definitions using natural language prompts.
-   */
-  brand_story_list: {
-    requestBody: {
-      content: {
-        'application/json': {
-          /** @description ID of the brand to list brand stories for */
-          brandAgentId: string;
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['InternalError'];
         };
       };
-    };
-    responses: {
-      200: components['responses']['ToolResponse'];
-      401: components['responses']['Unauthorized'];
-      500: components['responses']['InternalError'];
-    };
-  };
-  /**
-   * Create brand story
-   * @description Create a new brand story for a brand. Brand stories are AI-powered target audience definitions that use natural language prompts to define audience profiles, demographics, and behavioral characteristics.
-   */
-  brand_story_create: {
-    requestBody: {
-      content: {
-        'application/json': {
-          /** @description ID of the brand to create a brand story for */
-          brandAgentId: string;
-          /** @description Name for the brand story (e.g., 'Tech Enthusiasts', 'Luxury Shoppers') */
-          name: string;
-          /** @description Natural language prompt defining the target audience profile, demographics, and behavioral characteristics */
-          prompt: string;
-          /** @description List of country codes to target (e.g., ['US', 'CA']) */
-          countries?: string[];
-          /** @description List of channels to target (e.g., ['web', 'social']) */
-          channels?: string[];
-          /** @description List of language codes to target (e.g., ['en', 'es']) */
-          languages?: string[];
-          /** @description List of specific brands this applies to */
-          brands?: string[];
-        };
-      };
-    };
-    responses: {
-      200: components['responses']['ToolResponse'];
-      400: components['responses']['BadRequest'];
-      401: components['responses']['Unauthorized'];
-      500: components['responses']['InternalError'];
-    };
-  };
-  /**
-   * Update brand story
-   * @description Update the audience definition prompt of an existing brand story. This creates a new model version with the updated definition.
-   */
-  brand_story_update: {
-    requestBody: {
-      content: {
-        'application/json': {
-          /** @description ID of the brand story to update */
-          brandStoryId: string;
-          /** @description New audience definition prompt */
-          prompt: string;
-        };
-      };
-    };
-    responses: {
-      200: components['responses']['ToolResponse'];
-      400: components['responses']['BadRequest'];
-      401: components['responses']['Unauthorized'];
-      404: components['responses']['NotFound'];
-      500: components['responses']['InternalError'];
-    };
-  };
-  /**
-   * Delete brand story
-   * @description ⚠️ DANGER - Permanently delete a brand story. This will remove all audience definitions and models associated with this story.
-   */
-  brand_story_delete: {
-    requestBody: {
-      content: {
-        'application/json': {
-          /** @description ID of the brand story to delete */
-          brandStoryId: string;
-        };
-      };
-    };
-    responses: {
-      200: components['responses']['ToolResponse'];
-      401: components['responses']['Unauthorized'];
-      404: components['responses']['NotFound'];
-      500: components['responses']['InternalError'];
     };
   };
   /**
    * List campaigns
-   * @description List campaigns for the authenticated customer, with optional filtering.
+   * @description List all campaigns with optional filtering by brand agent.
    */
   campaign_list: {
+    parameters: {
+      header: {
+        /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
+        'mcp-session-id': string;
+      };
+    };
     requestBody: {
       content: {
         'application/json': {
-          /** @description Optional brand agent ID to filter campaigns */
-          brandAgentId?: string;
-          /**
-           * @description Optional status filter
-           * @enum {string}
-           */
-          status?: 'ACTIVE' | 'PAUSED' | 'ARCHIVED';
-          /** @description Maximum number of campaigns to return (default 100) */
-          limit?: number;
-          /** @description Number of campaigns to skip for pagination */
-          offset?: number;
+          /** @enum {string} */
+          tool: 'campaign_list';
+          arguments: components['schemas']['ListCampaignsInput'];
         };
       };
     };
     responses: {
-      200: components['responses']['ToolResponse'];
-      401: components['responses']['Unauthorized'];
-      500: components['responses']['InternalError'];
+      /** @description Successful response */
+      200: {
+        content: {
+          'application/json': {
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['CampaignList'];
+          };
+        };
+      };
+      /** @description Bad request */
+      400: {
+        content: {
+          'application/json': components['schemas']['BadRequest'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          'application/json': components['schemas']['Unauthorized'];
+        };
+      };
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['InternalError'];
+        };
+      };
     };
   };
   /**
@@ -1071,352 +2135,999 @@ export interface operations {
    * @description Create a new campaign with natural language prompt. The backend will parse the prompt to extract targeting, budget, and creative requirements.
    */
   campaign_create: {
+    parameters: {
+      header: {
+        /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
+        'mcp-session-id': string;
+      };
+    };
     requestBody: {
       content: {
         'application/json': {
-          /** @description Optional brand agent ID that will own this campaign */
-          brandAgentId?: string;
-          /** @description Optional name for the campaign (auto-generated if not provided) */
-          name?: string;
-          /** @description Natural language description of campaign requirements (e.g., 'Create a video campaign targeting tech enthusiasts with $50k budget') */
-          prompt: string;
-          budget?: components['schemas']['Budget'];
-          /**
-           * Format: date-time
-           * @description Campaign start date (ISO 8601 format)
-           */
-          startDate?: string;
-          /**
-           * Format: date-time
-           * @description Campaign end date (ISO 8601 format)
-           */
-          endDate?: string;
-          scoringWeights?: components['schemas']['ScoringWeights'];
-          /** @description Days for outcome measurement window */
-          outcomeScoreWindowDays?: number;
-          /** @description Array of segment IDs to associate with campaign */
-          segmentIds?: string[];
-          /** @description Array of deal IDs to associate with campaign */
-          dealIds?: string[];
-          /**
-           * @description Campaign visibility setting
-           * @enum {string}
-           */
-          visibility?: 'PUBLIC' | 'PRIVATE';
-          /**
-           * @description How the campaign was created
-           * @enum {string}
-           */
-          creationType?: 'MANUAL' | 'AUTO_SYNC';
-          /**
-           * @description Initial campaign status
-           * @enum {string}
-           */
-          status?: 'ACTIVE' | 'PAUSED' | 'ARCHIVED';
+          /** @enum {string} */
+          tool: 'campaign_create';
+          arguments: components['schemas']['CreateCampaignInput'];
         };
       };
     };
     responses: {
-      200: components['responses']['ToolResponse'];
-      400: components['responses']['BadRequest'];
-      401: components['responses']['Unauthorized'];
-      500: components['responses']['InternalError'];
+      /** @description Successful response */
+      200: {
+        content: {
+          'application/json': {
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['CampaignUpdateOutput'];
+          };
+        };
+      };
+      /** @description Bad request */
+      400: {
+        content: {
+          'application/json': components['schemas']['BadRequest'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          'application/json': components['schemas']['Unauthorized'];
+        };
+      };
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['InternalError'];
+        };
+      };
+    };
+  };
+  /**
+   * Get campaign
+   * @description Get detailed information about a specific campaign.
+   */
+  campaign_get: {
+    parameters: {
+      header: {
+        /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
+        'mcp-session-id': string;
+      };
+    };
+    requestBody: {
+      content: {
+        'application/json': {
+          /** @enum {string} */
+          tool: 'campaign_get';
+          arguments: components['schemas']['GetCampaignInput'];
+        };
+      };
+    };
+    responses: {
+      /** @description Successful response */
+      200: {
+        content: {
+          'application/json': {
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['CampaignUpdateOutput'];
+          };
+        };
+      };
+      /** @description Bad request */
+      400: {
+        content: {
+          'application/json': components['schemas']['BadRequest'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          'application/json': components['schemas']['Unauthorized'];
+        };
+      };
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['InternalError'];
+        };
+      };
     };
   };
   /**
    * Update campaign
-   * @description Update an existing campaign's settings.
+   * @description Update an existing campaign with new information.
    */
   campaign_update: {
+    parameters: {
+      header: {
+        /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
+        'mcp-session-id': string;
+      };
+    };
     requestBody: {
       content: {
         'application/json': {
-          /** @description ID of the campaign to update */
-          campaignId: string;
-          /** @description New name for the campaign */
-          name?: string;
-          /** @description Updated natural language campaign requirements */
-          prompt?: string;
-          /**
-           * @description New status for the campaign
-           * @enum {string}
-           */
-          status?: 'ACTIVE' | 'PAUSED' | 'ARCHIVED';
-          budget?: components['schemas']['Budget'];
-          /**
-           * Format: date-time
-           * @description Campaign start date (ISO 8601 format)
-           */
-          startDate?: string;
-          /**
-           * Format: date-time
-           * @description Campaign end date (ISO 8601 format)
-           */
-          endDate?: string;
-          /** @description Scoring weights configuration */
-          scoringWeights?: {
-            /** @description Weight for affinity scoring (0-1) */
-            affinity?: number;
-            /** @description Weight for outcome scoring (0-1) */
-            outcome?: number;
-            /** @description Weight for quality scoring (0-1) */
-            quality?: number;
-          };
-          /** @description Days for outcome measurement window */
-          outcomeScoreWindowDays?: number;
-          /** @description Array of segment IDs to associate with campaign */
-          segmentIds?: string[];
-          /** @description Array of deal IDs to associate with campaign */
-          dealIds?: string[];
-          /**
-           * @description Campaign visibility setting
-           * @enum {string}
-           */
-          visibility?: 'PUBLIC' | 'PRIVATE';
+          /** @enum {string} */
+          tool: 'campaign_update';
+          arguments: components['schemas']['UpdateCampaignInput'];
         };
       };
     };
     responses: {
-      200: components['responses']['ToolResponse'];
-      400: components['responses']['BadRequest'];
-      401: components['responses']['Unauthorized'];
-      404: components['responses']['NotFound'];
-      500: components['responses']['InternalError'];
+      /** @description Successful response */
+      200: {
+        content: {
+          'application/json': {
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['CampaignUpdateOutput'];
+          };
+        };
+      };
+      /** @description Bad request */
+      400: {
+        content: {
+          'application/json': components['schemas']['BadRequest'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          'application/json': components['schemas']['Unauthorized'];
+        };
+      };
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['InternalError'];
+        };
+      };
     };
   };
   /**
    * Delete campaign
-   * @description ⚠️ DANGER - Permanently delete a campaign and all associated data.
+   * @description Delete a campaign and all associated resources.
    */
   campaign_delete: {
+    parameters: {
+      header: {
+        /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
+        'mcp-session-id': string;
+      };
+    };
     requestBody: {
       content: {
         'application/json': {
-          /** @description ID of the campaign to delete */
-          campaignId: string;
-          /** @description If true, permanently delete the campaign. Default false (soft delete/archive) */
-          hardDelete?: boolean;
+          /** @enum {string} */
+          tool: 'campaign_delete';
+          arguments: components['schemas']['DeleteCampaignInput'];
         };
       };
     };
     responses: {
-      200: components['responses']['ToolResponse'];
-      401: components['responses']['Unauthorized'];
-      404: components['responses']['NotFound'];
-      500: components['responses']['InternalError'];
+      /** @description Successful response */
+      200: {
+        content: {
+          'application/json': {
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['CampaignDelete'];
+          };
+        };
+      };
+      /** @description Bad request */
+      400: {
+        content: {
+          'application/json': components['schemas']['BadRequest'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          'application/json': components['schemas']['Unauthorized'];
+        };
+      };
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['InternalError'];
+        };
+      };
     };
   };
   /**
    * Get campaign summary
-   * @description Get detailed summary information about a specific campaign.
+   * @description Get a high-level summary of a campaign including key metrics and status.
    */
   campaign_get_summary: {
+    parameters: {
+      header: {
+        /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
+        'mcp-session-id': string;
+      };
+    };
     requestBody: {
       content: {
         'application/json': {
-          /** @description ID of the campaign to retrieve */
-          campaignId: string;
+          /** @enum {string} */
+          tool: 'campaign_get_summary';
+          arguments: components['schemas']['GetCampaignSummaryInput'];
         };
       };
     };
     responses: {
-      200: components['responses']['ToolResponse'];
-      401: components['responses']['Unauthorized'];
-      404: components['responses']['NotFound'];
-      500: components['responses']['InternalError'];
+      /** @description Successful response */
+      200: {
+        content: {
+          'application/json': {
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['CampaignGetSummary'];
+          };
+        };
+      };
+      /** @description Bad request */
+      400: {
+        content: {
+          'application/json': components['schemas']['BadRequest'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          'application/json': components['schemas']['Unauthorized'];
+        };
+      };
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['InternalError'];
+        };
+      };
     };
   };
   /**
    * List campaign tactics
    * @description List all tactics associated with a specific campaign.
    */
-  campaign_list_strategies: {
+  campaign_list_tactics: {
+    parameters: {
+      header: {
+        /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
+        'mcp-session-id': string;
+      };
+    };
     requestBody: {
       content: {
         'application/json': {
-          /** @description ID of the campaign to list tactics for */
-          campaignId: string;
-          /** @description Include archived tactics (defaults to false) */
-          includeArchived?: boolean;
+          /** @enum {string} */
+          tool: 'campaign_list_tactics';
+          arguments: components['schemas']['ListCampaignTacticsInput'];
         };
       };
     };
     responses: {
-      200: components['responses']['ToolResponse'];
-      401: components['responses']['Unauthorized'];
-      404: components['responses']['NotFound'];
-      500: components['responses']['InternalError'];
+      /** @description Successful response */
+      200: {
+        content: {
+          'application/json': {
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['CampaignListTactics'];
+          };
+        };
+      };
+      /** @description Bad request */
+      400: {
+        content: {
+          'application/json': components['schemas']['BadRequest'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          'application/json': components['schemas']['Unauthorized'];
+        };
+      };
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['InternalError'];
+        };
+      };
     };
   };
   /**
    * Validate campaign brief
-   * @description Validate a campaign brief to ensure it contains all necessary information.
+   * @description Validate a campaign brief to ensure it contains all necessary information for campaign creation.
    */
   campaign_validate_brief: {
+    parameters: {
+      header: {
+        /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
+        'mcp-session-id': string;
+      };
+    };
     requestBody: {
       content: {
         'application/json': {
-          /** @description Campaign brief to validate */
-          brief: string;
-          /** @description Optional brand agent ID for context-aware validation */
-          brandAgentId?: string;
-          /**
-           * @description Minimum quality score required to pass validation
-           * @default 70
-           */
-          threshold?: number;
+          /** @enum {string} */
+          tool: 'campaign_validate_brief';
+          arguments: components['schemas']['ValidateBriefInput'];
         };
       };
     };
     responses: {
-      200: components['responses']['ToolResponse'];
-      400: components['responses']['BadRequest'];
-      401: components['responses']['Unauthorized'];
-      500: components['responses']['InternalError'];
+      /** @description Successful response */
+      200: {
+        content: {
+          'application/json': {
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['CampaignValidateBrief'];
+          };
+        };
+      };
+      /** @description Bad request */
+      400: {
+        content: {
+          'application/json': components['schemas']['BadRequest'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          'application/json': components['schemas']['Unauthorized'];
+        };
+      };
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['InternalError'];
+        };
+      };
+    };
+  };
+  /**
+   * List assets
+   * @description List all uploaded assets with optional filtering by brand agent.
+   */
+  asset_list: {
+    parameters: {
+      header: {
+        /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
+        'mcp-session-id': string;
+      };
+    };
+    requestBody: {
+      content: {
+        'application/json': {
+          /** @enum {string} */
+          tool: 'asset_list';
+          arguments: components['schemas']['ListAssetsInput'];
+        };
+      };
+    };
+    responses: {
+      /** @description Successful response */
+      200: {
+        content: {
+          'application/json': {
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['AssetList'];
+          };
+        };
+      };
+      /** @description Bad request */
+      400: {
+        content: {
+          'application/json': components['schemas']['BadRequest'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          'application/json': components['schemas']['Unauthorized'];
+        };
+      };
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['InternalError'];
+        };
+      };
+    };
+  };
+  /**
+   * Create brand standards
+   * @description Create brand standards including guidelines, tone of voice, visual requirements, and content rules for a brand agent.
+   */
+  brand_standards_create: {
+    parameters: {
+      header: {
+        /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
+        'mcp-session-id': string;
+      };
+    };
+    requestBody: {
+      content: {
+        'application/json': {
+          /** @enum {string} */
+          tool: 'brand_standards_create';
+          arguments: components['schemas']['CreateBrandStandardInput'];
+        };
+      };
+    };
+    responses: {
+      /** @description Successful response */
+      200: {
+        content: {
+          'application/json': {
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['BrandStandardsCreateOutput'];
+          };
+        };
+      };
+      /** @description Bad request */
+      400: {
+        content: {
+          'application/json': components['schemas']['BadRequest'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          'application/json': components['schemas']['Unauthorized'];
+        };
+      };
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['InternalError'];
+        };
+      };
+    };
+  };
+  /**
+   * Delete brand standards
+   * @description Delete brand standards for a brand agent.
+   */
+  brand_standards_delete: {
+    parameters: {
+      header: {
+        /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
+        'mcp-session-id': string;
+      };
+    };
+    requestBody: {
+      content: {
+        'application/json': {
+          /** @enum {string} */
+          tool: 'brand_standards_delete';
+          arguments: components['schemas']['DeleteBrandStandardInput'];
+        };
+      };
+    };
+    responses: {
+      /** @description Successful response */
+      200: {
+        content: {
+          'application/json': {
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['BrandStandardsDelete'];
+          };
+        };
+      };
+      /** @description Bad request */
+      400: {
+        content: {
+          'application/json': components['schemas']['BadRequest'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          'application/json': components['schemas']['Unauthorized'];
+        };
+      };
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['InternalError'];
+        };
+      };
+    };
+  };
+  /**
+   * List brand standards
+   * @description List all brand standards with optional filtering by brand agent.
+   */
+  brand_standards_list: {
+    parameters: {
+      header: {
+        /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
+        'mcp-session-id': string;
+      };
+    };
+    requestBody: {
+      content: {
+        'application/json': {
+          /** @enum {string} */
+          tool: 'brand_standards_list';
+          arguments: components['schemas']['ListBrandStandardsInput'];
+        };
+      };
+    };
+    responses: {
+      /** @description Successful response */
+      200: {
+        content: {
+          'application/json': {
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['BrandStandardsList'];
+          };
+        };
+      };
+      /** @description Bad request */
+      400: {
+        content: {
+          'application/json': components['schemas']['BadRequest'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          'application/json': components['schemas']['Unauthorized'];
+        };
+      };
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['InternalError'];
+        };
+      };
+    };
+  };
+  /**
+   * Create brand story
+   * @description Create a brand story containing the narrative, history, values, and key messaging for a brand agent.
+   */
+  brand_story_create: {
+    parameters: {
+      header: {
+        /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
+        'mcp-session-id': string;
+      };
+    };
+    requestBody: {
+      content: {
+        'application/json': {
+          /** @enum {string} */
+          tool: 'brand_story_create';
+          arguments: components['schemas']['CreateBrandStoryInput'];
+        };
+      };
+    };
+    responses: {
+      /** @description Successful response */
+      200: {
+        content: {
+          'application/json': {
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['BrandStoryCreate'];
+          };
+        };
+      };
+      /** @description Bad request */
+      400: {
+        content: {
+          'application/json': components['schemas']['BadRequest'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          'application/json': components['schemas']['Unauthorized'];
+        };
+      };
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['InternalError'];
+        };
+      };
+    };
+  };
+  /**
+   * Update brand story
+   * @description Update an existing brand story with new information.
+   */
+  brand_story_update: {
+    parameters: {
+      header: {
+        /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
+        'mcp-session-id': string;
+      };
+    };
+    requestBody: {
+      content: {
+        'application/json': {
+          /** @enum {string} */
+          tool: 'brand_story_update';
+          arguments: components['schemas']['UpdateBrandStoryInput'];
+        };
+      };
+    };
+    responses: {
+      /** @description Successful response */
+      200: {
+        content: {
+          'application/json': {
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['BrandStoryUpdate'];
+          };
+        };
+      };
+      /** @description Bad request */
+      400: {
+        content: {
+          'application/json': components['schemas']['BadRequest'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          'application/json': components['schemas']['Unauthorized'];
+        };
+      };
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['InternalError'];
+        };
+      };
+    };
+  };
+  /**
+   * Delete brand story
+   * @description Delete a brand story.
+   */
+  brand_story_delete: {
+    parameters: {
+      header: {
+        /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
+        'mcp-session-id': string;
+      };
+    };
+    requestBody: {
+      content: {
+        'application/json': {
+          /** @enum {string} */
+          tool: 'brand_story_delete';
+          arguments: components['schemas']['DeleteBrandStoryInput'];
+        };
+      };
+    };
+    responses: {
+      /** @description Successful response */
+      200: {
+        content: {
+          'application/json': {
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['BrandStoryDelete'];
+          };
+        };
+      };
+      /** @description Bad request */
+      400: {
+        content: {
+          'application/json': components['schemas']['BadRequest'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          'application/json': components['schemas']['Unauthorized'];
+        };
+      };
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['InternalError'];
+        };
+      };
+    };
+  };
+  /**
+   * List brand stories
+   * @description List all brand stories with optional filtering by brand agent.
+   */
+  brand_story_list: {
+    parameters: {
+      header: {
+        /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
+        'mcp-session-id': string;
+      };
+    };
+    requestBody: {
+      content: {
+        'application/json': {
+          /** @enum {string} */
+          tool: 'brand_story_list';
+          arguments: components['schemas']['ListBrandStoriesInput'];
+        };
+      };
+    };
+    responses: {
+      /** @description Successful response */
+      200: {
+        content: {
+          'application/json': {
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['BrandStoryList'];
+          };
+        };
+      };
+      /** @description Bad request */
+      400: {
+        content: {
+          'application/json': components['schemas']['BadRequest'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          'application/json': components['schemas']['Unauthorized'];
+        };
+      };
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['InternalError'];
+        };
+      };
     };
   };
   /**
    * List channels
-   * @description List all available advertising channels.
+   * @description List all available advertising channels and platforms.
    */
   channel_list: {
-    requestBody: {
-      content: {
-        'application/json': Record<string, never>;
+    parameters: {
+      header: {
+        /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
+        'mcp-session-id': string;
       };
     };
-    responses: {
-      200: components['responses']['ToolResponse'];
-      401: components['responses']['Unauthorized'];
-      500: components['responses']['InternalError'];
-    };
-  };
-  /**
-   * List creatives
-   * @description List creatives for the authenticated customer, with optional filtering.
-   */
-  creative_list: {
     requestBody: {
       content: {
         'application/json': {
-          /** @description Optional internal brand agent ID to filter creatives */
-          brandAgentId?: number;
-          /** @description Optional internal campaign ID to filter creatives */
-          campaignId?: number;
+          /** @enum {string} */
+          tool: 'channel_list';
+          arguments: components['schemas']['ListChannelsInput'];
         };
       };
     };
     responses: {
-      200: components['responses']['ToolResponse'];
-      401: components['responses']['Unauthorized'];
-      500: components['responses']['InternalError'];
+      /** @description Successful response */
+      200: {
+        content: {
+          'application/json': {
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['ChannelList'];
+          };
+        };
+      };
+      /** @description Bad request */
+      400: {
+        content: {
+          'application/json': components['schemas']['BadRequest'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          'application/json': components['schemas']['Unauthorized'];
+        };
+      };
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['InternalError'];
+        };
+      };
+    };
+  };
+  /**
+   * Assign creative
+   * @description Assign a creative to a tactic or media buy.
+   */
+  creative_assign: {
+    parameters: {
+      header: {
+        /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
+        'mcp-session-id': string;
+      };
+    };
+    requestBody: {
+      content: {
+        'application/json': {
+          /** @enum {string} */
+          tool: 'creative_assign';
+          arguments: components['schemas']['AssignCreativeInput'];
+        };
+      };
+    };
+    responses: {
+      /** @description Successful response */
+      200: {
+        content: {
+          'application/json': {
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['CreativeAssign'];
+          };
+        };
+      };
+      /** @description Bad request */
+      400: {
+        content: {
+          'application/json': components['schemas']['BadRequest'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          'application/json': components['schemas']['Unauthorized'];
+        };
+      };
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['InternalError'];
+        };
+      };
     };
   };
   /**
    * Create creative
-   * @description Create a new creative with specified details. Supports various format sources (ADCP, CREATIVE_AGENT, PUBLISHER) and assembly methods.
-   *
-   * **Two workflows supported:**
-   * 1. **Separate upload**: Use asset_upload first, then reference asset IDs in content.assetIds
-   * 2. **Inline upload**: Upload assets directly in the `assets` array (automatically uploaded and linked)
+   * @description Create a new creative with assets, copy, and targeting specifications.
    */
   creative_create: {
+    parameters: {
+      header: {
+        /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
+        'mcp-session-id': string;
+      };
+    };
     requestBody: {
       content: {
         'application/json': {
-          /**
-           * @description **REQUIRED**: Internal database ID of the brand agent that will own this creative
-           * @example 1
-           */
-          brandAgentId: number;
-          /** @description Optional internal database ID of the organization */
-          organizationId?: number;
-          /**
-           * @description **REQUIRED**: Name for the creative
-           * @example Banner Ad 970x250
-           */
-          name: string;
-          /**
-           * @description Optional description of the creative
-           * @example Display banner for homepage
-           */
-          description?: string;
-          /**
-           * @description Format source type
-           * @example ADCP
-           * @enum {string}
-           */
-          formatSource?: 'ADCP' | 'CREATIVE_AGENT' | 'PUBLISHER';
-          /**
-           * @description Format identifier (e.g., "display_970x250", "video/mp4")
-           * @example display_970x250
-           */
-          formatId?: string;
-          /**
-           * @description URL to the creative media file (video, image, etc.)
-           * @example https://example.com/banner.png
-           */
-          mediaUrl?: string;
-          /** @description Optional: Upload assets inline with the creative. Automatically uploaded to GCS and linked. */
-          assets?: components['schemas']['AssetUpload'][];
-          /** @description Creative content as JSON. Can include assetIds (existing or from inline upload), htmlSnippet, vastTag, etc. */
-          content?: {
-            /**
-             * @description Array of existing asset IDs (from previous asset_upload). Inline uploaded assets are automatically added to this.
-             * @example [
-             *   "asset_abc123",
-             *   "asset_def456"
-             * ]
-             */
-            assetIds?: string[];
-            /**
-             * @description HTML5 creative snippet
-             * @example <div>Ad content</div>
-             */
-            htmlSnippet?: string;
-            /** @description VAST XML tag for video ads */
-            vastTag?: string;
-          };
-          /**
-           * @description Assembly method
-           * @example ACTIVATION
-           * @enum {string}
-           */
-          assemblyMethod?: 'CREATIVE_AGENT' | 'ACTIVATION' | 'PUBLISHER';
-          /**
-           * @description Optional internal database ID of campaign to assign creative to
-           * @example 1
-           */
-          campaignId?: number;
+          /** @enum {string} */
+          tool: 'creative_create';
+          arguments: components['schemas']['CreateCreativeInput'];
         };
       };
     };
     responses: {
-      /** @description Creative created successfully */
+      /** @description Successful response */
       200: {
         content: {
           'application/json': {
-            /** @example true */
-            success?: boolean;
-            /**
-             * @description Success message with creative details including creativeId (external string ID for use in media_buy_create/update), internal ID, and uploaded assets (if any)
-             * @example ✅ **Creative Created Successfully!**
-             *
-             * **Creative ID:** newcreativevideo_xntthe4w (use this for media_buy_create/update)
-             * **Internal ID:** 16
-             * **Name:** My Creative
-             * **Status:** PENDING
-             * **Assets Uploaded:** 2
-             * **Asset IDs:** asset_abc123, asset_def456
-             * **Created:** 2025-10-14T00:00:00.000Z
-             */
-            message?: string;
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['CreativeGetOutput'];
           };
         };
       };
-      400: components['responses']['BadRequest'];
-      401: components['responses']['Unauthorized'];
-      500: components['responses']['InternalError'];
+      /** @description Bad request */
+      400: {
+        content: {
+          'application/json': components['schemas']['BadRequest'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          'application/json': components['schemas']['Unauthorized'];
+        };
+      };
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['InternalError'];
+        };
+      };
+    };
+  };
+  /**
+   * Update creative
+   * @description Update an existing creative with new assets, copy, or specifications.
+   */
+  creative_update: {
+    parameters: {
+      header: {
+        /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
+        'mcp-session-id': string;
+      };
+    };
+    requestBody: {
+      content: {
+        'application/json': {
+          /** @enum {string} */
+          tool: 'creative_update';
+          arguments: components['schemas']['UpdateCreativeInput'];
+        };
+      };
+    };
+    responses: {
+      /** @description Successful response */
+      200: {
+        content: {
+          'application/json': {
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['CreativeGetOutput'];
+          };
+        };
+      };
+      /** @description Bad request */
+      400: {
+        content: {
+          'application/json': components['schemas']['BadRequest'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          'application/json': components['schemas']['Unauthorized'];
+        };
+      };
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['InternalError'];
+        };
+      };
+    };
+  };
+  /**
+   * Delete creative
+   * @description Delete a creative and remove it from any associated tactics or media buys.
+   */
+  creative_delete: {
+    parameters: {
+      header: {
+        /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
+        'mcp-session-id': string;
+      };
+    };
+    requestBody: {
+      content: {
+        'application/json': {
+          /** @enum {string} */
+          tool: 'creative_delete';
+          arguments: components['schemas']['DeleteCreativeInput'];
+        };
+      };
+    };
+    responses: {
+      /** @description Successful response */
+      200: {
+        content: {
+          'application/json': {
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['CreativeDelete'];
+          };
+        };
+      };
+      /** @description Bad request */
+      400: {
+        content: {
+          'application/json': components['schemas']['BadRequest'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          'application/json': components['schemas']['Unauthorized'];
+        };
+      };
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['InternalError'];
+        };
+      };
     };
   };
   /**
@@ -1424,628 +3135,349 @@ export interface operations {
    * @description Get detailed information about a specific creative.
    */
   creative_get: {
+    parameters: {
+      header: {
+        /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
+        'mcp-session-id': string;
+      };
+    };
     requestBody: {
       content: {
         'application/json': {
-          /** @description Internal database ID of the creative to retrieve */
-          creativeId: number;
+          /** @enum {string} */
+          tool: 'creative_get';
+          arguments: components['schemas']['GetCreativeInput'];
         };
       };
     };
     responses: {
-      200: components['responses']['ToolResponse'];
-      401: components['responses']['Unauthorized'];
-      404: components['responses']['NotFound'];
-      500: components['responses']['InternalError'];
-    };
-  };
-  /**
-   * Update creative
-   * @description Update an existing creative's settings.
-   */
-  creative_update: {
-    requestBody: {
-      content: {
-        'application/json': {
-          /** @description Internal database ID of the creative to update */
-          creativeId: number;
-          /** @description New name for the creative */
-          name?: string;
-          /** @description New status for the creative */
-          status?: string;
-        };
-      };
-    };
-    responses: {
-      200: components['responses']['ToolResponse'];
-      400: components['responses']['BadRequest'];
-      401: components['responses']['Unauthorized'];
-      404: components['responses']['NotFound'];
-      500: components['responses']['InternalError'];
-    };
-  };
-  /**
-   * Delete creative
-   * @description ⚠️ DANGER - Permanently delete a creative.
-   */
-  creative_delete: {
-    requestBody: {
-      content: {
-        'application/json': {
-          /** @description Internal database ID of the creative to delete */
-          creativeId: number;
-        };
-      };
-    };
-    responses: {
-      200: components['responses']['ToolResponse'];
-      401: components['responses']['Unauthorized'];
-      404: components['responses']['NotFound'];
-      500: components['responses']['InternalError'];
-    };
-  };
-  /**
-   * Assign creative to campaign
-   * @description Assign a creative to a campaign. Automatically discovers and syncs the creative to all sales agents
-   * associated with the campaign via active media buys. Returns auto-sync results including which agents
-   * received the creative and their approval status.
-   */
-  creative_assign: {
-    requestBody: {
-      content: {
-        'application/json': {
-          /** @description Internal database ID of the creative to assign */
-          creativeId: number;
-          /** @description Internal database ID of the campaign to assign creative to */
-          campaignId: number;
-        };
-      };
-    };
-    responses: {
-      /** @description Creative assigned successfully with auto-sync results */
+      /** @description Successful response */
       200: {
         content: {
           'application/json': {
-            content?: {
-              /** @example text */
-              type?: string;
-              /**
-               * @description Summary of creative assignment including auto-sync results.
-               * Shows which sales agents received the creative and their approval status.
-               */
-              text?: string;
-            }[];
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['CreativeGetOutput'];
           };
         };
       };
-      400: components['responses']['BadRequest'];
-      401: components['responses']['Unauthorized'];
-      404: components['responses']['NotFound'];
-      500: components['responses']['InternalError'];
+      /** @description Bad request */
+      400: {
+        content: {
+          'application/json': components['schemas']['BadRequest'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          'application/json': components['schemas']['Unauthorized'];
+        };
+      };
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['InternalError'];
+        };
+      };
     };
   };
   /**
-   * Sync creative with sales agents
-   * @description Sync a creative to sales agents using smart auto-detection or manual specification.
-   * Features intelligent format matching and recent activity analysis (30-60 day lookback).
-   * Provides detailed sync status and actionable next steps.
+   * List creatives
+   * @description List all creatives with optional filtering by brand agent or campaign.
+   */
+  creative_list: {
+    parameters: {
+      header: {
+        /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
+        'mcp-session-id': string;
+      };
+    };
+    requestBody: {
+      content: {
+        'application/json': {
+          /** @enum {string} */
+          tool: 'creative_list';
+          arguments: components['schemas']['ListCreativesInput'];
+        };
+      };
+    };
+    responses: {
+      /** @description Successful response */
+      200: {
+        content: {
+          'application/json': {
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['CreativeList'];
+          };
+        };
+      };
+      /** @description Bad request */
+      400: {
+        content: {
+          'application/json': components['schemas']['BadRequest'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          'application/json': components['schemas']['Unauthorized'];
+        };
+      };
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['InternalError'];
+        };
+      };
+    };
+  };
+  /**
+   * Sync creatives to sales agents
+   * @description Synchronize creatives to connected sales agents (DSPs, publisher platforms).
    */
   creative_sync_sales_agents: {
+    parameters: {
+      header: {
+        /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
+        'mcp-session-id': string;
+      };
+    };
     requestBody: {
       content: {
         'application/json': {
-          /** @description Internal database ID of the creative to sync */
-          creativeId: number;
-          /** @description Smart auto-detection settings (default behavior) */
-          autoDetect?: {
-            /** @description Look at tactics from past N days (default 30, max 90) */
-            daysBack?: number;
-            /** @description Include agents from active campaigns (default true) */
-            includeActive?: boolean;
+          /** @enum {string} */
+          tool: 'creative_sync_sales_agents';
+          arguments: components['schemas']['SyncSalesAgentsInput'];
+        };
+      };
+    };
+    responses: {
+      /** @description Successful response */
+      200: {
+        content: {
+          'application/json': {
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['CreativeSyncSalesAgents'];
           };
-          /** @description Internal database ID - sync to sales agents used by this campaign's tactics only */
-          campaignId?: number;
-          /** @description Request pre-approval before campaign launch (default false) */
-          preApproval?: boolean;
-          /** @description Explicitly specify ADCP agent IDs (overrides auto-detection) */
-          adcpAgentIds?: string[];
         };
       };
-    };
-    responses: {
-      200: components['responses']['ToolResponse'];
-      401: components['responses']['Unauthorized'];
-      404: components['responses']['NotFound'];
-      500: components['responses']['InternalError'];
-    };
-  };
-  /**
-   * List sales agents
-   * @description List all registered sales agents (publishers) for the authenticated customer.
-   */
-  sales_agent_list: {
-    requestBody: {
-      content: {
-        'application/json': Record<string, never>;
-      };
-    };
-    responses: {
-      200: components['responses']['ToolResponse'];
-      401: components['responses']['Unauthorized'];
-      500: components['responses']['InternalError'];
-    };
-  };
-  /**
-   * Get sales agent
-   * @description Get detailed information about a specific sales agent.
-   */
-  sales_agent_get: {
-    requestBody: {
-      content: {
-        'application/json': {
-          /** @description ID of the sales agent to retrieve */
-          salesAgentId: string;
+      /** @description Bad request */
+      400: {
+        content: {
+          'application/json': components['schemas']['BadRequest'];
         };
       };
-    };
-    responses: {
-      200: components['responses']['ToolResponse'];
-      401: components['responses']['Unauthorized'];
-      404: components['responses']['NotFound'];
-      500: components['responses']['InternalError'];
-    };
-  };
-  /**
-   * Register sales agent
-   * @description Register a new sales agent. Creates a row in the adcp_agent table. Organization ID is auto-detected from customer if not provided.
-   */
-  sales_agent_register: {
-    requestBody: {
-      content: {
-        'application/json': {
-          /** @description Sales agent name */
-          name: string;
-          /** @description Sales agent endpoint URL */
-          endpointUrl: string;
-          /**
-           * @description Protocol for endpoint URL calls
-           * @enum {string}
-           */
-          protocol: 'MCP' | 'A2A';
-          /**
-           * @description Authentication type
-           * @enum {string}
-           */
-          authenticationType: 'API_KEY' | 'OAUTH' | 'NO_AUTH';
-          /** @description Sales agent description (optional) */
-          description?: string;
-          /** @description Organization ID (optional - auto-detected from customer if not provided) */
-          organizationId?: string;
-          /** @description Authentication configuration for the sales agent (optional) */
-          authConfig?: Record<string, never>;
+      /** @description Unauthorized */
+      401: {
+        content: {
+          'application/json': components['schemas']['Unauthorized'];
         };
       };
-    };
-    responses: {
-      200: components['responses']['ToolResponse'];
-      400: components['responses']['BadRequest'];
-      401: components['responses']['Unauthorized'];
-      500: components['responses']['InternalError'];
-    };
-  };
-  /**
-   * List accounts for a sales agent
-   * @description List all accounts registered by your organization for a specific sales agent.
-   */
-  sales_agent_account_list: {
-    requestBody: {
-      content: {
-        'application/json': {
-          /** @description ID of the sales agent */
-          salesAgentId: string;
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['InternalError'];
         };
       };
-    };
-    responses: {
-      200: components['responses']['ToolResponse'];
-      401: components['responses']['Unauthorized'];
-      404: components['responses']['NotFound'];
-      500: components['responses']['InternalError'];
-    };
-  };
-  /**
-   * Register account for sales agent
-   * @description Register your organization's account to an existing sales agent. This allows you to access the sales agent's inventory and services.
-   */
-  sales_agent_account_register: {
-    requestBody: {
-      content: {
-        'application/json': {
-          /** @description Sales agent ID */
-          salesAgentId: string;
-          /** @description Account identifier */
-          accountIdentifier: string;
-          /** @description Authentication configuration (credentials, tokens, etc.) - optional */
-          authConfig?: Record<string, never>;
-        };
-      };
-    };
-    responses: {
-      200: components['responses']['ToolResponse'];
-      400: components['responses']['BadRequest'];
-      401: components['responses']['Unauthorized'];
-      500: components['responses']['InternalError'];
-    };
-  };
-  /**
-   * Unregister sales agent completely
-   * @description Completely unregister a sales agent - deactivates ALL customer accounts and disables the agent itself. Only the owner can perform this action.
-   */
-  sales_agent_unregister: {
-    requestBody: {
-      content: {
-        'application/json': {
-          /** @description ID of the sales agent to unregister */
-          salesAgentId: string;
-          /** @description Must be true to confirm this destructive operation */
-          confirm: boolean;
-        };
-      };
-    };
-    responses: {
-      200: components['responses']['ToolResponse'];
-      401: components['responses']['Unauthorized'];
-      404: components['responses']['NotFound'];
-      500: components['responses']['InternalError'];
-    };
-  };
-  /**
-   * Unregister your account with a sales agent
-   * @description Unregister (deactivate) your organization's account with a sales agent. This only deactivates your account but doesn't affect the sales agent or other customers' accounts.
-   */
-  sales_agent_account_unregister: {
-    requestBody: {
-      content: {
-        'application/json': {
-          /** @description ID of the sales agent to unregister your account from */
-          salesAgentId: string;
-          /** @description Must be true to confirm this destructive operation */
-          confirm: boolean;
-        };
-      };
-    };
-    responses: {
-      200: components['responses']['ToolResponse'];
-      401: components['responses']['Unauthorized'];
-      404: components['responses']['NotFound'];
-      500: components['responses']['InternalError'];
-    };
-  };
-  /**
-   * Update sales agent
-   * @description Update a sales agent's core settings like name, description, or endpoint URL. Only the owner can perform this action.
-   */
-  sales_agent_update: {
-    requestBody: {
-      content: {
-        'application/json': {
-          /** @description ID of the sales agent to update */
-          salesAgentId: string;
-          /** @description New name */
-          name?: string;
-          /** @description New description */
-          description?: string;
-          /** @description New endpoint URL */
-          endpointUrl?: string;
-          /**
-           * @description New protocol
-           * @enum {string}
-           */
-          protocol?: 'REST' | 'MCP' | 'A2A' | 'CUSTOM';
-          /**
-           * @description New authentication type
-           * @enum {string}
-           */
-          authenticationType?: 'API_KEY' | 'OAUTH' | 'NO_AUTH';
-          /** @description Authentication configuration for the sales agent */
-          authConfig?: Record<string, never>;
-        };
-      };
-    };
-    responses: {
-      200: components['responses']['ToolResponse'];
-      400: components['responses']['BadRequest'];
-      401: components['responses']['Unauthorized'];
-      404: components['responses']['NotFound'];
-      500: components['responses']['InternalError'];
-    };
-  };
-  /**
-   * Update sales agent account authentication
-   * @description Update your organization's account authentication configuration for a sales agent. This endpoint only handles authentication updates.
-   */
-  sales_agent_account_update: {
-    requestBody: {
-      content: {
-        'application/json': {
-          /** @description ID of the sales agent */
-          salesAgentId: string;
-          /** @description Account identifier to update */
-          accountIdentifier: string;
-          /** @description Updated authentication configuration (credentials, tokens, etc.) */
-          authConfig: Record<string, never>;
-        };
-      };
-    };
-    responses: {
-      200: components['responses']['ToolResponse'];
-      400: components['responses']['BadRequest'];
-      401: components['responses']['Unauthorized'];
-      404: components['responses']['NotFound'];
-      500: components['responses']['InternalError'];
-    };
-  };
-  /**
-   * List tactics
-   * @description List all media buying tactics for the authenticated customer.
-   */
-  strategy_list: {
-    requestBody: {
-      content: {
-        'application/json': {
-          /** @description Optional campaign ID to filter tactics */
-          campaignId?: string;
-          /** @description Include archived tactics (defaults to false) */
-          includeArchived?: boolean;
-        };
-      };
-    };
-    responses: {
-      200: components['responses']['ToolResponse'];
-      401: components['responses']['Unauthorized'];
-      500: components['responses']['InternalError'];
-    };
-  };
-  /**
-   * Create tactic
-   * @description Create a new AMP media buy tactic for executing media buys with publishers. Tactics are automatically configured as activityType=AMP and tacticType=INTELLIGENT_CAMPAIGNS. Use channel_list to see valid channel codes.
-   */
-  strategy_create: {
-    requestBody: {
-      content: {
-        'application/json': {
-          /** @description Name of the tactic */
-          name: string;
-          /** @description Campaign ID to link this tactic to (required) */
-          campaignId: string;
-          /** @description Optional tactical brief or prompt for this tactic */
-          prompt?: string;
-          /** @description Valid channel codes to target (also accepts friendly aliases like audio, web, app, ctv, video which are automatically mapped) */
-          channelCodes?: (
-            | 'DIGITAL-AUDIO'
-            | 'DISPLAY-WEB'
-            | 'DISPLAY-APP'
-            | 'CTV-BVOD'
-            | 'OLV'
-            | 'DOOH'
-            | 'SOCIAL'
-          )[];
-          /** @description Country codes to target (2-digit ISO codes) */
-          countryCodes?: string[];
-        };
-      };
-    };
-    responses: {
-      200: components['responses']['ToolResponse'];
-      400: components['responses']['BadRequest'];
-      401: components['responses']['Unauthorized'];
-      500: components['responses']['InternalError'];
-    };
-  };
-  /**
-   * Get tactic
-   * @description Get detailed information about a specific tactic.
-   */
-  strategy_get: {
-    requestBody: {
-      content: {
-        'application/json': {
-          /** @description ID of the tactic to retrieve */
-          tacticId: string;
-        };
-      };
-    };
-    responses: {
-      200: components['responses']['ToolResponse'];
-      401: components['responses']['Unauthorized'];
-      404: components['responses']['NotFound'];
-      500: components['responses']['InternalError'];
-    };
-  };
-  /**
-   * Update tactic
-   * @description Update an existing tactic's configuration.
-   */
-  strategy_update: {
-    requestBody: {
-      content: {
-        'application/json': {
-          /** @description ID of the tactic to update */
-          tacticId: string;
-          /** @description New name for the tactic */
-          name?: string;
-          /** @description New tactical brief */
-          prompt?: string;
-          /** @description Updated channel codes (also accepts friendly aliases like audio, web, app, ctv, video) */
-          channelCodes?: (
-            | 'DIGITAL-AUDIO'
-            | 'DISPLAY-WEB'
-            | 'DISPLAY-APP'
-            | 'CTV-BVOD'
-            | 'OLV'
-            | 'DOOH'
-            | 'SOCIAL'
-          )[];
-          /** @description Updated country codes */
-          countryCodes?: string[];
-        };
-      };
-    };
-    responses: {
-      200: components['responses']['ToolResponse'];
-      400: components['responses']['BadRequest'];
-      401: components['responses']['Unauthorized'];
-      404: components['responses']['NotFound'];
-      500: components['responses']['InternalError'];
-    };
-  };
-  /**
-   * Delete tactic
-   * @description ⚠️ DANGER - Permanently delete a tactic.
-   */
-  strategy_delete: {
-    requestBody: {
-      content: {
-        'application/json': {
-          /** @description ID of the tactic to delete */
-          tacticId: string;
-        };
-      };
-    };
-    responses: {
-      200: components['responses']['ToolResponse'];
-      401: components['responses']['Unauthorized'];
-      404: components['responses']['NotFound'];
-      500: components['responses']['InternalError'];
-    };
-  };
-  /**
-   * Link campaign to tactic
-   * @description Link a campaign to a tactic for budget and execution management.
-   */
-  strategy_link_campaign: {
-    requestBody: {
-      content: {
-        'application/json': {
-          /** @description ID of the tactic */
-          tacticId: string;
-          /** @description ID of the campaign to link */
-          campaignId: string;
-        };
-      };
-    };
-    responses: {
-      200: components['responses']['ToolResponse'];
-      400: components['responses']['BadRequest'];
-      401: components['responses']['Unauthorized'];
-      404: components['responses']['NotFound'];
-      500: components['responses']['InternalError'];
-    };
-  };
-  /**
-   * Unlink campaign from tactic
-   * @description Unlink a campaign from a tactic.
-   */
-  strategy_unlink_campaign: {
-    requestBody: {
-      content: {
-        'application/json': {
-          /** @description ID of the tactic */
-          tacticId: string;
-          /** @description ID of the campaign to unlink */
-          campaignId: string;
-        };
-      };
-    };
-    responses: {
-      200: components['responses']['ToolResponse'];
-      400: components['responses']['BadRequest'];
-      401: components['responses']['Unauthorized'];
-      404: components['responses']['NotFound'];
-      500: components['responses']['InternalError'];
-    };
-  };
-  /**
-   * List media buys
-   * @description List all media buys for the authenticated customer.
-   */
-  media_buy_list: {
-    requestBody: {
-      content: {
-        'application/json': {
-          /** @description Optional tactic ID to filter media buys */
-          tacticId?: string;
-          /** @description Optional campaign ID to filter media buys */
-          campaignId?: string;
-          /** @description Include archived media buys (defaults to false) */
-          includeArchived?: boolean;
-        };
-      };
-    };
-    responses: {
-      200: components['responses']['ToolResponse'];
-      401: components['responses']['Unauthorized'];
-      500: components['responses']['InternalError'];
     };
   };
   /**
    * Create media buy
-   * @description Create a new media buy to execute a tactic with one or more publisher products. A media buy represents the actual execution of a tactic with budget allocation and pricing.
-   *
-   * **Multi-Product Support**: Media buys now support multiple products from different sales agents in a single buy. Each product can have its own budget allocation and pricing. During execution, each unique sales agent will receive a separate ADCP submission.
-   *
-   * **Budget Validation**: The sum of product budget allocations must not exceed the total media buy budget. The system will validate this at creation time and show warnings if budget is under-allocated.
+   * @description Create a new media buy with budget, targeting, and creative specifications.
    */
   media_buy_create: {
+    parameters: {
+      header: {
+        /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
+        'mcp-session-id': string;
+      };
+    };
     requestBody: {
       content: {
         'application/json': {
-          /** @description ID of the tactic to execute */
-          tacticId: string;
-          /** @description Name of the media buy */
-          name: string;
-          /** @description Optional description of the media buy */
-          description?: string;
-          /** @description Array of products to include in this media buy. At least one product is required. Each product will be validated with its sales agent. */
-          products: {
-            /** @description Media product ID from publisher (will be validated with sales agent) */
-            mediaProductId: string;
-            /** @description Sales agent ID for this product */
-            salesAgentId: string;
-            /** @description Budget allocated to this specific product (optional, must not exceed total budget when summed across all products) */
-            budgetAmount?: number;
-            /** @description Currency for this product's budget (defaults to media buy currency) */
-            budgetCurrency?: string;
-            /** @description Base CPM price for this product */
-            pricingCpm?: number;
-            /** @description Additional signal cost for this product */
-            pricingSignalCost?: number;
-            /** @description Optional display order for organizing products */
-            displayOrder?: number;
-          }[];
-          budget: {
-            /** @description Total budget amount for this media buy */
-            amount: number;
-            /** @description Currency code (defaults to USD) */
-            currency?: string;
-            /** @description Optional daily spending cap */
-            dailyCap?: number;
-            /**
-             * @description Budget pacing tactic (defaults to even)
-             * @enum {string}
-             */
-            pacing?: 'asap' | 'even' | 'front_loaded';
-          };
-          /** @description Optional array of creative IDs (database IDs) to assign to this media buy. Creatives must be assigned to the campaign associated with this media buy's tactic. */
-          creativeIds?: string[];
+          /** @enum {string} */
+          tool: 'media_buy_create';
+          arguments: components['schemas']['CreateMediaBuyInput'];
         };
       };
     };
     responses: {
-      200: components['responses']['ToolResponse'];
-      400: components['responses']['BadRequest'];
-      401: components['responses']['Unauthorized'];
-      500: components['responses']['InternalError'];
+      /** @description Successful response */
+      200: {
+        content: {
+          'application/json': {
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['MediaBuyGetOutput'];
+          };
+        };
+      };
+      /** @description Bad request */
+      400: {
+        content: {
+          'application/json': components['schemas']['BadRequest'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          'application/json': components['schemas']['Unauthorized'];
+        };
+      };
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['InternalError'];
+        };
+      };
+    };
+  };
+  /**
+   * Update media buy
+   * @description Update an existing media buy with new budget, targeting, or creative assignments.
+   */
+  media_buy_update: {
+    parameters: {
+      header: {
+        /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
+        'mcp-session-id': string;
+      };
+    };
+    requestBody: {
+      content: {
+        'application/json': {
+          /** @enum {string} */
+          tool: 'media_buy_update';
+          arguments: components['schemas']['UpdateMediaBuyInput'];
+        };
+      };
+    };
+    responses: {
+      /** @description Successful response */
+      200: {
+        content: {
+          'application/json': {
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['MediaBuyGetOutput'];
+          };
+        };
+      };
+      /** @description Bad request */
+      400: {
+        content: {
+          'application/json': components['schemas']['BadRequest'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          'application/json': components['schemas']['Unauthorized'];
+        };
+      };
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['InternalError'];
+        };
+      };
+    };
+  };
+  /**
+   * Delete media buy
+   * @description Delete a media buy and cancel any active placements.
+   */
+  media_buy_delete: {
+    parameters: {
+      header: {
+        /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
+        'mcp-session-id': string;
+      };
+    };
+    requestBody: {
+      content: {
+        'application/json': {
+          /** @enum {string} */
+          tool: 'media_buy_delete';
+          arguments: components['schemas']['DeleteMediaBuyInput'];
+        };
+      };
+    };
+    responses: {
+      /** @description Successful response */
+      200: {
+        content: {
+          'application/json': {
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['MediaBuyDelete'];
+          };
+        };
+      };
+      /** @description Bad request */
+      400: {
+        content: {
+          'application/json': components['schemas']['BadRequest'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          'application/json': components['schemas']['Unauthorized'];
+        };
+      };
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['InternalError'];
+        };
+      };
+    };
+  };
+  /**
+   * Execute media buy
+   * @description Execute a media buy, sending it to the configured sales agents for placement.
+   */
+  media_buy_execute: {
+    parameters: {
+      header: {
+        /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
+        'mcp-session-id': string;
+      };
+    };
+    requestBody: {
+      content: {
+        'application/json': {
+          /** @enum {string} */
+          tool: 'media_buy_execute';
+          arguments: components['schemas']['ExecuteMediaBuyInput'];
+        };
+      };
+    };
+    responses: {
+      /** @description Successful response */
+      200: {
+        content: {
+          'application/json': {
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['MediaBuyExecute'];
+          };
+        };
+      };
+      /** @description Bad request */
+      400: {
+        content: {
+          'application/json': components['schemas']['BadRequest'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          'application/json': components['schemas']['Unauthorized'];
+        };
+      };
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['InternalError'];
+        };
+      };
     };
   };
   /**
@@ -2053,114 +3485,199 @@ export interface operations {
    * @description Get detailed information about a specific media buy.
    */
   media_buy_get: {
+    parameters: {
+      header: {
+        /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
+        'mcp-session-id': string;
+      };
+    };
     requestBody: {
       content: {
         'application/json': {
-          /** @description ID of the media buy to retrieve */
-          mediaBuyId: string;
+          /** @enum {string} */
+          tool: 'media_buy_get';
+          arguments: components['schemas']['GetMediaBuyInput'];
         };
       };
     };
     responses: {
-      200: components['responses']['ToolResponse'];
-      401: components['responses']['Unauthorized'];
-      404: components['responses']['NotFound'];
-      500: components['responses']['InternalError'];
-    };
-  };
-  /**
-   * Update media buy
-   * @description Update an existing media buy's configuration.
-   */
-  media_buy_update: {
-    requestBody: {
-      content: {
-        'application/json': {
-          /** @description ID of the media buy to update */
-          mediaBuyId: string;
-          /** @description New name */
-          name?: string;
-          budget?: {
-            amount?: number;
-            dailyCap?: number;
-            /** @enum {string} */
-            pacing?: 'asap' | 'even' | 'front_loaded';
+      /** @description Successful response */
+      200: {
+        content: {
+          'application/json': {
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['MediaBuyGetOutput'];
           };
-          /** @description New CPM price */
-          cpm?: number;
-          /** @description Array of creative IDs (database IDs) to assign to this media buy. Replaces existing assignments. Creatives must be assigned to the campaign associated with this media buy's tactic. */
-          creativeIds?: string[];
         };
       };
-    };
-    responses: {
-      200: components['responses']['ToolResponse'];
-      400: components['responses']['BadRequest'];
-      401: components['responses']['Unauthorized'];
-      404: components['responses']['NotFound'];
-      500: components['responses']['InternalError'];
+      /** @description Bad request */
+      400: {
+        content: {
+          'application/json': components['schemas']['BadRequest'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          'application/json': components['schemas']['Unauthorized'];
+        };
+      };
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['InternalError'];
+        };
+      };
     };
   };
   /**
-   * Delete media buy
-   * @description ⚠️ DANGER - Permanently delete a media buy.
+   * List media buys
+   * @description List all media buys with optional filtering by brand agent, campaign, or status.
    */
-  media_buy_delete: {
+  media_buy_list: {
+    parameters: {
+      header: {
+        /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
+        'mcp-session-id': string;
+      };
+    };
     requestBody: {
       content: {
         'application/json': {
-          /** @description ID of the media buy to delete */
-          mediaBuyId: string;
+          /** @enum {string} */
+          tool: 'media_buy_list';
+          arguments: components['schemas']['ListMediaBuysInput'];
         };
       };
     };
     responses: {
-      200: components['responses']['ToolResponse'];
-      401: components['responses']['Unauthorized'];
-      404: components['responses']['NotFound'];
-      500: components['responses']['InternalError'];
+      /** @description Successful response */
+      200: {
+        content: {
+          'application/json': {
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['MediaBuyList'];
+          };
+        };
+      };
+      /** @description Bad request */
+      400: {
+        content: {
+          'application/json': components['schemas']['BadRequest'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          'application/json': components['schemas']['Unauthorized'];
+        };
+      };
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['InternalError'];
+        };
+      };
     };
   };
   /**
-   * Execute media buy
-   * @description Execute a media buy by deploying it to the publisher platform.
+   * Validate media buy budget
+   * @description Validate a media buy budget against campaign constraints and available funds.
    */
-  media_buy_execute: {
+  media_buy_validate_budget: {
+    parameters: {
+      header: {
+        /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
+        'mcp-session-id': string;
+      };
+    };
     requestBody: {
       content: {
         'application/json': {
-          /** @description ID of the media buy to execute */
-          mediaBuyId: string;
+          /** @enum {string} */
+          tool: 'media_buy_validate_budget';
+          arguments: components['schemas']['ValidateMediaBuyBudgetInput'];
         };
       };
     };
     responses: {
-      200: components['responses']['ToolResponse'];
-      400: components['responses']['BadRequest'];
-      401: components['responses']['Unauthorized'];
-      404: components['responses']['NotFound'];
-      500: components['responses']['InternalError'];
+      /** @description Successful response */
+      200: {
+        content: {
+          'application/json': {
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['MediaBuyValidateBudget'];
+          };
+        };
+      };
+      /** @description Bad request */
+      400: {
+        content: {
+          'application/json': components['schemas']['BadRequest'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          'application/json': components['schemas']['Unauthorized'];
+        };
+      };
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['InternalError'];
+        };
+      };
     };
   };
   /**
    * List notifications
-   * @description List notifications for the authenticated user.
+   * @description List notifications for the authenticated user with optional filtering by status.
    */
   notifications_list: {
+    parameters: {
+      header: {
+        /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
+        'mcp-session-id': string;
+      };
+    };
     requestBody: {
       content: {
         'application/json': {
-          /** @description Filter to only unread notifications */
-          unreadOnly?: boolean;
-          /** @description Maximum number of notifications to return */
-          limit?: number;
+          /** @enum {string} */
+          tool: 'notifications_list';
+          arguments: components['schemas']['ListNotificationsInput'];
         };
       };
     };
     responses: {
-      200: components['responses']['ToolResponse'];
-      401: components['responses']['Unauthorized'];
-      500: components['responses']['InternalError'];
+      /** @description Successful response */
+      200: {
+        content: {
+          'application/json': {
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['NotificationsList'];
+          };
+        };
+      };
+      /** @description Bad request */
+      400: {
+        content: {
+          'application/json': components['schemas']['BadRequest'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          'application/json': components['schemas']['Unauthorized'];
+        };
+      };
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['InternalError'];
+        };
+      };
     };
   };
   /**
@@ -2168,19 +3685,49 @@ export interface operations {
    * @description Mark a specific notification as read.
    */
   notifications_mark_read: {
+    parameters: {
+      header: {
+        /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
+        'mcp-session-id': string;
+      };
+    };
     requestBody: {
       content: {
         'application/json': {
-          /** @description ID of the notification to mark as read */
-          notificationId: string;
+          /** @enum {string} */
+          tool: 'notifications_mark_read';
+          arguments: components['schemas']['MarkNotificationReadInput'];
         };
       };
     };
     responses: {
-      200: components['responses']['ToolResponse'];
-      401: components['responses']['Unauthorized'];
-      404: components['responses']['NotFound'];
-      500: components['responses']['InternalError'];
+      /** @description Successful response */
+      200: {
+        content: {
+          'application/json': {
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['NotificationsMarkRead'];
+          };
+        };
+      };
+      /** @description Bad request */
+      400: {
+        content: {
+          'application/json': components['schemas']['BadRequest'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          'application/json': components['schemas']['Unauthorized'];
+        };
+      };
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['InternalError'];
+        };
+      };
     };
   };
   /**
@@ -2188,93 +3735,1249 @@ export interface operations {
    * @description Mark a specific notification as acknowledged.
    */
   notifications_mark_acknowledged: {
+    parameters: {
+      header: {
+        /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
+        'mcp-session-id': string;
+      };
+    };
     requestBody: {
       content: {
         'application/json': {
-          /** @description ID of the notification to mark as acknowledged */
-          notificationId: string;
+          /** @enum {string} */
+          tool: 'notifications_mark_acknowledged';
+          arguments: components['schemas']['MarkNotificationAcknowledgedInput'];
         };
       };
     };
     responses: {
-      200: components['responses']['ToolResponse'];
-      401: components['responses']['Unauthorized'];
-      404: components['responses']['NotFound'];
-      500: components['responses']['InternalError'];
+      /** @description Successful response */
+      200: {
+        content: {
+          'application/json': {
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['NotificationsMarkAcknowledged'];
+          };
+        };
+      };
+      /** @description Bad request */
+      400: {
+        content: {
+          'application/json': components['schemas']['BadRequest'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          'application/json': components['schemas']['Unauthorized'];
+        };
+      };
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['InternalError'];
+        };
+      };
     };
   };
   /**
    * Mark all notifications as read
-   * @description Mark all notifications as read for the authenticated user.
+   * @description Mark all notifications for the authenticated user as read.
    */
   notifications_mark_all_read: {
-    requestBody: {
-      content: {
-        'application/json': Record<string, never>;
+    parameters: {
+      header: {
+        /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
+        'mcp-session-id': string;
       };
     };
-    responses: {
-      200: components['responses']['ToolResponse'];
-      401: components['responses']['Unauthorized'];
-      500: components['responses']['InternalError'];
-    };
-  };
-  /**
-   * List media products
-   * @description List available media products from publishers.
-   */
-  media_product_list: {
     requestBody: {
       content: {
         'application/json': {
-          /** @description Optional sales agent ID to filter products */
-          salesAgentId?: string;
+          /** @enum {string} */
+          tool: 'notifications_mark_all_read';
+          arguments: components['schemas']['MarkAllNotificationsReadInput'];
         };
       };
     };
     responses: {
-      200: components['responses']['ToolResponse'];
-      401: components['responses']['Unauthorized'];
-      500: components['responses']['InternalError'];
+      /** @description Successful response */
+      200: {
+        content: {
+          'application/json': {
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['NotificationsMarkAllRead'];
+          };
+        };
+      };
+      /** @description Bad request */
+      400: {
+        content: {
+          'application/json': components['schemas']['BadRequest'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          'application/json': components['schemas']['Unauthorized'];
+        };
+      };
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['InternalError'];
+        };
+      };
     };
   };
   /**
    * Discover media products
-   * @description Discover new media products from connected publishers.
+   * @description Discover available media products from connected sales agents based on targeting criteria.
    */
   media_product_discover: {
+    parameters: {
+      header: {
+        /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
+        'mcp-session-id': string;
+      };
+    };
     requestBody: {
       content: {
         'application/json': {
-          /** @description Sales agent ID to discover products from */
-          salesAgentId?: string;
+          /** @enum {string} */
+          tool: 'media_product_discover';
+          arguments: components['schemas']['DiscoverProductsInput'];
         };
       };
     };
     responses: {
-      200: components['responses']['ToolResponse'];
-      401: components['responses']['Unauthorized'];
-      500: components['responses']['InternalError'];
+      /** @description Successful response */
+      200: {
+        content: {
+          'application/json': {
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['MediaProductDiscover'];
+          };
+        };
+      };
+      /** @description Bad request */
+      400: {
+        content: {
+          'application/json': components['schemas']['BadRequest'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          'application/json': components['schemas']['Unauthorized'];
+        };
+      };
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['InternalError'];
+        };
+      };
+    };
+  };
+  /**
+   * Save media product
+   * @description Save a discovered media product for future use in media buys.
+   */
+  media_product_save: {
+    parameters: {
+      header: {
+        /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
+        'mcp-session-id': string;
+      };
+    };
+    requestBody: {
+      content: {
+        'application/json': {
+          /** @enum {string} */
+          tool: 'media_product_save';
+          arguments: components['schemas']['SaveProductInput'];
+        };
+      };
+    };
+    responses: {
+      /** @description Successful response */
+      200: {
+        content: {
+          'application/json': {
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['MediaProductSave'];
+          };
+        };
+      };
+      /** @description Bad request */
+      400: {
+        content: {
+          'application/json': components['schemas']['BadRequest'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          'application/json': components['schemas']['Unauthorized'];
+        };
+      };
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['InternalError'];
+        };
+      };
+    };
+  };
+  /**
+   * List media products
+   * @description List saved media products with optional filtering.
+   */
+  media_product_list: {
+    parameters: {
+      header: {
+        /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
+        'mcp-session-id': string;
+      };
+    };
+    requestBody: {
+      content: {
+        'application/json': {
+          /** @enum {string} */
+          tool: 'media_product_list';
+          arguments: components['schemas']['ListProductsInput'];
+        };
+      };
+    };
+    responses: {
+      /** @description Successful response */
+      200: {
+        content: {
+          'application/json': {
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['MediaProductList'];
+          };
+        };
+      };
+      /** @description Bad request */
+      400: {
+        content: {
+          'application/json': components['schemas']['BadRequest'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          'application/json': components['schemas']['Unauthorized'];
+        };
+      };
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['InternalError'];
+        };
+      };
     };
   };
   /**
    * Sync media products
-   * @description Synchronize media product inventory with publisher systems.
+   * @description Synchronize media product catalog from connected sales agents.
    */
   media_product_sync: {
+    parameters: {
+      header: {
+        /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
+        'mcp-session-id': string;
+      };
+    };
     requestBody: {
       content: {
         'application/json': {
-          /** @description Sales agent ID to sync products from */
-          salesAgentId: string;
+          /** @enum {string} */
+          tool: 'media_product_sync';
+          arguments: components['schemas']['SyncProductsInput'];
         };
       };
     };
     responses: {
-      200: components['responses']['ToolResponse'];
-      401: components['responses']['Unauthorized'];
-      404: components['responses']['NotFound'];
-      500: components['responses']['InternalError'];
+      /** @description Successful response */
+      200: {
+        content: {
+          'application/json': {
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['MediaProductSync'];
+          };
+        };
+      };
+      /** @description Bad request */
+      400: {
+        content: {
+          'application/json': components['schemas']['BadRequest'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          'application/json': components['schemas']['Unauthorized'];
+        };
+      };
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['InternalError'];
+        };
+      };
+    };
+  };
+  /**
+   * Get sales agent
+   * @description Get detailed information about a specific sales agent (DSP, publisher platform).
+   */
+  sales_agent_get: {
+    parameters: {
+      header: {
+        /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
+        'mcp-session-id': string;
+      };
+    };
+    requestBody: {
+      content: {
+        'application/json': {
+          /** @enum {string} */
+          tool: 'sales_agent_get';
+          arguments: components['schemas']['GetSalesAgentInput'];
+        };
+      };
+    };
+    responses: {
+      /** @description Successful response */
+      200: {
+        content: {
+          'application/json': {
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['SalesAgentGet'];
+          };
+        };
+      };
+      /** @description Bad request */
+      400: {
+        content: {
+          'application/json': components['schemas']['BadRequest'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          'application/json': components['schemas']['Unauthorized'];
+        };
+      };
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['InternalError'];
+        };
+      };
+    };
+  };
+  /**
+   * List sales agents
+   * @description List all registered sales agents (DSPs, publisher platforms).
+   */
+  sales_agent_list: {
+    parameters: {
+      header: {
+        /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
+        'mcp-session-id': string;
+      };
+    };
+    requestBody: {
+      content: {
+        'application/json': {
+          /** @enum {string} */
+          tool: 'sales_agent_list';
+          arguments: components['schemas']['ListSalesAgentsInput'];
+        };
+      };
+    };
+    responses: {
+      /** @description Successful response */
+      200: {
+        content: {
+          'application/json': {
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['SalesAgentList'];
+          };
+        };
+      };
+      /** @description Bad request */
+      400: {
+        content: {
+          'application/json': components['schemas']['BadRequest'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          'application/json': components['schemas']['Unauthorized'];
+        };
+      };
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['InternalError'];
+        };
+      };
+    };
+  };
+  /**
+   * Register sales agent
+   * @description Register a new sales agent (DSP, publisher platform) for media buying.
+   */
+  sales_agent_register: {
+    parameters: {
+      header: {
+        /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
+        'mcp-session-id': string;
+      };
+    };
+    requestBody: {
+      content: {
+        'application/json': {
+          /** @enum {string} */
+          tool: 'sales_agent_register';
+          arguments: components['schemas']['RegisterSalesAgentInput'];
+        };
+      };
+    };
+    responses: {
+      /** @description Successful response */
+      200: {
+        content: {
+          'application/json': {
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['SalesAgentRegister'];
+          };
+        };
+      };
+      /** @description Bad request */
+      400: {
+        content: {
+          'application/json': components['schemas']['BadRequest'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          'application/json': components['schemas']['Unauthorized'];
+        };
+      };
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['InternalError'];
+        };
+      };
+    };
+  };
+  /**
+   * Unregister sales agent
+   * @description Unregister a sales agent and disconnect it from the platform.
+   */
+  sales_agent_unregister: {
+    parameters: {
+      header: {
+        /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
+        'mcp-session-id': string;
+      };
+    };
+    requestBody: {
+      content: {
+        'application/json': {
+          /** @enum {string} */
+          tool: 'sales_agent_unregister';
+          arguments: components['schemas']['UnregisterSalesAgentInput'];
+        };
+      };
+    };
+    responses: {
+      /** @description Successful response */
+      200: {
+        content: {
+          'application/json': {
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['SalesAgentUnregister'];
+          };
+        };
+      };
+      /** @description Bad request */
+      400: {
+        content: {
+          'application/json': components['schemas']['BadRequest'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          'application/json': components['schemas']['Unauthorized'];
+        };
+      };
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['InternalError'];
+        };
+      };
+    };
+  };
+  /**
+   * Update sales agent
+   * @description Update sales agent configuration and credentials.
+   */
+  sales_agent_update: {
+    parameters: {
+      header: {
+        /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
+        'mcp-session-id': string;
+      };
+    };
+    requestBody: {
+      content: {
+        'application/json': {
+          /** @enum {string} */
+          tool: 'sales_agent_update';
+          arguments: components['schemas']['UpdateSalesAgentInput'];
+        };
+      };
+    };
+    responses: {
+      /** @description Successful response */
+      200: {
+        content: {
+          'application/json': {
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['SalesAgentUpdate'];
+          };
+        };
+      };
+      /** @description Bad request */
+      400: {
+        content: {
+          'application/json': components['schemas']['BadRequest'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          'application/json': components['schemas']['Unauthorized'];
+        };
+      };
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['InternalError'];
+        };
+      };
+    };
+  };
+  /**
+   * List sales agent accounts
+   * @description List all accounts (seats, advertisers) within a sales agent.
+   */
+  sales_agent_account_list: {
+    parameters: {
+      header: {
+        /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
+        'mcp-session-id': string;
+      };
+    };
+    requestBody: {
+      content: {
+        'application/json': {
+          /** @enum {string} */
+          tool: 'sales_agent_account_list';
+          arguments: components['schemas']['ListSalesAgentAccountsInput'];
+        };
+      };
+    };
+    responses: {
+      /** @description Successful response */
+      200: {
+        content: {
+          'application/json': {
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['SalesAgentAccountList'];
+          };
+        };
+      };
+      /** @description Bad request */
+      400: {
+        content: {
+          'application/json': components['schemas']['BadRequest'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          'application/json': components['schemas']['Unauthorized'];
+        };
+      };
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['InternalError'];
+        };
+      };
+    };
+  };
+  /**
+   * Register sales agent account
+   * @description Register a new account (seat, advertiser) within a sales agent.
+   */
+  sales_agent_account_register: {
+    parameters: {
+      header: {
+        /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
+        'mcp-session-id': string;
+      };
+    };
+    requestBody: {
+      content: {
+        'application/json': {
+          /** @enum {string} */
+          tool: 'sales_agent_account_register';
+          arguments: components['schemas']['RegisterSalesAgentAccountInput'];
+        };
+      };
+    };
+    responses: {
+      /** @description Successful response */
+      200: {
+        content: {
+          'application/json': {
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['SalesAgentAccountRegister'];
+          };
+        };
+      };
+      /** @description Bad request */
+      400: {
+        content: {
+          'application/json': components['schemas']['BadRequest'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          'application/json': components['schemas']['Unauthorized'];
+        };
+      };
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['InternalError'];
+        };
+      };
+    };
+  };
+  /**
+   * Unregister sales agent account
+   * @description Unregister an account from a sales agent.
+   */
+  sales_agent_account_unregister: {
+    parameters: {
+      header: {
+        /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
+        'mcp-session-id': string;
+      };
+    };
+    requestBody: {
+      content: {
+        'application/json': {
+          /** @enum {string} */
+          tool: 'sales_agent_account_unregister';
+          arguments: components['schemas']['UnregisterSalesAgentAccountInput'];
+        };
+      };
+    };
+    responses: {
+      /** @description Successful response */
+      200: {
+        content: {
+          'application/json': {
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['SalesAgentAccountUnregister'];
+          };
+        };
+      };
+      /** @description Bad request */
+      400: {
+        content: {
+          'application/json': components['schemas']['BadRequest'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          'application/json': components['schemas']['Unauthorized'];
+        };
+      };
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['InternalError'];
+        };
+      };
+    };
+  };
+  /**
+   * Update sales agent account
+   * @description Update account configuration within a sales agent.
+   */
+  sales_agent_account_update: {
+    parameters: {
+      header: {
+        /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
+        'mcp-session-id': string;
+      };
+    };
+    requestBody: {
+      content: {
+        'application/json': {
+          /** @enum {string} */
+          tool: 'sales_agent_account_update';
+          arguments: components['schemas']['UpdateSalesAgentAccountInput'];
+        };
+      };
+    };
+    responses: {
+      /** @description Successful response */
+      200: {
+        content: {
+          'application/json': {
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['SalesAgentAccountUpdate'];
+          };
+        };
+      };
+      /** @description Bad request */
+      400: {
+        content: {
+          'application/json': components['schemas']['BadRequest'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          'application/json': components['schemas']['Unauthorized'];
+        };
+      };
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['InternalError'];
+        };
+      };
+    };
+  };
+  /**
+   * Create tactic
+   * @description Create a new tactic defining how to achieve campaign objectives.
+   */
+  tactic_create: {
+    parameters: {
+      header: {
+        /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
+        'mcp-session-id': string;
+      };
+    };
+    requestBody: {
+      content: {
+        'application/json': {
+          /** @enum {string} */
+          tool: 'tactic_create';
+          arguments: components['schemas']['CreateTacticInput'];
+        };
+      };
+    };
+    responses: {
+      /** @description Successful response */
+      200: {
+        content: {
+          'application/json': {
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['TacticCreate'];
+          };
+        };
+      };
+      /** @description Bad request */
+      400: {
+        content: {
+          'application/json': components['schemas']['BadRequest'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          'application/json': components['schemas']['Unauthorized'];
+        };
+      };
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['InternalError'];
+        };
+      };
+    };
+  };
+  /**
+   * Update tactic
+   * @description Update an existing tactic with new targeting, budget, or creative requirements.
+   */
+  tactic_update: {
+    parameters: {
+      header: {
+        /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
+        'mcp-session-id': string;
+      };
+    };
+    requestBody: {
+      content: {
+        'application/json': {
+          /** @enum {string} */
+          tool: 'tactic_update';
+          arguments: components['schemas']['UpdateTacticInput'];
+        };
+      };
+    };
+    responses: {
+      /** @description Successful response */
+      200: {
+        content: {
+          'application/json': {
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['TacticGetOutput'];
+          };
+        };
+      };
+      /** @description Bad request */
+      400: {
+        content: {
+          'application/json': components['schemas']['BadRequest'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          'application/json': components['schemas']['Unauthorized'];
+        };
+      };
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['InternalError'];
+        };
+      };
+    };
+  };
+  /**
+   * Delete tactic
+   * @description Delete a tactic and all associated media buys.
+   */
+  tactic_delete: {
+    parameters: {
+      header: {
+        /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
+        'mcp-session-id': string;
+      };
+    };
+    requestBody: {
+      content: {
+        'application/json': {
+          /** @enum {string} */
+          tool: 'tactic_delete';
+          arguments: components['schemas']['DeleteTacticInput'];
+        };
+      };
+    };
+    responses: {
+      /** @description Successful response */
+      200: {
+        content: {
+          'application/json': {
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['TacticDelete'];
+          };
+        };
+      };
+      /** @description Bad request */
+      400: {
+        content: {
+          'application/json': components['schemas']['BadRequest'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          'application/json': components['schemas']['Unauthorized'];
+        };
+      };
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['InternalError'];
+        };
+      };
+    };
+  };
+  /**
+   * Get tactic
+   * @description Get detailed information about a specific tactic.
+   */
+  tactic_get: {
+    parameters: {
+      header: {
+        /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
+        'mcp-session-id': string;
+      };
+    };
+    requestBody: {
+      content: {
+        'application/json': {
+          /** @enum {string} */
+          tool: 'tactic_get';
+          arguments: components['schemas']['GetTacticInput'];
+        };
+      };
+    };
+    responses: {
+      /** @description Successful response */
+      200: {
+        content: {
+          'application/json': {
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['TacticGetOutput'];
+          };
+        };
+      };
+      /** @description Bad request */
+      400: {
+        content: {
+          'application/json': components['schemas']['BadRequest'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          'application/json': components['schemas']['Unauthorized'];
+        };
+      };
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['InternalError'];
+        };
+      };
+    };
+  };
+  /**
+   * List tactics
+   * @description List all tactics with optional filtering by brand agent or campaign.
+   */
+  tactic_list: {
+    parameters: {
+      header: {
+        /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
+        'mcp-session-id': string;
+      };
+    };
+    requestBody: {
+      content: {
+        'application/json': {
+          /** @enum {string} */
+          tool: 'tactic_list';
+          arguments: components['schemas']['ListTacticsInput'];
+        };
+      };
+    };
+    responses: {
+      /** @description Successful response */
+      200: {
+        content: {
+          'application/json': {
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['TacticList'];
+          };
+        };
+      };
+      /** @description Bad request */
+      400: {
+        content: {
+          'application/json': components['schemas']['BadRequest'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          'application/json': components['schemas']['Unauthorized'];
+        };
+      };
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['InternalError'];
+        };
+      };
+    };
+  };
+  /**
+   * Link tactic to campaign
+   * @description Link a tactic to a campaign.
+   */
+  tactic_link_campaign: {
+    parameters: {
+      header: {
+        /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
+        'mcp-session-id': string;
+      };
+    };
+    requestBody: {
+      content: {
+        'application/json': {
+          /** @enum {string} */
+          tool: 'tactic_link_campaign';
+          arguments: components['schemas']['LinkCampaignToTacticInput'];
+        };
+      };
+    };
+    responses: {
+      /** @description Successful response */
+      200: {
+        content: {
+          'application/json': {
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['TacticLinkCampaign'];
+          };
+        };
+      };
+      /** @description Bad request */
+      400: {
+        content: {
+          'application/json': components['schemas']['BadRequest'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          'application/json': components['schemas']['Unauthorized'];
+        };
+      };
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['InternalError'];
+        };
+      };
+    };
+  };
+  /**
+   * Unlink tactic from campaign
+   * @description Unlink a tactic from a campaign.
+   */
+  tactic_unlink_campaign: {
+    parameters: {
+      header: {
+        /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
+        'mcp-session-id': string;
+      };
+    };
+    requestBody: {
+      content: {
+        'application/json': {
+          /** @enum {string} */
+          tool: 'tactic_unlink_campaign';
+          arguments: components['schemas']['UnlinkCampaignFromTacticInput'];
+        };
+      };
+    };
+    responses: {
+      /** @description Successful response */
+      200: {
+        content: {
+          'application/json': {
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['TacticUnlinkCampaign'];
+          };
+        };
+      };
+      /** @description Bad request */
+      400: {
+        content: {
+          'application/json': components['schemas']['BadRequest'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          'application/json': components['schemas']['Unauthorized'];
+        };
+      };
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['InternalError'];
+        };
+      };
+    };
+  };
+  /**
+   * Register webhook
+   * @description Register a webhook to receive real-time notifications about events.
+   */
+  webhook_register: {
+    parameters: {
+      header: {
+        /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
+        'mcp-session-id': string;
+      };
+    };
+    requestBody: {
+      content: {
+        'application/json': {
+          /** @enum {string} */
+          tool: 'webhook_register';
+          arguments: components['schemas']['RegisterWebhookInput'];
+        };
+      };
+    };
+    responses: {
+      /** @description Successful response */
+      200: {
+        content: {
+          'application/json': {
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['WebhookRegister'];
+          };
+        };
+      };
+      /** @description Bad request */
+      400: {
+        content: {
+          'application/json': components['schemas']['BadRequest'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          'application/json': components['schemas']['Unauthorized'];
+        };
+      };
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['InternalError'];
+        };
+      };
+    };
+  };
+  /**
+   * List webhooks
+   * @description List all registered webhooks.
+   */
+  webhook_list: {
+    parameters: {
+      header: {
+        /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
+        'mcp-session-id': string;
+      };
+    };
+    requestBody: {
+      content: {
+        'application/json': {
+          /** @enum {string} */
+          tool: 'webhook_list';
+          arguments: components['schemas']['ListWebhooksInput'];
+        };
+      };
+    };
+    responses: {
+      /** @description Successful response */
+      200: {
+        content: {
+          'application/json': {
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['WebhookList'];
+          };
+        };
+      };
+      /** @description Bad request */
+      400: {
+        content: {
+          'application/json': components['schemas']['BadRequest'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          'application/json': components['schemas']['Unauthorized'];
+        };
+      };
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['InternalError'];
+        };
+      };
+    };
+  };
+  /**
+   * Delete webhook
+   * @description Delete a registered webhook.
+   */
+  webhook_delete: {
+    parameters: {
+      header: {
+        /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
+        'mcp-session-id': string;
+      };
+    };
+    requestBody: {
+      content: {
+        'application/json': {
+          /** @enum {string} */
+          tool: 'webhook_delete';
+          arguments: components['schemas']['DeleteWebhookInput'];
+        };
+      };
+    };
+    responses: {
+      /** @description Successful response */
+      200: {
+        content: {
+          'application/json': {
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['WebhookDelete'];
+          };
+        };
+      };
+      /** @description Bad request */
+      400: {
+        content: {
+          'application/json': components['schemas']['BadRequest'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          'application/json': components['schemas']['Unauthorized'];
+        };
+      };
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['InternalError'];
+        };
+      };
     };
   };
 }
