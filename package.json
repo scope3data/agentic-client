@@ -5,7 +5,8 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "bin": {
-    "scope3-media-agent": "dist/media-agent-server.js"
+    "scope3-media-agent": "dist/media-agent-server.js",
+    "simple-media-agent": "dist/simple-media-agent-server.js"
   },
   "scripts": {
     "build": "npm run type-check && tsc",
