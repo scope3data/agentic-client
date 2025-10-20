@@ -1,19 +1,5 @@
-import { Server } from '@modelcontextprotocol/sdk/server/index.js';
-import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
-import {
-  CallToolRequestSchema,
-  ListToolsRequestSchema,
-  Tool,
-} from '@modelcontextprotocol/sdk/types.js';
-import type { components } from './types/media-agent-api.js';
-
-type GetProposedTacticsRequest = components['schemas']['GetProposedTacticsRequest'];
-type GetProposedTacticsResponse = components['schemas']['GetProposedTacticsResponse'];
-type ManageTacticRequest = components['schemas']['ManageTacticRequest'];
-type ManageTacticResponse = components['schemas']['ManageTacticResponse'];
-type TacticContextUpdatedRequest = components['schemas']['TacticContextUpdatedRequest'];
-type TacticCreativesUpdatedRequest = components['schemas']['TacticCreativesUpdatedRequest'];
-type TacticFeedbackRequest = components['schemas']['TacticFeedbackRequest'];
+import { FastMCP } from 'fastmcp';
+import { z } from 'zod';
 
 export interface MediaAgentMCPConfig {
   name?: string;
@@ -23,237 +9,17 @@ export interface MediaAgentMCPConfig {
 }
 
 export class MediaAgentMCP {
-  private server: Server;
+  private server: FastMCP;
   private config: MediaAgentMCPConfig;
 
   constructor(config: MediaAgentMCPConfig) {
     this.config = config;
-    this.server = new Server(
-      {
-        name: config.name || 'media-agent-mcp',
-        version: config.version || '1.0.0',
-      },
-      {
-        capabilities: {
-          tools: {},
-        },
-      }
-    );
-
-    this.setupHandlers();
-  }
-
-  private setupHandlers(): void {
-    this.server.setRequestHandler(ListToolsRequestSchema, async () => ({
-      tools: this.getTools(),
-    }));
-
-    this.server.setRequestHandler(CallToolRequestSchema, async (request) => {
-      const { name, arguments: args } = request.params;
-
-      switch (name) {
-        case 'get_proposed_tactics':
-          return this.handleGetProposedTactics(args as GetProposedTacticsRequest);
-        case 'manage_tactic':
-          return this.handleManageTactic(args as ManageTacticRequest);
-        case 'tactic_context_updated':
-          return this.handleTacticContextUpdated(args as TacticContextUpdatedRequest);
-        case 'tactic_creatives_updated':
-          return this.handleTacticCreativesUpdated(args as TacticCreativesUpdatedRequest);
-        case 'tactic_feedback':
-          return this.handleTacticFeedback(args as TacticFeedbackRequest);
-        default:
-          throw new Error(`Unknown tool: ${name}`);
-      }
+    this.server = new FastMCP({
+      name: config.name || 'media-agent-mcp',
+      version: (config.version as `${number}.${number}.${number}`) || '1.0.0',
     });
-  }
 
-  private getTools(): Tool[] {
-    return [
-      {
-        name: 'get_proposed_tactics',
-        description:
-          'Get tactic proposals from the media agent. Called when setting up a campaign to ask what tactics the agent can handle.',
-        inputSchema: {
-          type: 'object',
-          properties: {
-            campaignId: {
-              type: 'string',
-              description: 'Campaign ID',
-            },
-            budgetRange: {
-              type: 'object',
-              properties: {
-                min: { type: 'number' },
-                max: { type: 'number' },
-                currency: { type: 'string' },
-              },
-            },
-            startDate: {
-              type: 'string',
-              description: 'Campaign start date (ISO 8601)',
-            },
-            endDate: {
-              type: 'string',
-              description: 'Campaign end date (ISO 8601)',
-            },
-            channels: {
-              type: 'array',
-              items: {
-                type: 'string',
-                enum: ['display', 'video', 'audio', 'native', 'ctv'],
-              },
-            },
-            countries: {
-              type: 'array',
-              items: { type: 'string' },
-              description: 'ISO 3166-1 alpha-2 country codes',
-            },
-            objectives: {
-              type: 'array',
-              items: { type: 'string' },
-            },
-            brief: {
-              type: 'string',
-            },
-            acceptedPricingMethods: {
-              type: 'array',
-              items: {
-                type: 'string',
-                enum: ['cpm', 'vcpm', 'cpc', 'cpcv', 'cpv', 'cpp', 'flat_rate'],
-              },
-            },
-            seatId: {
-              type: 'string',
-              description: 'Seat/account ID',
-            },
-          },
-          required: ['campaignId', 'seatId'],
-        },
-      },
-      {
-        name: 'manage_tactic',
-        description:
-          'Accept or decline tactic assignment. Called when the agent is assigned to manage a tactic.',
-        inputSchema: {
-          type: 'object',
-          properties: {
-            tacticId: {
-              type: 'string',
-              description: 'ID of the tactic',
-            },
-            tacticContext: {
-              type: 'object',
-              description: 'Complete tactic details',
-            },
-            brandAgentId: {
-              type: 'string',
-              description: 'Brand agent ID',
-            },
-            seatId: {
-              type: 'string',
-              description: 'Seat/account ID',
-            },
-            customFields: {
-              type: 'object',
-              description: 'Custom fields from advertiser',
-            },
-          },
-          required: ['tacticId', 'tacticContext', 'brandAgentId', 'seatId'],
-        },
-      },
-      {
-        name: 'tactic_context_updated',
-        description:
-          'Notification of tactic changes. MUST be handled as changes may impact targeting or budget.',
-        inputSchema: {
-          type: 'object',
-          properties: {
-            tacticId: {
-              type: 'string',
-              description: 'Tactic ID',
-            },
-            tactic: {
-              type: 'object',
-              description: 'Current tactic state',
-            },
-            patch: {
-              type: 'array',
-              items: {
-                type: 'object',
-                properties: {
-                  op: { type: 'string', enum: ['add', 'remove', 'replace'] },
-                  path: { type: 'string' },
-                  value: {},
-                },
-              },
-            },
-          },
-          required: ['tacticId', 'tactic', 'patch'],
-        },
-      },
-      {
-        name: 'tactic_creatives_updated',
-        description:
-          'Notification of creative changes. Update media buys to use new creative assets.',
-        inputSchema: {
-          type: 'object',
-          properties: {
-            tacticId: {
-              type: 'string',
-              description: 'Tactic ID',
-            },
-            creatives: {
-              type: 'array',
-              description: 'Updated creative assets',
-            },
-            patch: {
-              type: 'array',
-              items: {
-                type: 'object',
-                properties: {
-                  op: { type: 'string', enum: ['add', 'remove', 'replace'] },
-                  path: { type: 'string' },
-                  value: {},
-                },
-              },
-            },
-          },
-          required: ['tacticId', 'creatives', 'patch'],
-        },
-      },
-      {
-        name: 'tactic_feedback',
-        description:
-          'Performance feedback from orchestrator. MAY trigger updates to improve performance.',
-        inputSchema: {
-          type: 'object',
-          properties: {
-            tacticId: {
-              type: 'string',
-              description: 'Tactic ID',
-            },
-            startDate: {
-              type: 'string',
-              description: 'Start of feedback interval (ISO 8601)',
-            },
-            endDate: {
-              type: 'string',
-              description: 'End of feedback interval (ISO 8601)',
-            },
-            deliveryIndex: {
-              type: 'number',
-              description: 'Delivery performance (100 = on target)',
-            },
-            performanceIndex: {
-              type: 'number',
-              description: 'Performance vs target (100 = maximum)',
-            },
-          },
-          required: ['tacticId', 'startDate', 'endDate', 'deliveryIndex', 'performanceIndex'],
-        },
-      },
-    ];
+    this.setupTools();
   }
 
   private async callMediaAgent(endpoint: string, body: unknown): Promise<unknown> {
@@ -279,76 +45,134 @@ export class MediaAgentMCP {
     return response.json();
   }
 
-  private async handleGetProposedTactics(args: GetProposedTacticsRequest) {
-    const response = (await this.callMediaAgent(
-      '/get-proposed-tactics',
-      args
-    )) as GetProposedTacticsResponse;
+  private setupTools(): void {
+    // get_proposed_tactics tool
+    this.server.addTool({
+      name: 'get_proposed_tactics',
+      description:
+        'Get tactic proposals from the media agent. Called when setting up a campaign to ask what tactics the agent can handle.',
+      parameters: z.object({
+        campaignId: z.string().describe('Campaign ID'),
+        budgetRange: z
+          .object({
+            min: z.number(),
+            max: z.number(),
+            currency: z.string(),
+          })
+          .optional(),
+        startDate: z.string().optional().describe('Campaign start date (ISO 8601)'),
+        endDate: z.string().optional().describe('Campaign end date (ISO 8601)'),
+        channels: z
+          .array(z.enum(['display', 'video', 'audio', 'native', 'ctv']))
+          .optional()
+          .describe('Media channels'),
+        countries: z.array(z.string()).optional().describe('ISO 3166-1 alpha-2 country codes'),
+        objectives: z.array(z.string()).optional().describe('Campaign objectives'),
+        brief: z.string().optional().describe('Campaign brief text'),
+        acceptedPricingMethods: z
+          .array(z.enum(['cpm', 'vcpm', 'cpc', 'cpcv', 'cpv', 'cpp', 'flat_rate']))
+          .optional()
+          .describe('Accepted pricing methods'),
+        seatId: z.string().describe('Seat/account ID'),
+      }),
+      execute: async (args) => {
+        const response = await this.callMediaAgent('/get-proposed-tactics', args);
+        return JSON.stringify(response, null, 2);
+      },
+    });
 
-    return {
-      content: [
-        {
-          type: 'text',
-          text: JSON.stringify(response, null, 2),
-        },
-      ],
-    };
+    // manage_tactic tool
+    this.server.addTool({
+      name: 'manage_tactic',
+      description:
+        'Accept or decline tactic assignment. Called when the agent is assigned to manage a tactic.',
+      parameters: z.object({
+        tacticId: z.string().describe('ID of the tactic'),
+        tacticContext: z.object({}).passthrough().describe('Complete tactic details'),
+        brandAgentId: z.string().describe('Brand agent ID'),
+        seatId: z.string().describe('Seat/account ID'),
+        customFields: z
+          .object({})
+          .passthrough()
+          .optional()
+          .describe('Custom fields from advertiser'),
+      }),
+      execute: async (args) => {
+        const response = await this.callMediaAgent('/manage-tactic', args);
+        return JSON.stringify(response, null, 2);
+      },
+    });
+
+    // tactic_context_updated tool
+    this.server.addTool({
+      name: 'tactic_context_updated',
+      description:
+        'Notification of tactic changes. MUST be handled as changes may impact targeting or budget.',
+      parameters: z.object({
+        tacticId: z.string().describe('Tactic ID'),
+        tactic: z.object({}).passthrough().describe('Current tactic state'),
+        patch: z
+          .array(
+            z.object({
+              op: z.enum(['add', 'remove', 'replace']),
+              path: z.string(),
+              value: z.unknown().optional(),
+            })
+          )
+          .describe('JSON Patch format changes'),
+      }),
+      execute: async (args) => {
+        await this.callMediaAgent('/tactic-context-updated', args);
+        return 'Tactic context update sent successfully';
+      },
+    });
+
+    // tactic_creatives_updated tool
+    this.server.addTool({
+      name: 'tactic_creatives_updated',
+      description:
+        'Notification of creative changes. Update media buys to use new creative assets.',
+      parameters: z.object({
+        tacticId: z.string().describe('Tactic ID'),
+        creatives: z.array(z.unknown()).describe('Updated creative assets'),
+        patch: z
+          .array(
+            z.object({
+              op: z.enum(['add', 'remove', 'replace']),
+              path: z.string(),
+              value: z.unknown().optional(),
+            })
+          )
+          .describe('JSON Patch format changes'),
+      }),
+      execute: async (args) => {
+        await this.callMediaAgent('/tactic-creatives-updated', args);
+        return 'Tactic creatives update sent successfully';
+      },
+    });
+
+    // tactic_feedback tool
+    this.server.addTool({
+      name: 'tactic_feedback',
+      description:
+        'Performance feedback from orchestrator. MAY trigger updates to improve performance.',
+      parameters: z.object({
+        tacticId: z.string().describe('Tactic ID'),
+        startDate: z.string().describe('Start of feedback interval (ISO 8601)'),
+        endDate: z.string().describe('End of feedback interval (ISO 8601)'),
+        deliveryIndex: z.number().describe('Delivery performance (100 = on target)'),
+        performanceIndex: z.number().describe('Performance vs target (100 = maximum)'),
+      }),
+      execute: async (args) => {
+        await this.callMediaAgent('/tactic-feedback', args);
+        return 'Tactic feedback sent successfully';
+      },
+    });
   }
 
-  private async handleManageTactic(args: ManageTacticRequest) {
-    const response = (await this.callMediaAgent('/manage-tactic', args)) as ManageTacticResponse;
-
-    return {
-      content: [
-        {
-          type: 'text',
-          text: JSON.stringify(response, null, 2),
-        },
-      ],
-    };
-  }
-
-  private async handleTacticContextUpdated(args: TacticContextUpdatedRequest) {
-    await this.callMediaAgent('/tactic-context-updated', args);
-
-    return {
-      content: [
-        {
-          type: 'text',
-          text: 'Tactic context update sent successfully',
-        },
-      ],
-    };
-  }
-
-  private async handleTacticCreativesUpdated(args: TacticCreativesUpdatedRequest) {
-    await this.callMediaAgent('/tactic-creatives-updated', args);
-
-    return {
-      content: [
-        {
-          type: 'text',
-          text: 'Tactic creatives update sent successfully',
-        },
-      ],
-    };
-  }
-
-  private async handleTacticFeedback(args: TacticFeedbackRequest) {
-    await this.callMediaAgent('/tactic-feedback', args);
-
-    return {
-      content: [
-        {
-          type: 'text',
-          text: 'Tactic feedback sent successfully',
-        },
-      ],
-    };
-  }
-
-  async run(): Promise<void> {
-    const transport = new StdioServerTransport();
-    await this.server.connect(transport);
+  async start(): Promise<void> {
+    await this.server.start({
+      transportType: 'stdio',
+    });
   }
 }

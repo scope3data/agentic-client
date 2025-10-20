@@ -1,3 +1,11 @@
+// Mock fastmcp to avoid ESM import issues in Jest
+jest.mock('fastmcp', () => ({
+  FastMCP: jest.fn().mockImplementation(() => ({
+    addTool: jest.fn(),
+    start: jest.fn().mockResolvedValue(undefined),
+  })),
+}));
+
 import { MediaAgentMCP } from '../media-agent-mcp';
 
 describe('MediaAgentMCP', () => {

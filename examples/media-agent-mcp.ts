@@ -10,7 +10,7 @@ const server = new MediaAgentMCP({
   version: '1.0.0',
 });
 
-server.run().catch((error) => {
+server.start().catch((error) => {
   console.error('Fatal error:', error);
   process.exit(1);
 });

@@ -1,6 +1,6 @@
 # Media Agent MCP Server
 
-MCP (Model Context Protocol) server implementation for Scope3 Media Agents.
+MCP (Model Context Protocol) server implementation for Scope3 Media Agents, built with [fastmcp](https://www.npmjs.com/package/fastmcp).
 
 ## Overview
 
@@ -36,7 +36,7 @@ const server = new MediaAgentMCP({
   version: '1.0.0',
 });
 
-await server.run();
+await server.start();
 ```
 
 ## Available Tools
