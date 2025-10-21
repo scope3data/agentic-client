@@ -1,29 +1,20 @@
 import { FastMCP } from 'fastmcp';
 import { z } from 'zod';
 import { Scope3AgenticClient } from './sdk';
+import type { MediaBuyProduct } from './resources/media-buys';
 
 interface SimpleMediaAgentMCPConfig {
   scope3ApiKey: string;
   scope3BaseUrl?: string;
   minDailyBudget?: number;
-  overallocationPercent?: number;
   name?: string;
   version?: string;
 }
 
-interface Product {
-  id: string;
-  salesAgentId: string;
-  floorPrice?: number;
-  recommendedPrice?: number;
-  name?: string;
-}
-
-interface MediaBuyAllocation {
-  productId: string;
-  salesAgentId: string;
-  budget: number;
-  cpm: number;
+// MediaBuyAllocation extends MediaBuyProduct from the ADCP client library
+// and adds overallocation percentage per media buy
+interface MediaBuyAllocation extends MediaBuyProduct {
+  overallocationPercent: number;
 }
 
 /**
@@ -36,14 +27,13 @@ export class SimpleMediaAgent {
   private config: Required<
     Omit<SimpleMediaAgentMCPConfig, 'name' | 'version'> & { name: string; version: string }
   >;
-  private activeTactics: Map<string, { products: Product[]; allocations: MediaBuyAllocation[] }>;
+  private activeTactics: Map<string, { allocations: MediaBuyAllocation[] }>;
 
   constructor(config: SimpleMediaAgentMCPConfig) {
     this.config = {
       scope3ApiKey: config.scope3ApiKey,
       scope3BaseUrl: config.scope3BaseUrl || 'https://api.agentic.scope3.com',
       minDailyBudget: config.minDailyBudget || 100,
-      overallocationPercent: config.overallocationPercent || 40,
       name: config.name || 'simple-media-agent',
       version: (config.version as `${number}.${number}.${number}`) || '1.0.0',
     };
@@ -118,7 +108,8 @@ export class SimpleMediaAgent {
     const salesAgents = (salesAgentsResponse.data as any[]) || [];
 
     // Call getProducts for each sales agent
-    const allProducts: Product[] = [];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const allProducts: any[] = [];
     for (const agent of salesAgents) {
       try {
         const productsResponse = await this.scope3.products.discover({
@@ -126,7 +117,8 @@ export class SimpleMediaAgent {
         });
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const products = ((productsResponse.data as any[]) || []).map((p: Product) => ({
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const products = ((productsResponse.data as any[]) || []).map((p: any) => ({
           id: p.id,
           salesAgentId: agent.id,
           floorPrice: p.floorPrice,
@@ -153,7 +145,7 @@ export class SimpleMediaAgent {
       proposedTactics: [
         {
           tacticId: `simple-passthrough-${campaignId}`,
-          execution: `Passthrough strategy with ${this.config.overallocationPercent}% overallocation: distribute budget across ${allProducts.length} products based on floor prices`,
+          execution: `Passthrough strategy: distribute budget across ${allProducts.length} products based on floor prices. Each media buy gets 40% overallocation.`,
           budgetCapacity: budgetRange?.max || 0,
           pricing: {
             method: 'passthrough',
@@ -164,7 +156,7 @@ export class SimpleMediaAgent {
           metadata: {
             productCount: allProducts.length,
             avgFloorPrice,
-            overallocationPercent: this.config.overallocationPercent,
+            overallocationPerMediaBuy: 40,
           },
         },
       ],
@@ -187,7 +179,8 @@ export class SimpleMediaAgent {
     const salesAgents = (salesAgentsResponse.data as any[]) || [];
 
     // Get products from all sales agents
-    const allProducts: Product[] = [];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const allProducts: any[] = [];
     for (const agent of salesAgents) {
       try {
         const productsResponse = await this.scope3.products.discover({
@@ -195,7 +188,8 @@ export class SimpleMediaAgent {
         });
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const products = ((productsResponse.data as any[]) || []).map((p: Product) => ({
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const products = ((productsResponse.data as any[]) || []).map((p: any) => ({
           id: p.id,
           salesAgentId: agent.id,
           floorPrice: p.floorPrice,
@@ -218,32 +212,26 @@ export class SimpleMediaAgent {
 
     // Store tactic info for later reallocation
     this.activeTactics.set(tacticId, {
-      products: allProducts,
       allocations,
     });
 
     // Create media buys for each allocation
+    // Each media buy has its own overallocation percentage
     const createdBuys = [];
     for (const allocation of allocations) {
       try {
         const result = await this.scope3.mediaBuys.create({
           tacticId,
-          name: `Media Buy - ${allocation.productId}`,
-          products: [
-            {
-              mediaProductId: allocation.productId,
-              salesAgentId: allocation.salesAgentId,
-              pricingCpm: allocation.cpm,
-            },
-          ],
+          name: `Media Buy - ${allocation.mediaProductId}`,
+          products: [allocation],
           budget: {
-            amount: allocation.budget,
-            currency: 'USD',
+            amount: allocation.budgetAmount || 0,
+            currency: allocation.budgetCurrency || 'USD',
           },
         });
         createdBuys.push(result.data);
       } catch (error) {
-        console.error(`Error creating media buy for product ${allocation.productId}:`, error);
+        console.error(`Error creating media buy for product ${allocation.mediaProductId}:`, error);
       }
     }
 
@@ -251,26 +239,24 @@ export class SimpleMediaAgent {
       acknowledged: true,
       mediaBuysCreated: createdBuys.length,
       allocations: allocations.map((a) => ({
-        productId: a.productId,
-        budget: a.budget,
-        cpm: a.cpm,
+        productId: a.mediaProductId,
+        budget: a.budgetAmount,
+        cpm: a.pricingCpm,
+        overallocationPercent: a.overallocationPercent,
       })),
     };
   }
 
   private calculateBudgetAllocation(
-    products: Product[],
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    products: any[],
     totalBudget: number
   ): MediaBuyAllocation[] {
     if (products.length === 0) return [];
 
-    // Apply overallocation to ensure delivery
-    const overallocationMultiplier = 1 + this.config.overallocationPercent / 100;
-    const allocatedBudget = totalBudget * overallocationMultiplier;
-
     // Calculate N = number of products where daily budget >= minDailyBudget
     const assumedDays = 30;
-    const maxProducts = Math.floor(allocatedBudget / assumedDays / this.config.minDailyBudget);
+    const maxProducts = Math.floor(totalBudget / assumedDays / this.config.minDailyBudget);
     const n = Math.min(maxProducts, products.length);
 
     if (n === 0) return [];
@@ -278,14 +264,18 @@ export class SimpleMediaAgent {
     // Take N cheapest products
     const selectedProducts = products.slice(0, n);
 
-    // Divide budget equally with overallocation applied
-    const budgetPerProduct = allocatedBudget / n;
+    // Divide budget equally
+    const budgetPerProduct = totalBudget / n;
 
+    // Each media buy gets its own overallocation percentage
+    // This allows per-buy customization and better delivery control
     return selectedProducts.map((product) => ({
-      productId: product.id,
+      mediaProductId: product.id,
       salesAgentId: product.salesAgentId,
-      budget: budgetPerProduct,
-      cpm: product.floorPrice || 0,
+      budgetAmount: budgetPerProduct,
+      budgetCurrency: 'USD',
+      pricingCpm: product.floorPrice || 0,
+      overallocationPercent: 40, // Default 40% overallocation per media buy
     }));
   }
 
