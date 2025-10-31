@@ -51,14 +51,20 @@ export async function getProposedTactics(
     }
   }
 
+  // Fail if no products found
+  if (allProducts.length === 0) {
+    throw new Error(
+      `No products available from ${salesAgents.length} sales agents. ` +
+        'Cannot propose tactics without available inventory.'
+    );
+  }
+
   // Sort by floor price (cheapest first)
   allProducts.sort((a, b) => (a.floorPrice || 0) - (b.floorPrice || 0));
 
   // Calculate average floor price for proposal
   const avgFloorPrice =
-    allProducts.length > 0
-      ? allProducts.reduce((sum, p) => sum + (p.floorPrice || 0), 0) / allProducts.length
-      : 0;
+    allProducts.reduce((sum, p) => sum + (p.floorPrice || 0), 0) / allProducts.length;
 
   return {
     proposedTactics: [

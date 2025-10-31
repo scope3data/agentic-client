@@ -512,15 +512,6 @@ export interface components {
        */
       manifestUrl?: string;
       /**
-       * @description Advertising channels to enable
-       * @example [
-       *   "app",
-       *   "display",
-       *   "ctv"
-       * ]
-       */
-      channels?: ('ctv' | 'video' | 'display' | 'app' | 'social')[];
-      /**
        * @description Country codes (ISO 3166-1 alpha-2)
        * @example [
        *   "US",
@@ -529,15 +520,6 @@ export interface components {
        * ]
        */
       countryCodes?: string[];
-      /**
-       * @description Language codes (ISO 639-1)
-       * @example [
-       *   "en",
-       *   "es",
-       *   "fr"
-       * ]
-       */
-      languages?: string[];
     };
     /** @description Parameters for updating a brand agent */
     UpdateBrandAgentInput: {
@@ -556,12 +538,8 @@ export interface components {
        * @example https://example.com/brand-manifest
        */
       manifestUrl?: string;
-      /** @description Updated channels */
-      channels?: ('ctv' | 'video' | 'display' | 'app' | 'social')[];
       /** @description Updated country codes */
       countryCodes?: string[];
-      /** @description Updated language codes */
-      languages?: string[];
     };
     /** @description Parameters for deleting a brand agent */
     DeleteBrandAgentInput: {
@@ -614,26 +592,18 @@ export interface components {
       brandAgentId: number | string;
       /** @description Story name */
       name: string;
-      /** @description Story description */
-      description?: string;
       /** @description Brand story prompt */
       prompt?: string;
-      /** @description Whether this is the primary story */
-      isPrimary: boolean;
-      /** @description Channel codes */
-      channelCodes?: ('ctv' | 'video' | 'display' | 'app' | 'social')[];
-      /** @description Country codes */
-      countryCodes?: string[];
       /** @description Brand names */
       brands?: string[];
-      /** @description Language codes */
-      languages?: string[];
+      /** @description Language codes (use language_list tool to see available options) */
+      languages: string[];
     };
     UpdateBrandStoryInput: {
+      /** @description Brand story ID */
+      brandStoryId: string;
       /** @description Story name */
       name?: string;
-      /** @description Previous model ID (bigint or string) */
-      previousModelId: number | string;
       /** @description Updated brand story prompt */
       prompt: string;
     };
@@ -786,8 +756,6 @@ export interface components {
        * @enum {string}
        */
       status?: 'ACTIVE' | 'PAUSED' | 'ARCHIVED' | 'DRAFT';
-      /** @description Expected version for optimistic locking */
-      expectedVersion?: number;
     };
     /** @description Parameters for deleting a campaign */
     DeleteCampaignInput: {
@@ -796,6 +764,8 @@ export interface components {
        * @example cmp_987654321
        */
       campaignId: string;
+      /** @description If true, permanently delete the campaign. Default: false (soft delete/archive) */
+      hardDelete?: boolean;
     };
     GetCampaignSummaryInput: {
       /** @description Campaign ID */
@@ -849,14 +819,11 @@ export interface components {
       assemblyMethod?: 'CREATIVE_AGENT' | 'ACTIVATION' | 'PUBLISHER';
       /** @description Optional campaign ID (object ID) to assign creative to */
       campaignId?: string;
-      version?: string;
-      registeredBy?: string;
     };
     UpdateCreativeInput: {
       creativeId: string;
       name?: string;
-      description?: string;
-      assetIds?: string[];
+      status?: string;
     };
     DeleteCreativeInput: {
       creativeId: string;
@@ -923,6 +890,7 @@ export interface components {
     };
     DeleteMediaBuyInput: {
       mediaBuyId: string;
+      confirm: boolean;
     };
     ExecuteMediaBuyInput: {
       mediaBuyId: string;
@@ -949,9 +917,14 @@ export interface components {
       newBudgetAmount: number;
     };
     ListNotificationsInput: {
-      read?: boolean;
-      take?: number;
-      skip?: number;
+      brandAgentId?: number;
+      campaignId?: string;
+      creativeId?: string;
+      tacticId?: string;
+      types?: string[];
+      unreadOnly?: boolean;
+      limit?: number;
+      offset?: number;
     };
     MarkNotificationReadInput: {
       notificationId: string;
@@ -1031,7 +1004,16 @@ export interface components {
     UpdateSalesAgentInput: {
       agentId: string;
       name?: string;
-      organization?: string;
+      description?: string;
+      /** Format: uri */
+      endpointUrl?: string;
+      /** @enum {string} */
+      protocol?: 'MCP' | 'A2A';
+      /** @enum {string} */
+      authenticationType?: 'API_KEY' | 'OAUTH' | 'NO_AUTH';
+      authConfig?: {
+        [key: string]: unknown;
+      };
     };
     ListSalesAgentAccountsInput: {
       agentId: string;
@@ -1058,6 +1040,16 @@ export interface components {
       prompt?: string;
       channelCodes?: ('ctv' | 'video' | 'display' | 'app' | 'social')[];
       countryCodes?: string[];
+      /** @description Language codes */
+      languages?: string[];
+      availableBrandStandards?: {
+        id: number;
+        name: string;
+      }[];
+      availableBrandStory?: {
+        id: number;
+        name: string;
+      }[];
     };
     UpdateTacticInput: {
       tacticId: number;
@@ -1065,9 +1057,18 @@ export interface components {
       prompt?: string;
       channelCodes?: ('ctv' | 'video' | 'display' | 'app' | 'social')[];
       countryCodes?: string[];
+      availableBrandStandards?: {
+        id: number;
+        name: string;
+      }[];
+      availableBrandStory?: {
+        id: number;
+        name: string;
+      }[];
     };
     DeleteTacticInput: {
       tacticId: number;
+      confirm: boolean;
     };
     GetTacticInput: {
       tacticId: number;

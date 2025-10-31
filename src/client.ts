@@ -55,6 +55,9 @@ export class Scope3Client {
     }
 
     await this.mcpClient.close();
+    if (this.transport) {
+      await this.transport.close();
+    }
     this.connected = false;
   }
 

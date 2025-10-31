@@ -61,9 +61,7 @@ async function testMediaAgent() {
           {
             tacticId: proposals.proposedTactics[0].tacticId,
             tacticContext: {
-              budget: {
-                amount: 25000,
-              },
+              budget: 25000, // budget is a number, not an object
             },
             brandAgentId: 'test-brand-agent-123',
             seatId: 'test-seat-123',
@@ -72,23 +70,36 @@ async function testMediaAgent() {
 
         console.log('✅ Success!');
         console.log('Result:', JSON.stringify(result, null, 2));
-        console.log('');
 
-        console.log('📊 Summary:');
-        console.log(`- Media buys created: ${result.mediaBuysCreated}`);
-        console.log(
-          `- Total budget allocated: $${result.allocations.reduce((sum, a) => sum + (a.budget || 0), 0).toFixed(2)}`
-        );
-        console.log(`- Original budget: $25,000`);
-        console.log(`- Overallocation: 40%`);
-        console.log(`- Expected total: $35,000`);
+        if (result.acknowledged) {
+          console.log('');
+          console.log('📊 Summary:');
+          console.log(`- Tactic acknowledged: ${result.acknowledged}`);
+          console.log(`- Original budget: $25,000`);
+          console.log(`- Overallocation: 40%`);
+          console.log(`- Expected total allocated: $35,000`);
+        } else {
+          console.log(`- Reason: ${result.reason}`);
+        }
       } catch (error) {
         console.error('❌ Error:', error);
       }
     }
   } catch (error) {
     console.error('❌ Error:', error);
+    await scope3.disconnect();
+    process.exit(1);
   }
+
+  await scope3.disconnect();
 }
 
-testMediaAgent().catch(console.error);
+testMediaAgent()
+  .then(() => {
+    console.log('\n✅ All tests completed');
+    process.exit(0);
+  })
+  .catch((error) => {
+    console.error('\n❌ Test failed:', error);
+    process.exit(1);
+  });

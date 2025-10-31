@@ -48,18 +48,13 @@ export async function manageTactic(
   tacticAllocations: Map<string, { allocations: MediaBuyAllocation[] }>,
   args: {
     tacticId: string;
-    tacticContext: { budget?: { amount: number } };
+    tacticContext: { budget?: number };
     brandAgentId: string;
     seatId: string;
   }
 ): Promise<{
   acknowledged: boolean;
-  mediaBuysCreated: number;
-  allocations: Array<{
-    productId: string;
-    budget: number | undefined;
-    cpm: number | undefined;
-  }>;
+  reason?: string;
 }> {
   const { tacticId, tacticContext } = args;
 
@@ -109,7 +104,7 @@ export async function manageTactic(
   allProducts.sort((a, b) => (a.floorPrice || 0) - (b.floorPrice || 0));
 
   // Calculate budget allocation with overallocation
-  const totalBudget = tacticContext.budget?.amount || 0;
+  const totalBudget = tacticContext.budget || 0;
   const allocations = calculateBudgetAllocation(
     allProducts,
     totalBudget,
@@ -123,10 +118,9 @@ export async function manageTactic(
   });
 
   // Create media buys for each allocation
-  const createdBuys = [];
   for (const allocation of allocations) {
     try {
-      const result = await scope3.mediaBuys.create({
+      await scope3.mediaBuys.create({
         tacticId,
         name: `Media Buy - ${allocation.mediaProductId}`,
         products: [allocation],
@@ -135,19 +129,17 @@ export async function manageTactic(
           currency: allocation.budgetCurrency || 'USD',
         },
       });
-      createdBuys.push(result.data);
     } catch (error) {
       console.error(`Error creating media buy for product ${allocation.mediaProductId}:`, error);
+      // Return failure if we can't create media buys
+      return {
+        acknowledged: false,
+        reason: `Failed to create media buy for product ${allocation.mediaProductId}`,
+      };
     }
   }
 
   return {
     acknowledged: true,
-    mediaBuysCreated: createdBuys.length,
-    allocations: allocations.map((a) => ({
-      productId: a.mediaProductId || '',
-      budget: a.budgetAmount,
-      cpm: a.pricingCpm,
-    })),
   };
 }

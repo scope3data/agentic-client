@@ -5,126 +5,63 @@
 
 export interface paths {
   '/get-proposed-tactics': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
     /**
      * Get tactic proposals from your agent
      * @description Scope3 calls this endpoint when setting up a campaign to ask what tactics
-     *     your agent can handle and how you would approach execution.
+     * your agent can handle and how you would approach execution.
      *
-     *     Analyze the campaign and respond with proposed tactics, budget capacity,
-     *     and your pricing model.
+     * Analyze the campaign and respond with proposed tactics, budget capacity,
+     * and your pricing model.
      */
     post: operations['get_proposed_tactics'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
   };
   '/manage-tactic': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
     /**
      * Accept or decline tactic assignment
      * @description Scope3 calls this when your agent is assigned to manage a tactic.
-     *     You should acknowledge and begin setup, or decline if you can't fulfill it.
+     * You should acknowledge and begin setup, or decline if you can't fulfill it.
      *
-     *     The tactic context contains everything you need: budget, schedule,
-     *     targeting constraints, creatives, and any custom fields.
+     * The tactic context contains everything you need: budget, schedule,
+     * targeting constraints, creatives, and any custom fields.
      */
     post: operations['manage_tactic'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
   };
   '/tactic-context-updated': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
     /**
      * Notification of tactic changes
      * @description Scope3 calls this when a tactic is modified by the user or their agent.
-     *     Changes may include budget adjustments, schedule changes, or other updates.
+     * Changes may include budget adjustments, schedule changes, or other updates.
      *
-     *     Your agent MUST handle these changes as they may impact targeting,
-     *     delivery, or budget allocation.
+     * Your agent MUST handle these changes as they may impact targeting,
+     * delivery, or budget allocation.
      */
     post: operations['tactic_context_updated'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
   };
   '/tactic-creatives-updated': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
     /**
      * Notification of creative changes
      * @description Scope3 calls this when creatives are added, removed, or modified for a tactic.
      *
-     *     Update your media buys to use the new creative assets.
+     * Update your media buys to use the new creative assets.
      */
     post: operations['tactic_creatives_updated'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
   };
   '/tactic-feedback': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
     /**
      * Performance feedback from orchestrator
      * @description Scope3 sends performance feedback to help you optimize delivery.
      *
-     *     - deliveryIndex: 100 = on target, <100 = under-delivering, >100 = over-delivering
-     *     - performanceIndex: 100 = maximum, relative to target or other tactics
+     * - deliveryIndex: 100 = on target, <100 = under-delivering, >100 = over-delivering
+     * - performanceIndex: 100 = maximum, relative to target or other tactics
      *
-     *     Your agent MAY use this to adjust targeting, budget allocation, or other settings.
+     * Your agent MAY use this to adjust targeting, budget allocation, or other settings.
      */
     post: operations['tactic_feedback'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
   };
 }
+
 export type webhooks = Record<string, never>;
+
 export interface components {
   schemas: {
     /** @description Budget range for campaign planning (buyer typically won't reveal full budget) */
@@ -144,7 +81,7 @@ export interface components {
        * @default USD
        * @example USD
        */
-      currency: string;
+      currency?: string;
     };
     TacticPricing: {
       /**
@@ -163,7 +100,7 @@ export interface components {
        * @default USD
        * @example USD
        */
-      currency: string;
+      currency?: string;
     };
     CustomField: {
       /**
@@ -205,25 +142,25 @@ export interface components {
       /**
        * @description Advertising channels (aligned with AdCP channel schema)
        * @example [
-       *       "display",
-       *       "video"
-       *     ]
+       *   "display",
+       *   "video"
+       * ]
        */
       channels?: ('display' | 'video' | 'audio' | 'native' | 'ctv')[];
       /**
        * @description ISO 3166-1 alpha-2 country codes
        * @example [
-       *       "US",
-       *       "CA"
-       *     ]
+       *   "US",
+       *   "CA"
+       * ]
        */
       countries?: string[];
       /**
        * @description Campaign objectives/outcomes (e.g., awareness, consideration, conversion)
        * @example [
-       *       "awareness",
-       *       "consideration"
-       *     ]
+       *   "awareness",
+       *   "consideration"
+       * ]
        */
       objectives?: string[];
       /**
@@ -234,10 +171,10 @@ export interface components {
       /**
        * @description AdCP pricing models acceptable to the buyer for sales agent pricing
        * @example [
-       *       "cpm",
-       *       "vcpm",
-       *       "flat_rate"
-       *     ]
+       *   "cpm",
+       *   "vcpm",
+       *   "flat_rate"
+       * ]
        */
       acceptedPricingMethods?: ('cpm' | 'vcpm' | 'cpc' | 'cpcv' | 'cpv' | 'cpp' | 'flat_rate')[];
       promotedOfferings?: components['schemas']['PromotedOfferings'];
@@ -287,7 +224,7 @@ export interface components {
        * @default USD
        * @example USD
        */
-      budgetCurrency: string;
+      budgetCurrency?: string;
       /**
        * Format: date-time
        * @description Tactic start date in UTC (ISO 8601 format)
@@ -309,8 +246,8 @@ export interface components {
       /**
        * @description Target countries
        * @example [
-       *       "US"
-       *     ]
+       *   "US"
+       * ]
        */
       countries?: string[];
       /** @description Creative assets to use (uses Creative from main schema) */
@@ -338,8 +275,8 @@ export interface components {
       /**
        * @description Custom fields provided by advertiser
        * @example {
-       *       "targetVCPM": 2.5
-       *     }
+       *   "targetVCPM": 2.5
+       * }
        */
       customFields?: Record<string, never>;
     };
@@ -445,25 +382,25 @@ export interface components {
       /**
        * @description ISO 3166-1 alpha-2 country codes this standard applies to
        * @example [
-       *       "US",
-       *       "CA"
-       *     ]
+       *   "US",
+       *   "CA"
+       * ]
        */
       countryCodes: string[];
       /**
        * @description Channels this standard applies to
        * @example [
-       *       "display",
-       *       "video"
-       *     ]
+       *   "display",
+       *   "video"
+       * ]
        */
       channelCodes: string[];
       /**
        * @description Brand names this standard applies to
        * @example [
-       *       "Brand A",
-       *       "Brand B"
-       *     ]
+       *   "Brand A",
+       *   "Brand B"
+       * ]
        */
       brands: string[];
       /**
@@ -517,9 +454,9 @@ export interface components {
         /**
          * @description Specific product IDs to promote
          * @example [
-         *       "prod_123",
-         *       "prod_456"
-         *     ]
+         *   "prod_123",
+         *   "prod_456"
+         * ]
          */
         product_ids?: string[];
       };
@@ -563,9 +500,9 @@ export interface components {
         /**
          * @description Semantic tags (e.g., 'dark', 'light', 'square', 'horizontal', 'icon')
          * @example [
-         *       "dark",
-         *       "horizontal"
-         *     ]
+         *   "dark",
+         *   "horizontal"
+         * ]
          */
         tags?: string[];
         /**
@@ -639,10 +576,10 @@ export interface components {
         /**
          * @description Product categories available in the catalog
          * @example [
-         *       "electronics",
-         *       "apparel",
-         *       "home_goods"
-         *     ]
+         *   "electronics",
+         *   "apparel",
+         *   "home_goods"
+         * ]
          */
         categories?: string[];
         /**
@@ -693,15 +630,21 @@ export interface components {
   headers: never;
   pathItems: never;
 }
+
 export type $defs = Record<string, never>;
+
+export type external = Record<string, never>;
+
 export interface operations {
+  /**
+   * Get tactic proposals from your agent
+   * @description Scope3 calls this endpoint when setting up a campaign to ask what tactics
+   * your agent can handle and how you would approach execution.
+   *
+   * Analyze the campaign and respond with proposed tactics, budget capacity,
+   * and your pricing model.
+   */
   get_proposed_tactics: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
     requestBody: {
       content: {
         'application/json': components['schemas']['GetProposedTacticsRequest'];
@@ -710,36 +653,29 @@ export interface operations {
     responses: {
       /** @description Tactic proposals from your agent */
       200: {
-        headers: {
-          [name: string]: unknown;
-        };
         content: {
           'application/json': components['schemas']['GetProposedTacticsResponse'];
         };
       };
       /** @description Invalid request */
       400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
+        content: never;
       };
       /** @description Internal error */
       500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
+        content: never;
       };
     };
   };
+  /**
+   * Accept or decline tactic assignment
+   * @description Scope3 calls this when your agent is assigned to manage a tactic.
+   * You should acknowledge and begin setup, or decline if you can't fulfill it.
+   *
+   * The tactic context contains everything you need: budget, schedule,
+   * targeting constraints, creatives, and any custom fields.
+   */
   manage_tactic: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
     requestBody: {
       content: {
         'application/json': components['schemas']['ManageTacticRequest'];
@@ -748,29 +684,25 @@ export interface operations {
     responses: {
       /** @description Acknowledgment of tactic assignment */
       200: {
-        headers: {
-          [name: string]: unknown;
-        };
         content: {
           'application/json': components['schemas']['ManageTacticResponse'];
         };
       };
       /** @description Invalid request */
       400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
+        content: never;
       };
     };
   };
+  /**
+   * Notification of tactic changes
+   * @description Scope3 calls this when a tactic is modified by the user or their agent.
+   * Changes may include budget adjustments, schedule changes, or other updates.
+   *
+   * Your agent MUST handle these changes as they may impact targeting,
+   * delivery, or budget allocation.
+   */
   tactic_context_updated: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
     requestBody: {
       content: {
         'application/json': components['schemas']['TacticContextUpdatedRequest'];
@@ -779,27 +711,21 @@ export interface operations {
     responses: {
       /** @description Acknowledged */
       200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
+        content: never;
       };
       /** @description Invalid request */
       400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
+        content: never;
       };
     };
   };
+  /**
+   * Notification of creative changes
+   * @description Scope3 calls this when creatives are added, removed, or modified for a tactic.
+   *
+   * Update your media buys to use the new creative assets.
+   */
   tactic_creatives_updated: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
     requestBody: {
       content: {
         'application/json': components['schemas']['TacticCreativesUpdatedRequest'];
@@ -808,27 +734,24 @@ export interface operations {
     responses: {
       /** @description Acknowledged */
       200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
+        content: never;
       };
       /** @description Invalid request */
       400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
+        content: never;
       };
     };
   };
+  /**
+   * Performance feedback from orchestrator
+   * @description Scope3 sends performance feedback to help you optimize delivery.
+   *
+   * - deliveryIndex: 100 = on target, <100 = under-delivering, >100 = over-delivering
+   * - performanceIndex: 100 = maximum, relative to target or other tactics
+   *
+   * Your agent MAY use this to adjust targeting, budget allocation, or other settings.
+   */
   tactic_feedback: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
     requestBody: {
       content: {
         'application/json': components['schemas']['TacticFeedbackRequest'];
@@ -837,17 +760,11 @@ export interface operations {
     responses: {
       /** @description Acknowledged */
       200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
+        content: never;
       };
       /** @description Invalid request */
       400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
+        content: never;
       };
     };
   };
