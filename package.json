@@ -4,6 +4,9 @@
   "description": "TypeScript client for the Scope3 Agentic API with AdCP webhook support",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "bin": {
+    "simple-media-agent": "dist/simple-media-agent-server.js"
+  },
   "scripts": {
     "build": "npm run type-check && tsc",
     "dev": "tsc --watch",
@@ -12,7 +15,8 @@
     "format": "prettier --write \"src/**/*.ts\"",
     "type-check": "tsc --noEmit",
     "generate-types": "openapi-typescript openapi.yaml -o src/types/api.ts",
-    "update-schemas": "curl -f -o openapi.yaml https://docs.agentic.scope3.com/openapi.yaml && npm run generate-types",
+    "generate-media-agent-types": "openapi-typescript media-agent-openapi.yaml -o src/types/media-agent-api.ts",
+    "update-schemas": "curl -f -o openapi.yaml https://docs.agentic.scope3.com/openapi.yaml && curl -f -o media-agent-openapi.yaml https://docs.agentic.scope3.com/media-agent-openapi.yaml && npm run generate-types && npm run generate-media-agent-types",
     "prepare": "husky",
     "pretest": "npm run type-check",
     "changeset": "changeset",
@@ -30,7 +34,9 @@
   "license": "MIT",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.20.1",
-    "express": "^4.18.0"
+    "express": "^4.18.0",
+    "fastmcp": "^3.20.2",
+    "zod": "^3.25.76"
   },
   "devDependencies": {
     "@changesets/changelog-github": "^0.5.1",

@@ -4669,38 +4669,12 @@ components:
           example: https://example.com/brand-manifest
           type: string
           format: uri
-        channels:
-          description: Advertising channels to enable
-          example:
-            - app
-            - display
-            - ctv
-          type: array
-          items:
-            type: string
-            enum:
-              - ctv
-              - video
-              - display
-              - app
-              - social
         countryCodes:
           description: Country codes (ISO 3166-1 alpha-2)
           example:
             - US
             - CA
             - GB
-          type: array
-          items:
-            type: string
-            minLength: 2
-            maxLength: 2
-        languages:
-          description: Language codes (ISO 639-1)
-          example:
-            - en
-            - es
-            - fr
           type: array
           items:
             type: string
@@ -4732,26 +4706,8 @@ components:
           example: https://example.com/brand-manifest
           type: string
           format: uri
-        channels:
-          description: Updated channels
-          type: array
-          items:
-            type: string
-            enum:
-              - ctv
-              - video
-              - display
-              - app
-              - social
         countryCodes:
           description: Updated country codes
-          type: array
-          items:
-            type: string
-            minLength: 2
-            maxLength: 2
-        languages:
-          description: Updated language codes
           type: array
           items:
             type: string
@@ -4866,63 +4822,38 @@ components:
           type: string
           minLength: 1
           maxLength: 255
-        description:
-          description: Story description
-          type: string
         prompt:
           description: Brand story prompt
           type: string
-        isPrimary:
-          description: Whether this is the primary story
-          type: boolean
-        channelCodes:
-          description: Channel codes
-          type: array
-          items:
-            type: string
-            enum:
-              - ctv
-              - video
-              - display
-              - app
-              - social
-        countryCodes:
-          description: Country codes
-          type: array
-          items:
-            type: string
         brands:
           description: Brand names
           type: array
           items:
             type: string
         languages:
-          description: Language codes
+          description: Language codes (use language_list tool to see available options)
           type: array
           items:
             type: string
       required:
         - brandAgentId
         - name
-        - isPrimary
+        - languages
     UpdateBrandStoryInput:
       type: object
       properties:
+        brandStoryId:
+          description: Brand story ID
+          type: string
         name:
           description: Story name
           type: string
-        previousModelId:
-          description: Previous model ID (bigint or string)
-          anyOf:
-            - type: integer
-              format: int64
-            - type: string
         prompt:
           description: Updated brand story prompt
           type: string
           minLength: 1
       required:
-        - previousModelId
+        - brandStoryId
         - prompt
     DeleteBrandStoryInput:
       type: object
@@ -5176,11 +5107,6 @@ components:
             - PAUSED
             - ARCHIVED
             - DRAFT
-        expectedVersion:
-          description: Expected version for optimistic locking
-          type: integer
-          minimum: -9007199254740991
-          maximum: 9007199254740991
       required:
         - campaignId
     DeleteCampaignInput:
@@ -5192,6 +5118,9 @@ components:
           example: cmp_987654321
           type: string
           minLength: 1
+        hardDelete:
+          description: 'If true, permanently delete the campaign. Default: false (soft delete/archive)'
+          type: boolean
       required:
         - campaignId
     GetCampaignSummaryInput:
@@ -5306,10 +5235,6 @@ components:
         campaignId:
           description: Optional campaign ID (object ID) to assign creative to
           type: string
-        version:
-          type: string
-        registeredBy:
-          type: string
       required:
         - brandAgentId
         - name
@@ -5320,12 +5245,8 @@ components:
           type: string
         name:
           type: string
-        description:
+        status:
           type: string
-        assetIds:
-          type: array
-          items:
-            type: string
       required:
         - creativeId
     DeleteCreativeInput:
@@ -5500,8 +5421,11 @@ components:
       properties:
         mediaBuyId:
           type: string
+        confirm:
+          type: boolean
       required:
         - mediaBuyId
+        - confirm
     ExecuteMediaBuyInput:
       type: object
       properties:
@@ -5554,16 +5478,24 @@ components:
     ListNotificationsInput:
       type: object
       properties:
-        read:
+        brandAgentId:
+          type: number
+        campaignId:
+          type: string
+        creativeId:
+          type: string
+        tacticId:
+          type: string
+        types:
+          type: array
+          items:
+            type: string
+        unreadOnly:
           type: boolean
-        take:
-          type: integer
-          exclusiveMinimum: true
-          maximum: 9007199254740991
-        skip:
-          type: integer
-          minimum: 0
-          maximum: 9007199254740991
+        limit:
+          type: number
+        offset:
+          type: number
     MarkNotificationReadInput:
       type: object
       properties:
@@ -5776,8 +5708,25 @@ components:
           type: string
         name:
           type: string
-        organization:
+        description:
           type: string
+        endpointUrl:
+          type: string
+          format: uri
+        protocol:
+          type: string
+          enum:
+            - MCP
+            - A2A
+        authenticationType:
+          type: string
+          enum:
+            - API_KEY
+            - OAUTH
+            - NO_AUTH
+        authConfig:
+          type: object
+          additionalProperties: {}
       required:
         - agentId
     ListSalesAgentAccountsInput:
@@ -5842,6 +5791,35 @@ components:
           type: array
           items:
             type: string
+        languages:
+          description: Language codes
+          type: array
+          items:
+            type: string
+        availableBrandStandards:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: number
+              name:
+                type: string
+            required:
+              - id
+              - name
+        availableBrandStory:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: number
+              name:
+                type: string
+            required:
+              - id
+              - name
       required:
         - campaignId
         - name
@@ -5868,6 +5846,30 @@ components:
           type: array
           items:
             type: string
+        availableBrandStandards:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: number
+              name:
+                type: string
+            required:
+              - id
+              - name
+        availableBrandStory:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: number
+              name:
+                type: string
+            required:
+              - id
+              - name
       required:
         - tacticId
     DeleteTacticInput:
@@ -5875,8 +5877,11 @@ components:
       properties:
         tacticId:
           type: number
+        confirm:
+          type: boolean
       required:
         - tacticId
+        - confirm
     GetTacticInput:
       type: object
       properties:
