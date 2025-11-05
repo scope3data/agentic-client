@@ -1,6 +1,6 @@
 {
   "name": "@scope3/agentic-client",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "TypeScript client for the Scope3 Agentic API with AdCP webhook support",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
