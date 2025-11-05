@@ -6,7 +6,7 @@ A basic reference implementation of a media agent using MCP (Model Context Proto
 
 This media agent exposes MCP tools that Scope3 platform calls to manage media buying:
 
-- **get_proposed_tactics**: Fetches products from sales agents and proposes budget allocation based on floor prices
+- **get_proposed_tactics**: Fetches products from registered agents and proposes budget allocation based on floor prices
 - **manage_tactic**: When assigned, creates media buys by allocating budget to the N cheapest products with overallocation
 
 **Protocol**: MCP (stdio) - All communication via MCP, no HTTP server needed!
@@ -14,7 +14,7 @@ This media agent exposes MCP tools that Scope3 platform calls to manage media bu
 ## Algorithm
 
 ### Budget Allocation
-- Fetches all products from registered sales agents
+- Fetches all products from registered agents
 - Sorts products by floor price (cheapest first)
 - **Applies overallocation** (default 40%) to ensure delivery targets are met
 - Calculates N = number of products where daily budget ≥ min daily budget (default $100)
@@ -141,7 +141,7 @@ Scope3 Platform → MCP (stdio) → Simple Media Agent → Scope3 API
 
 The agent:
 1. Receives MCP tool calls from Scope3 platform
-2. Fetches products from sales agents via Scope3 API
+2. Fetches products from registered agents via Scope3 API
 3. Calculates budget allocation with overallocation
 4. Creates media buys via Scope3 API
 5. Returns results via MCP response

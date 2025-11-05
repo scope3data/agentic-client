@@ -3249,13 +3249,375 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/InternalError'
+  /agent-get:
+    post:
+      operationId: agent_get
+      summary: Get agent
+      description: >-
+        Get detailed information about a specific agent (SALES or OUTCOME type). Type is automatically inferred from the
+        agent ID.
+      tags:
+        - Agents
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: mcp-session-id
+          in: header
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: >-
+            MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a
+            session ID, then reuse it for all subsequent tool requests in the same session.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                tool:
+                  type: string
+                  enum:
+                    - agent_get
+                arguments:
+                  $ref: '#/components/schemas/GetAgentInput'
+              required:
+                - tool
+                - arguments
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  content:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/MCPContent'
+                  structuredContent:
+                    $ref: '#/components/schemas/AgentGet'
+                required:
+                  - content
+                  - structuredContent
+                additionalProperties: false
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequest'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InternalError'
+  /agent-list:
+    post:
+      operationId: agent_list
+      summary: List agents
+      description: >-
+        List all registered agents with comprehensive filtering. Supports filtering by type (SALES/OUTCOME), status,
+        organization, relationship (SELF/SCOPE3/MARKETPLACE), and name.
+      tags:
+        - Agents
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: mcp-session-id
+          in: header
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: >-
+            MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a
+            session ID, then reuse it for all subsequent tool requests in the same session.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                tool:
+                  type: string
+                  enum:
+                    - agent_list
+                arguments:
+                  $ref: '#/components/schemas/ListAgentsInput'
+              required:
+                - tool
+                - arguments
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  content:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/MCPContent'
+                  structuredContent:
+                    $ref: '#/components/schemas/AgentList'
+                required:
+                  - content
+                  - structuredContent
+                additionalProperties: false
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequest'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InternalError'
+  /agent-register:
+    post:
+      operationId: agent_register
+      summary: Register agent
+      description: Register a new agent for media buying (SALES type) or outcome optimization (OUTCOME type).
+      tags:
+        - Agents
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: mcp-session-id
+          in: header
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: >-
+            MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a
+            session ID, then reuse it for all subsequent tool requests in the same session.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                tool:
+                  type: string
+                  enum:
+                    - agent_register
+                arguments:
+                  $ref: '#/components/schemas/RegisterAgentInput'
+              required:
+                - tool
+                - arguments
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  content:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/MCPContent'
+                  structuredContent:
+                    $ref: '#/components/schemas/AgentRegister'
+                required:
+                  - content
+                  - structuredContent
+                additionalProperties: false
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequest'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InternalError'
+  /agent-unregister:
+    post:
+      operationId: agent_unregister
+      summary: Unregister agent
+      description: Unregister an agent and disconnect it from the platform. Type is automatically inferred from the agent ID.
+      tags:
+        - Agents
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: mcp-session-id
+          in: header
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: >-
+            MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a
+            session ID, then reuse it for all subsequent tool requests in the same session.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                tool:
+                  type: string
+                  enum:
+                    - agent_unregister
+                arguments:
+                  $ref: '#/components/schemas/UnregisterAgentInput'
+              required:
+                - tool
+                - arguments
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  content:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/MCPContent'
+                  structuredContent:
+                    $ref: '#/components/schemas/AgentUnregister'
+                required:
+                  - content
+                  - structuredContent
+                additionalProperties: false
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequest'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InternalError'
+  /agent-update:
+    post:
+      operationId: agent_update
+      summary: Update agent
+      description: Update agent configuration and credentials. Type is automatically inferred from the agent ID.
+      tags:
+        - Agents
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: mcp-session-id
+          in: header
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: >-
+            MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a
+            session ID, then reuse it for all subsequent tool requests in the same session.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                tool:
+                  type: string
+                  enum:
+                    - agent_update
+                arguments:
+                  $ref: '#/components/schemas/UpdateAgentInput'
+              required:
+                - tool
+                - arguments
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  content:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/MCPContent'
+                  structuredContent:
+                    $ref: '#/components/schemas/AgentUpdate'
+                required:
+                  - content
+                  - structuredContent
+                additionalProperties: false
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequest'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InternalError'
   /sales-agent-get:
     post:
       operationId: sales_agent_get
-      summary: Get sales agent
-      description: Get detailed information about a specific sales agent (DSP, publisher platform).
+      summary: Get sales agent (DEPRECATED)
+      description: >-
+        DEPRECATED: Use agent_get instead. Get detailed information about a specific sales agent (DSP, publisher
+        platform).
       tags:
-        - Sales Agents
+        - Sales Agents (Deprecated)
+      deprecated: true
       security:
         - bearerAuth: []
       parameters:
@@ -3323,10 +3685,11 @@ paths:
   /sales-agent-list:
     post:
       operationId: sales_agent_list
-      summary: List sales agents
-      description: List all registered sales agents (DSPs, publisher platforms).
+      summary: List sales agents (DEPRECATED)
+      description: 'DEPRECATED: Use agent_list instead. List all registered sales agents (DSPs, publisher platforms).'
       tags:
-        - Sales Agents
+        - Sales Agents (Deprecated)
+      deprecated: true
       security:
         - bearerAuth: []
       parameters:
@@ -3394,10 +3757,11 @@ paths:
   /sales-agent-register:
     post:
       operationId: sales_agent_register
-      summary: Register sales agent
-      description: Register a new sales agent (DSP, publisher platform) for media buying.
+      summary: Register sales agent (DEPRECATED)
+      description: 'DEPRECATED: Use agent_register instead. Register a new sales agent (DSP, publisher platform) for media buying.'
       tags:
-        - Sales Agents
+        - Sales Agents (Deprecated)
+      deprecated: true
       security:
         - bearerAuth: []
       parameters:
@@ -3465,10 +3829,11 @@ paths:
   /sales-agent-unregister:
     post:
       operationId: sales_agent_unregister
-      summary: Unregister sales agent
-      description: Unregister a sales agent and disconnect it from the platform.
+      summary: Unregister sales agent (DEPRECATED)
+      description: 'DEPRECATED: Use agent_unregister instead. Unregister a sales agent and disconnect it from the platform.'
       tags:
-        - Sales Agents
+        - Sales Agents (Deprecated)
+      deprecated: true
       security:
         - bearerAuth: []
       parameters:
@@ -3536,10 +3901,11 @@ paths:
   /sales-agent-update:
     post:
       operationId: sales_agent_update
-      summary: Update sales agent
-      description: Update sales agent configuration and credentials.
+      summary: Update sales agent (DEPRECATED)
+      description: 'DEPRECATED: Use agent_update instead. Update sales agent configuration and credentials.'
       tags:
-        - Sales Agents
+        - Sales Agents (Deprecated)
+      deprecated: true
       security:
         - bearerAuth: []
       parameters:
@@ -4785,6 +5151,11 @@ components:
     ListBrandStandardsInput:
       type: object
       properties:
+        brandAgentId:
+          description: Optional brand agent ID to filter brand standards by
+          type: integer
+          exclusiveMinimum: true
+          maximum: 9007199254740991
         where:
           description: Prisma-style where clause for filtering standards
           type: object
@@ -4866,6 +5237,11 @@ components:
     ListBrandStoriesInput:
       type: object
       properties:
+        brandAgentId:
+          description: Optional brand agent ID to filter brand stories by
+          type: integer
+          exclusiveMinimum: true
+          maximum: 9007199254740991
         where:
           description: Filtering criteria
           type: object
@@ -5183,6 +5559,9 @@ components:
             - CREATIVE_AGENT
             - PUBLISHER
         formatId:
+          description: >-
+            Format identifier. For ADCP sources, this should be a format ID string recognized by the target sales agent
+            (e.g., display_300x250, video_1920x1080). Valid formats are agent-specific.
           type: string
         mediaUrl:
           type: string
@@ -5307,6 +5686,8 @@ components:
       properties:
         tacticId:
           type: number
+        agentId:
+          type: string
         name:
           type: string
           minLength: 1
@@ -5318,8 +5699,6 @@ components:
             type: object
             properties:
               mediaProductId:
-                type: string
-              salesAgentId:
                 type: string
               budgetAmount:
                 type: number
@@ -5337,41 +5716,94 @@ components:
                 type: integer
                 minimum: -9007199254740991
                 maximum: 9007199254740991
+              creatives:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    creative_id:
+                      type: string
+                    name:
+                      type: string
+                    format_id:
+                      anyOf:
+                        - type: string
+                        - type: object
+                          properties:
+                            agent_url:
+                              type: string
+                            id:
+                              type: string
+                          required:
+                            - agent_url
+                            - id
+                    assets:
+                      type: object
+                      additionalProperties:
+                        type: object
+                        properties:
+                          url:
+                            type: string
+                          width:
+                            type: number
+                          height:
+                            type: number
+                        required:
+                          - url
+                    click_url:
+                      type: string
+                  required:
+                    - creative_id
+                    - name
+                    - format_id
             required:
               - mediaProductId
-              - salesAgentId
-        creativeIds:
+              - budgetAmount
+        creatives:
           type: array
           items:
-            type: string
-        budget:
-          type: object
-          properties:
-            amount:
-              type: number
-              minimum: 0
-              exclusiveMinimum: true
-            currency:
-              type: string
-            dailyCap:
-              type: number
-              minimum: 0
-              exclusiveMinimum: true
-            pacing:
-              type: string
-              enum:
-                - asap
-                - even
-                - front_loaded
-          required:
-            - amount
-            - currency
-            - pacing
+            type: object
+            properties:
+              creative_id:
+                type: string
+              name:
+                type: string
+              format_id:
+                anyOf:
+                  - type: string
+                  - type: object
+                    properties:
+                      agent_url:
+                        type: string
+                      id:
+                        type: string
+                    required:
+                      - agent_url
+                      - id
+              assets:
+                type: object
+                additionalProperties:
+                  type: object
+                  properties:
+                    url:
+                      type: string
+                    width:
+                      type: number
+                    height:
+                      type: number
+                  required:
+                    - url
+              click_url:
+                type: string
+            required:
+              - creative_id
+              - name
+              - format_id
       required:
         - tacticId
+        - agentId
         - name
         - products
-        - budget
     UpdateMediaBuyInput:
       type: object
       properties:
@@ -5381,25 +5813,6 @@ components:
           type: string
         description:
           type: string
-        budget:
-          type: object
-          properties:
-            amount:
-              type: number
-              minimum: 0
-              exclusiveMinimum: true
-            currency:
-              type: string
-            dailyCap:
-              type: number
-              minimum: 0
-              exclusiveMinimum: true
-            pacing:
-              type: string
-              enum:
-                - asap
-                - even
-                - front_loaded
         status:
           type: string
           enum:
@@ -5414,6 +5827,20 @@ components:
           type: array
           items:
             type: string
+        packages:
+          type: array
+          items:
+            type: object
+            properties:
+              packageId:
+                type: string
+              creativeIds:
+                type: array
+                items:
+                  type: string
+            required:
+              - packageId
+              - creativeIds
       required:
         - mediaBuyId
     DeleteMediaBuyInput:
@@ -5553,10 +5980,8 @@ components:
           type: array
           items:
             type: string
-        salesAgentId:
-          type: integer
-          exclusiveMinimum: true
-          maximum: 9007199254740991
+        agentId:
+          type: string
     SaveProductInput:
       type: object
       properties:
@@ -5652,6 +6077,297 @@ components:
           type: string
       required:
         - sourceId
+    GetAgentInput:
+      type: object
+      properties:
+        agentId:
+          description: The agent ID to retrieve
+          type: string
+      required:
+        - agentId
+    ListAgentsInput:
+      type: object
+      properties:
+        type:
+          description: Filter by agent type (SALES or OUTCOME)
+          type: string
+          enum:
+            - SALES
+            - OUTCOME
+        status:
+          description: Filter by status (PENDING, ACTIVE, DISABLED)
+          type: string
+          enum:
+            - PENDING
+            - ACTIVE
+            - DISABLED
+        organizationId:
+          description: Filter by organization ID
+          type: string
+        relationship:
+          description: >-
+            Filter by relationship (SELF = owned by you, SCOPE3 = Scope3-provided, MARKETPLACE = third-party marketplace
+            agents)
+          type: string
+          enum:
+            - SELF
+            - SCOPE3
+            - MARKETPLACE
+        name:
+          description: Filter by agent name (partial match)
+          type: string
+    RegisterAgentInput:
+      type: object
+      properties:
+        type:
+          description: The type of agent to register
+          type: string
+          enum:
+            - SALES
+            - OUTCOME
+        name:
+          description: Agent name
+          type: string
+          minLength: 1
+        description:
+          description: Agent description
+          type: string
+        endpointUrl:
+          description: Agent endpoint URL
+          type: string
+          format: uri
+        protocol:
+          description: Protocol used by the agent (MCP or A2A)
+          type: string
+          enum:
+            - MCP
+            - A2A
+        authenticationType:
+          description: Authentication type
+          type: string
+          enum:
+            - API_KEY
+            - OAUTH
+            - NO_AUTH
+            - JWT
+        organizationId:
+          description: Organization ID
+          type: string
+        authConfig:
+          description: Authentication configuration object
+          anyOf:
+            - type: object
+              properties:
+                type:
+                  type: string
+                  enum:
+                    - jwt
+                privateKey:
+                  type: string
+                  minLength: 1
+                issuer:
+                  type: string
+                  minLength: 1
+                subject:
+                  type: string
+                  minLength: 1
+                keyId:
+                  type: string
+                  minLength: 1
+                scope:
+                  type: string
+                  minLength: 1
+                tokenEndpointUrl:
+                  type: string
+                  format: uri
+                audienceUrl:
+                  type: string
+                  format: uri
+                algorithm:
+                  type: string
+                  enum:
+                    - ES256
+                    - RS256
+                environment:
+                  type: string
+              required:
+                - type
+                - privateKey
+                - issuer
+                - subject
+                - keyId
+                - scope
+                - tokenEndpointUrl
+                - audienceUrl
+            - type: object
+              properties:
+                auth:
+                  type: object
+                  properties:
+                    type:
+                      type: string
+                      enum:
+                        - bearer
+                        - apikey
+                        - api_key
+                    token:
+                      type: string
+                      minLength: 1
+                  required:
+                    - type
+                    - token
+              required:
+                - auth
+            - type: object
+              properties:
+                auth:
+                  type: object
+                  properties:
+                    type:
+                      type: string
+                      enum:
+                        - oauth
+                        - oauth2
+                    token:
+                      type: string
+                      minLength: 1
+                  required:
+                    - type
+                    - token
+              required:
+                - auth
+            - type: object
+              properties: {}
+      required:
+        - type
+        - name
+        - endpointUrl
+        - protocol
+    UnregisterAgentInput:
+      type: object
+      properties:
+        agentId:
+          description: The agent ID to unregister
+          type: string
+      required:
+        - agentId
+    UpdateAgentInput:
+      type: object
+      properties:
+        agentId:
+          description: The agent ID to update
+          type: string
+        name:
+          description: New agent name
+          type: string
+        description:
+          description: New agent description
+          type: string
+        endpointUrl:
+          description: New endpoint URL
+          type: string
+          format: uri
+        protocol:
+          description: New protocol
+          type: string
+          enum:
+            - MCP
+            - A2A
+        authenticationType:
+          description: New authentication type
+          type: string
+          enum:
+            - API_KEY
+            - OAUTH
+            - NO_AUTH
+            - JWT
+        authConfig:
+          description: New authentication configuration
+          anyOf:
+            - type: object
+              properties:
+                type:
+                  type: string
+                  enum:
+                    - jwt
+                privateKey:
+                  type: string
+                  minLength: 1
+                issuer:
+                  type: string
+                  minLength: 1
+                subject:
+                  type: string
+                  minLength: 1
+                keyId:
+                  type: string
+                  minLength: 1
+                scope:
+                  type: string
+                  minLength: 1
+                tokenEndpointUrl:
+                  type: string
+                  format: uri
+                audienceUrl:
+                  type: string
+                  format: uri
+                algorithm:
+                  type: string
+                  enum:
+                    - ES256
+                    - RS256
+                environment:
+                  type: string
+              required:
+                - type
+                - privateKey
+                - issuer
+                - subject
+                - keyId
+                - scope
+                - tokenEndpointUrl
+                - audienceUrl
+            - type: object
+              properties:
+                auth:
+                  type: object
+                  properties:
+                    type:
+                      type: string
+                      enum:
+                        - bearer
+                        - apikey
+                        - api_key
+                    token:
+                      type: string
+                      minLength: 1
+                  required:
+                    - type
+                    - token
+              required:
+                - auth
+            - type: object
+              properties:
+                auth:
+                  type: object
+                  properties:
+                    type:
+                      type: string
+                      enum:
+                        - oauth
+                        - oauth2
+                    token:
+                      type: string
+                      minLength: 1
+                  required:
+                    - type
+                    - token
+              required:
+                - auth
+            - type: object
+              properties: {}
+      required:
+        - agentId
     GetSalesAgentInput:
       type: object
       properties:
@@ -5684,16 +6400,97 @@ components:
             - API_KEY
             - OAUTH
             - NO_AUTH
+            - JWT
         organizationId:
           type: string
         authConfig:
-          type: object
-          additionalProperties: {}
+          anyOf:
+            - type: object
+              properties:
+                type:
+                  type: string
+                  enum:
+                    - jwt
+                privateKey:
+                  type: string
+                  minLength: 1
+                issuer:
+                  type: string
+                  minLength: 1
+                subject:
+                  type: string
+                  minLength: 1
+                keyId:
+                  type: string
+                  minLength: 1
+                scope:
+                  type: string
+                  minLength: 1
+                tokenEndpointUrl:
+                  type: string
+                  format: uri
+                audienceUrl:
+                  type: string
+                  format: uri
+                algorithm:
+                  type: string
+                  enum:
+                    - ES256
+                    - RS256
+                environment:
+                  type: string
+              required:
+                - type
+                - privateKey
+                - issuer
+                - subject
+                - keyId
+                - scope
+                - tokenEndpointUrl
+                - audienceUrl
+            - type: object
+              properties:
+                auth:
+                  type: object
+                  properties:
+                    type:
+                      type: string
+                      enum:
+                        - bearer
+                        - apikey
+                        - api_key
+                    token:
+                      type: string
+                      minLength: 1
+                  required:
+                    - type
+                    - token
+              required:
+                - auth
+            - type: object
+              properties:
+                auth:
+                  type: object
+                  properties:
+                    type:
+                      type: string
+                      enum:
+                        - oauth
+                        - oauth2
+                    token:
+                      type: string
+                      minLength: 1
+                  required:
+                    - type
+                    - token
+              required:
+                - auth
+            - type: object
+              properties: {}
       required:
         - name
         - endpointUrl
         - protocol
-        - authenticationType
     UnregisterSalesAgentInput:
       type: object
       properties:
@@ -5724,9 +6521,91 @@ components:
             - API_KEY
             - OAUTH
             - NO_AUTH
+            - JWT
         authConfig:
-          type: object
-          additionalProperties: {}
+          anyOf:
+            - type: object
+              properties:
+                type:
+                  type: string
+                  enum:
+                    - jwt
+                privateKey:
+                  type: string
+                  minLength: 1
+                issuer:
+                  type: string
+                  minLength: 1
+                subject:
+                  type: string
+                  minLength: 1
+                keyId:
+                  type: string
+                  minLength: 1
+                scope:
+                  type: string
+                  minLength: 1
+                tokenEndpointUrl:
+                  type: string
+                  format: uri
+                audienceUrl:
+                  type: string
+                  format: uri
+                algorithm:
+                  type: string
+                  enum:
+                    - ES256
+                    - RS256
+                environment:
+                  type: string
+              required:
+                - type
+                - privateKey
+                - issuer
+                - subject
+                - keyId
+                - scope
+                - tokenEndpointUrl
+                - audienceUrl
+            - type: object
+              properties:
+                auth:
+                  type: object
+                  properties:
+                    type:
+                      type: string
+                      enum:
+                        - bearer
+                        - apikey
+                        - api_key
+                    token:
+                      type: string
+                      minLength: 1
+                  required:
+                    - type
+                    - token
+              required:
+                - auth
+            - type: object
+              properties:
+                auth:
+                  type: object
+                  properties:
+                    type:
+                      type: string
+                      enum:
+                        - oauth
+                        - oauth2
+                    token:
+                      type: string
+                      minLength: 1
+                  required:
+                    - type
+                    - token
+              required:
+                - auth
+            - type: object
+              properties: {}
       required:
         - agentId
     ListSalesAgentAccountsInput:
@@ -5739,15 +6618,96 @@ components:
     RegisterSalesAgentAccountInput:
       type: object
       properties:
-        salesAgentId:
+        agentId:
           type: string
         accountIdentifier:
           type: string
         authConfig:
-          type: object
-          additionalProperties: {}
+          anyOf:
+            - type: object
+              properties:
+                type:
+                  type: string
+                  enum:
+                    - jwt
+                privateKey:
+                  type: string
+                  minLength: 1
+                issuer:
+                  type: string
+                  minLength: 1
+                subject:
+                  type: string
+                  minLength: 1
+                keyId:
+                  type: string
+                  minLength: 1
+                scope:
+                  type: string
+                  minLength: 1
+                tokenEndpointUrl:
+                  type: string
+                  format: uri
+                audienceUrl:
+                  type: string
+                  format: uri
+                algorithm:
+                  type: string
+                  enum:
+                    - ES256
+                    - RS256
+                environment:
+                  type: string
+              required:
+                - type
+                - privateKey
+                - issuer
+                - subject
+                - keyId
+                - scope
+                - tokenEndpointUrl
+                - audienceUrl
+            - type: object
+              properties:
+                auth:
+                  type: object
+                  properties:
+                    type:
+                      type: string
+                      enum:
+                        - bearer
+                        - apikey
+                        - api_key
+                    token:
+                      type: string
+                      minLength: 1
+                  required:
+                    - type
+                    - token
+              required:
+                - auth
+            - type: object
+              properties:
+                auth:
+                  type: object
+                  properties:
+                    type:
+                      type: string
+                      enum:
+                        - oauth
+                        - oauth2
+                    token:
+                      type: string
+                      minLength: 1
+                  required:
+                    - type
+                    - token
+              required:
+                - auth
+            - type: object
+              properties: {}
       required:
-        - salesAgentId
+        - agentId
         - accountIdentifier
     UnregisterSalesAgentAccountInput:
       type: object
@@ -6085,6 +7045,37 @@ components:
           type: array
           items:
             type: string
+        models:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              name:
+                type: string
+              prompt:
+                type: string
+              status:
+                nullable: true
+                type: string
+              createdAt:
+                type: string
+                format: date-time
+                pattern: >-
+                  ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
+              updatedAt:
+                type: string
+                format: date-time
+                pattern: >-
+                  ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
+            required:
+              - id
+              - name
+              - prompt
+              - status
+              - createdAt
+              - updatedAt
         createdAt:
           type: string
           format: date-time
@@ -6101,12 +7092,13 @@ components:
         - countryCodes
         - channelCodes
         - brands
+        - models
         - createdAt
         - updatedAt
     CampaignUpdate:
       type: object
       properties:
-        id:
+        campaignId:
           type: string
         name:
           type: string
@@ -6123,7 +7115,7 @@ components:
           pattern: >-
             ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
       required:
-        - id
+        - campaignId
         - name
         - status
         - createdAt
@@ -6162,8 +7154,190 @@ components:
           type: string
         tacticId:
           type: number
+        customerId:
+          type: number
+        name:
+          type: string
+        description:
+          type: string
+        products:
+          type: array
+          items:
+            type: object
+            properties:
+              mediaProductId:
+                type: string
+              salesAgentId:
+                type: string
+              salesAgentName:
+                type: string
+              budgetAmount:
+                type: number
+              budgetCurrency:
+                type: string
+              pricingCpm:
+                type: number
+              pricingSignalCost:
+                type: number
+              displayOrder:
+                type: number
+              creativeFormats:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    agent_url:
+                      type: string
+                    id:
+                      type: string
+                  required:
+                    - agent_url
+                    - id
+            required:
+              - mediaProductId
+              - salesAgentId
+        packages:
+          type: array
+          items:
+            type: object
+            properties:
+              packageId:
+                type: string
+              productIds:
+                type: array
+                items:
+                  type: string
+              impressions:
+                type: number
+              budget:
+                type: number
+              targetingOverlay: {}
+              creatives:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    creativeId:
+                      type: string
+                    name:
+                      type: string
+                    formatId:
+                      type: string
+                    mediaUrl:
+                      type: string
+                    status:
+                      type: string
+                  required:
+                    - creativeId
+                    - name
+                    - formatId
+                    - mediaUrl
+                    - status
+              createdAt:
+                type: string
+                format: date-time
+                pattern: >-
+                  ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
+              updatedAt:
+                type: string
+                format: date-time
+                pattern: >-
+                  ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
+              salesAgentId:
+                type: string
+              salesAgentName:
+                type: string
+              pricingCpm:
+                type: number
+              pricingSignalCost:
+                type: number
+              bidPrice:
+                type: number
+              pricingOptionId:
+                type: string
+              creativeFormats:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    agent_url:
+                      type: string
+                    id:
+                      type: string
+                  required:
+                    - agent_url
+                    - id
+            required:
+              - packageId
+              - productIds
+              - impressions
+              - budget
+              - targetingOverlay
+              - creatives
+              - createdAt
+              - updatedAt
+        creatives:
+          type: array
+          items:
+            type: object
+            properties:
+              creativeId:
+                type: string
+              name:
+                type: string
+              formatId:
+                type: string
+              mediaUrl:
+                type: string
+              status:
+                type: string
+            required:
+              - creativeId
+              - name
+              - formatId
+              - mediaUrl
+              - status
+        pricing:
+          type: object
+          properties:
+            cpm:
+              type: number
+            signalCost:
+              type: number
+            totalCpm:
+              type: number
+          required:
+            - cpm
+            - totalCpm
         status:
           type: string
+        adcp:
+          type: object
+          properties:
+            mediaBuyId:
+              type: string
+            status:
+              type: string
+            webhookUrl:
+              type: string
+        performance:
+          type: object
+          properties:
+            impressions:
+              type: number
+            spend:
+              type: number
+            clicks:
+              type: number
+            lastUpdated:
+              type: string
+              format: date-time
+              pattern: >-
+                ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
+          required:
+            - impressions
+            - spend
+            - clicks
         archivedAt:
           type: string
           format: date-time
@@ -6182,6 +7356,9 @@ components:
       required:
         - id
         - tacticId
+        - customerId
+        - name
+        - pricing
         - status
         - createdAt
         - updatedAt
@@ -6402,6 +7579,36 @@ components:
           type: array
           items:
             type: string
+        currentModel:
+          type: object
+          properties:
+            id:
+              type: string
+            name:
+              type: string
+            prompt:
+              type: string
+            status:
+              nullable: true
+              type: string
+            createdAt:
+              type: string
+              format: date-time
+              pattern: >-
+                ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
+            updatedAt:
+              type: string
+              format: date-time
+              pattern: >-
+                ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
+          required:
+            - id
+            - name
+            - prompt
+            - status
+            - createdAt
+            - updatedAt
+          additionalProperties: false
         createdAt:
           type: string
           format: date-time
@@ -6478,6 +7685,40 @@ components:
                 type: string
               type:
                 type: string
+              languages:
+                type: array
+                items:
+                  type: string
+              currentModel:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  name:
+                    type: string
+                  prompt:
+                    type: string
+                  status:
+                    nullable: true
+                    type: string
+                  createdAt:
+                    type: string
+                    format: date-time
+                    pattern: >-
+                      ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
+                  updatedAt:
+                    type: string
+                    format: date-time
+                    pattern: >-
+                      ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
+                required:
+                  - id
+                  - name
+                  - prompt
+                  - status
+                  - createdAt
+                  - updatedAt
+                additionalProperties: false
               createdAt:
                 type: string
                 format: date-time
@@ -6493,6 +7734,7 @@ components:
               - name
               - status
               - type
+              - languages
               - createdAt
               - updatedAt
             additionalProperties: false
@@ -6964,13 +8206,252 @@ components:
         - success
         - productsSaved
       additionalProperties: false
+    AgentGet:
+      anyOf:
+        - type: object
+          properties:
+            agentId:
+              type: string
+            name:
+              type: string
+            type:
+              type: string
+              enum:
+                - SALES
+                - OUTCOME
+            status:
+              type: string
+            relationship:
+              type: string
+            endpointUrl:
+              type: string
+            protocol:
+              type: string
+            authenticationType:
+              type: string
+            description:
+              type: string
+            organizationId:
+              type: string
+            registeredBy:
+              type: string
+            createdAt:
+              type: string
+              format: date-time
+              pattern: >-
+                ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
+            updatedAt:
+              type: string
+              format: date-time
+              pattern: >-
+                ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
+          required:
+            - agentId
+            - name
+            - type
+            - status
+            - relationship
+            - endpointUrl
+            - protocol
+            - authenticationType
+            - createdAt
+            - updatedAt
+          additionalProperties: false
+        - type: object
+          properties:
+            agentId:
+              type: string
+            name:
+              type: string
+            type:
+              type: string
+              enum:
+                - SALES
+                - OUTCOME
+            status:
+              type: string
+            relationship:
+              type: string
+            endpointUrl:
+              type: string
+            protocol:
+              type: string
+            authenticationType:
+              type: string
+            description:
+              type: string
+            organizationId:
+              type: string
+            registeredBy:
+              type: string
+            createdAt:
+              type: string
+              format: date-time
+              pattern: >-
+                ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
+            updatedAt:
+              type: string
+              format: date-time
+              pattern: >-
+                ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
+            customerAccountCount:
+              type: integer
+              minimum: 0
+              maximum: 9007199254740991
+          required:
+            - agentId
+            - name
+            - type
+            - status
+            - relationship
+            - endpointUrl
+            - protocol
+            - authenticationType
+            - createdAt
+            - updatedAt
+            - customerAccountCount
+          additionalProperties: false
+    AgentList:
+      type: object
+      properties:
+        total:
+          type: integer
+          minimum: 0
+          maximum: 9007199254740991
+        items:
+          type: array
+          items:
+            anyOf:
+              - type: object
+                properties:
+                  agentId:
+                    type: string
+                  name:
+                    type: string
+                  type:
+                    type: string
+                    enum:
+                      - SALES
+                      - OUTCOME
+                  status:
+                    type: string
+                  relationship:
+                    type: string
+                  endpointUrl:
+                    type: string
+                  protocol:
+                    type: string
+                required:
+                  - agentId
+                  - name
+                  - type
+                  - status
+                  - relationship
+                  - endpointUrl
+                  - protocol
+                additionalProperties: false
+              - type: object
+                properties:
+                  agentId:
+                    type: string
+                  name:
+                    type: string
+                  type:
+                    type: string
+                    enum:
+                      - SALES
+                      - OUTCOME
+                  status:
+                    type: string
+                  relationship:
+                    type: string
+                  endpointUrl:
+                    type: string
+                  protocol:
+                    type: string
+                  customerAccountCount:
+                    type: integer
+                    minimum: 0
+                    maximum: 9007199254740991
+                required:
+                  - agentId
+                  - name
+                  - type
+                  - status
+                  - relationship
+                  - endpointUrl
+                  - protocol
+                  - customerAccountCount
+                additionalProperties: false
+      required:
+        - total
+        - items
+      additionalProperties: false
+    AgentRegister:
+      type: object
+      properties:
+        agentId:
+          type: string
+        name:
+          type: string
+        type:
+          type: string
+          enum:
+            - SALES
+            - OUTCOME
+        status:
+          type: string
+        endpointUrl:
+          type: string
+      required:
+        - agentId
+        - name
+        - type
+        - status
+        - endpointUrl
+      additionalProperties: false
+    AgentUnregister:
+      type: object
+      properties:
+        success:
+          type: boolean
+        agentId:
+          type: string
+        type:
+          type: string
+          enum:
+            - SALES
+            - OUTCOME
+      required:
+        - success
+        - agentId
+        - type
+      additionalProperties: false
+    AgentUpdate:
+      type: object
+      properties:
+        agentId:
+          type: string
+        name:
+          type: string
+        type:
+          type: string
+          enum:
+            - SALES
+            - OUTCOME
+        status:
+          type: string
+      required:
+        - agentId
+        - name
+        - type
+        - status
+      additionalProperties: false
     SalesAgentGet:
       type: object
       properties:
-        id:
-          type: integer
-          exclusiveMinimum: true
-          maximum: 9007199254740991
+        agentId:
+          type: string
         name:
           type: string
         status:
@@ -7004,7 +8485,7 @@ components:
           pattern: >-
             ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
       required:
-        - id
+        - agentId
         - name
         - status
         - relationship
@@ -7027,10 +8508,8 @@ components:
           items:
             type: object
             properties:
-              id:
-                type: integer
-                exclusiveMinimum: true
-                maximum: 9007199254740991
+              agentId:
+                type: string
               name:
                 type: string
               status:
@@ -7046,7 +8525,7 @@ components:
                 minimum: 0
                 maximum: 9007199254740991
             required:
-              - id
+              - agentId
               - name
               - status
               - relationship
@@ -7061,10 +8540,8 @@ components:
     SalesAgentRegister:
       type: object
       properties:
-        id:
-          type: integer
-          exclusiveMinimum: true
-          maximum: 9007199254740991
+        agentId:
+          type: string
         name:
           type: string
         status:
@@ -7072,7 +8549,7 @@ components:
         endpointUrl:
           type: string
       required:
-        - id
+        - agentId
         - name
         - status
         - endpointUrl
@@ -7082,23 +8559,23 @@ components:
       properties:
         success:
           type: boolean
-        id:
+        agentId:
           type: string
       required:
         - success
-        - id
+        - agentId
       additionalProperties: false
     SalesAgentUpdate:
       type: object
       properties:
-        id:
+        agentId:
           type: string
         name:
           type: string
         status:
           type: string
       required:
-        - id
+        - agentId
         - name
         - status
       additionalProperties: false
@@ -7162,11 +8639,11 @@ components:
       properties:
         success:
           type: boolean
-        salesAgentId:
+        agentId:
           type: string
       required:
         - success
-        - salesAgentId
+        - agentId
       additionalProperties: false
     SalesAgentAccountUpdate:
       type: object
@@ -7498,6 +8975,38 @@ components:
           type: array
           items:
             type: string
+        models:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              name:
+                type: string
+              prompt:
+                type: string
+              status:
+                nullable: true
+                type: string
+              createdAt:
+                type: string
+                format: date-time
+                pattern: >-
+                  ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
+              updatedAt:
+                type: string
+                format: date-time
+                pattern: >-
+                  ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
+            required:
+              - id
+              - name
+              - prompt
+              - status
+              - createdAt
+              - updatedAt
+            additionalProperties: false
         createdAt:
           type: string
           format: date-time
@@ -7514,13 +9023,14 @@ components:
         - countryCodes
         - channelCodes
         - brands
+        - models
         - createdAt
         - updatedAt
       additionalProperties: false
     CampaignUpdateOutput:
       type: object
       properties:
-        id:
+        campaignId:
           type: string
         name:
           type: string
@@ -7537,7 +9047,7 @@ components:
           pattern: >-
             ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
       required:
-        - id
+        - campaignId
         - name
         - status
         - createdAt
@@ -7578,8 +9088,199 @@ components:
           type: string
         tacticId:
           type: number
+        customerId:
+          type: number
+        name:
+          type: string
+        description:
+          type: string
+        products:
+          type: array
+          items:
+            type: object
+            properties:
+              mediaProductId:
+                type: string
+              salesAgentId:
+                type: string
+              salesAgentName:
+                type: string
+              budgetAmount:
+                type: number
+              budgetCurrency:
+                type: string
+              pricingCpm:
+                type: number
+              pricingSignalCost:
+                type: number
+              displayOrder:
+                type: number
+              creativeFormats:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    agent_url:
+                      type: string
+                    id:
+                      type: string
+                  required:
+                    - agent_url
+                    - id
+                  additionalProperties: false
+            required:
+              - mediaProductId
+              - salesAgentId
+            additionalProperties: false
+        packages:
+          type: array
+          items:
+            type: object
+            properties:
+              packageId:
+                type: string
+              productIds:
+                type: array
+                items:
+                  type: string
+              impressions:
+                type: number
+              budget:
+                type: number
+              targetingOverlay: {}
+              creatives:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    creativeId:
+                      type: string
+                    name:
+                      type: string
+                    formatId:
+                      type: string
+                    mediaUrl:
+                      type: string
+                    status:
+                      type: string
+                  required:
+                    - creativeId
+                    - name
+                    - formatId
+                    - mediaUrl
+                    - status
+                  additionalProperties: false
+              createdAt:
+                type: string
+                format: date-time
+                pattern: >-
+                  ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
+              updatedAt:
+                type: string
+                format: date-time
+                pattern: >-
+                  ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
+              salesAgentId:
+                type: string
+              salesAgentName:
+                type: string
+              pricingCpm:
+                type: number
+              pricingSignalCost:
+                type: number
+              bidPrice:
+                type: number
+              pricingOptionId:
+                type: string
+              creativeFormats:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    agent_url:
+                      type: string
+                    id:
+                      type: string
+                  required:
+                    - agent_url
+                    - id
+                  additionalProperties: false
+            required:
+              - packageId
+              - productIds
+              - impressions
+              - budget
+              - targetingOverlay
+              - creatives
+              - createdAt
+              - updatedAt
+            additionalProperties: false
+        creatives:
+          type: array
+          items:
+            type: object
+            properties:
+              creativeId:
+                type: string
+              name:
+                type: string
+              formatId:
+                type: string
+              mediaUrl:
+                type: string
+              status:
+                type: string
+            required:
+              - creativeId
+              - name
+              - formatId
+              - mediaUrl
+              - status
+            additionalProperties: false
+        pricing:
+          type: object
+          properties:
+            cpm:
+              type: number
+            signalCost:
+              type: number
+            totalCpm:
+              type: number
+          required:
+            - cpm
+            - totalCpm
+          additionalProperties: false
         status:
           type: string
+        adcp:
+          type: object
+          properties:
+            mediaBuyId:
+              type: string
+            status:
+              type: string
+            webhookUrl:
+              type: string
+          additionalProperties: false
+        performance:
+          type: object
+          properties:
+            impressions:
+              type: number
+            spend:
+              type: number
+            clicks:
+              type: number
+            lastUpdated:
+              type: string
+              format: date-time
+              pattern: >-
+                ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
+          required:
+            - impressions
+            - spend
+            - clicks
+          additionalProperties: false
         archivedAt:
           type: string
           format: date-time
@@ -7598,6 +9299,9 @@ components:
       required:
         - id
         - tacticId
+        - customerId
+        - name
+        - pricing
         - status
         - createdAt
         - updatedAt
@@ -7723,7 +9427,7 @@ components:
     CampaignCreate:
       type: object
       properties:
-        id:
+        campaignId:
           type: string
         name:
           type: string
@@ -7740,7 +9444,7 @@ components:
           pattern: >-
             ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
       required:
-        - id
+        - campaignId
         - name
         - status
         - createdAt
@@ -7749,7 +9453,7 @@ components:
     CampaignGet:
       type: object
       properties:
-        id:
+        campaignId:
           type: string
         name:
           type: string
@@ -7766,7 +9470,7 @@ components:
           pattern: >-
             ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
       required:
-        - id
+        - campaignId
         - name
         - status
         - createdAt
@@ -7835,8 +9539,199 @@ components:
           type: string
         tacticId:
           type: number
+        customerId:
+          type: number
+        name:
+          type: string
+        description:
+          type: string
+        products:
+          type: array
+          items:
+            type: object
+            properties:
+              mediaProductId:
+                type: string
+              salesAgentId:
+                type: string
+              salesAgentName:
+                type: string
+              budgetAmount:
+                type: number
+              budgetCurrency:
+                type: string
+              pricingCpm:
+                type: number
+              pricingSignalCost:
+                type: number
+              displayOrder:
+                type: number
+              creativeFormats:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    agent_url:
+                      type: string
+                    id:
+                      type: string
+                  required:
+                    - agent_url
+                    - id
+                  additionalProperties: false
+            required:
+              - mediaProductId
+              - salesAgentId
+            additionalProperties: false
+        packages:
+          type: array
+          items:
+            type: object
+            properties:
+              packageId:
+                type: string
+              productIds:
+                type: array
+                items:
+                  type: string
+              impressions:
+                type: number
+              budget:
+                type: number
+              targetingOverlay: {}
+              creatives:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    creativeId:
+                      type: string
+                    name:
+                      type: string
+                    formatId:
+                      type: string
+                    mediaUrl:
+                      type: string
+                    status:
+                      type: string
+                  required:
+                    - creativeId
+                    - name
+                    - formatId
+                    - mediaUrl
+                    - status
+                  additionalProperties: false
+              createdAt:
+                type: string
+                format: date-time
+                pattern: >-
+                  ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
+              updatedAt:
+                type: string
+                format: date-time
+                pattern: >-
+                  ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
+              salesAgentId:
+                type: string
+              salesAgentName:
+                type: string
+              pricingCpm:
+                type: number
+              pricingSignalCost:
+                type: number
+              bidPrice:
+                type: number
+              pricingOptionId:
+                type: string
+              creativeFormats:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    agent_url:
+                      type: string
+                    id:
+                      type: string
+                  required:
+                    - agent_url
+                    - id
+                  additionalProperties: false
+            required:
+              - packageId
+              - productIds
+              - impressions
+              - budget
+              - targetingOverlay
+              - creatives
+              - createdAt
+              - updatedAt
+            additionalProperties: false
+        creatives:
+          type: array
+          items:
+            type: object
+            properties:
+              creativeId:
+                type: string
+              name:
+                type: string
+              formatId:
+                type: string
+              mediaUrl:
+                type: string
+              status:
+                type: string
+            required:
+              - creativeId
+              - name
+              - formatId
+              - mediaUrl
+              - status
+            additionalProperties: false
+        pricing:
+          type: object
+          properties:
+            cpm:
+              type: number
+            signalCost:
+              type: number
+            totalCpm:
+              type: number
+          required:
+            - cpm
+            - totalCpm
+          additionalProperties: false
         status:
           type: string
+        adcp:
+          type: object
+          properties:
+            mediaBuyId:
+              type: string
+            status:
+              type: string
+            webhookUrl:
+              type: string
+          additionalProperties: false
+        performance:
+          type: object
+          properties:
+            impressions:
+              type: number
+            spend:
+              type: number
+            clicks:
+              type: number
+            lastUpdated:
+              type: string
+              format: date-time
+              pattern: >-
+                ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
+          required:
+            - impressions
+            - spend
+            - clicks
+          additionalProperties: false
         archivedAt:
           type: string
           format: date-time
@@ -7855,6 +9750,9 @@ components:
       required:
         - id
         - tacticId
+        - customerId
+        - name
+        - pricing
         - status
         - createdAt
         - updatedAt
@@ -7866,8 +9764,199 @@ components:
           type: string
         tacticId:
           type: number
+        customerId:
+          type: number
+        name:
+          type: string
+        description:
+          type: string
+        products:
+          type: array
+          items:
+            type: object
+            properties:
+              mediaProductId:
+                type: string
+              salesAgentId:
+                type: string
+              salesAgentName:
+                type: string
+              budgetAmount:
+                type: number
+              budgetCurrency:
+                type: string
+              pricingCpm:
+                type: number
+              pricingSignalCost:
+                type: number
+              displayOrder:
+                type: number
+              creativeFormats:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    agent_url:
+                      type: string
+                    id:
+                      type: string
+                  required:
+                    - agent_url
+                    - id
+                  additionalProperties: false
+            required:
+              - mediaProductId
+              - salesAgentId
+            additionalProperties: false
+        packages:
+          type: array
+          items:
+            type: object
+            properties:
+              packageId:
+                type: string
+              productIds:
+                type: array
+                items:
+                  type: string
+              impressions:
+                type: number
+              budget:
+                type: number
+              targetingOverlay: {}
+              creatives:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    creativeId:
+                      type: string
+                    name:
+                      type: string
+                    formatId:
+                      type: string
+                    mediaUrl:
+                      type: string
+                    status:
+                      type: string
+                  required:
+                    - creativeId
+                    - name
+                    - formatId
+                    - mediaUrl
+                    - status
+                  additionalProperties: false
+              createdAt:
+                type: string
+                format: date-time
+                pattern: >-
+                  ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
+              updatedAt:
+                type: string
+                format: date-time
+                pattern: >-
+                  ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
+              salesAgentId:
+                type: string
+              salesAgentName:
+                type: string
+              pricingCpm:
+                type: number
+              pricingSignalCost:
+                type: number
+              bidPrice:
+                type: number
+              pricingOptionId:
+                type: string
+              creativeFormats:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    agent_url:
+                      type: string
+                    id:
+                      type: string
+                  required:
+                    - agent_url
+                    - id
+                  additionalProperties: false
+            required:
+              - packageId
+              - productIds
+              - impressions
+              - budget
+              - targetingOverlay
+              - creatives
+              - createdAt
+              - updatedAt
+            additionalProperties: false
+        creatives:
+          type: array
+          items:
+            type: object
+            properties:
+              creativeId:
+                type: string
+              name:
+                type: string
+              formatId:
+                type: string
+              mediaUrl:
+                type: string
+              status:
+                type: string
+            required:
+              - creativeId
+              - name
+              - formatId
+              - mediaUrl
+              - status
+            additionalProperties: false
+        pricing:
+          type: object
+          properties:
+            cpm:
+              type: number
+            signalCost:
+              type: number
+            totalCpm:
+              type: number
+          required:
+            - cpm
+            - totalCpm
+          additionalProperties: false
         status:
           type: string
+        adcp:
+          type: object
+          properties:
+            mediaBuyId:
+              type: string
+            status:
+              type: string
+            webhookUrl:
+              type: string
+          additionalProperties: false
+        performance:
+          type: object
+          properties:
+            impressions:
+              type: number
+            spend:
+              type: number
+            clicks:
+              type: number
+            lastUpdated:
+              type: string
+              format: date-time
+              pattern: >-
+                ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
+          required:
+            - impressions
+            - spend
+            - clicks
+          additionalProperties: false
         archivedAt:
           type: string
           format: date-time
@@ -7886,6 +9975,9 @@ components:
       required:
         - id
         - tacticId
+        - customerId
+        - name
+        - pricing
         - status
         - createdAt
         - updatedAt

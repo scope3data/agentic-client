@@ -11,15 +11,15 @@ export async function getProposedTactics(
 ): Promise<{ proposedTactics: ProposedTactic[] }> {
   const { campaignId, budgetRange } = args;
 
-  // Get all registered sales agents
-  const salesAgentsResponse = await scope3.salesAgents.list();
-  const salesAgents = salesAgentsResponse.data || [];
+  // Get all registered agents (SALES type)
+  const agentsResponse = await scope3.agents.list({ type: 'SALES' });
+  const agents = agentsResponse.data || [];
 
-  if (!Array.isArray(salesAgents)) {
-    throw new Error('Expected salesAgents to be an array');
+  if (!Array.isArray(agents)) {
+    throw new Error('Expected agents to be an array');
   }
 
-  // Call getProducts for each sales agent
+  // Call getProducts for each agent
   const allProducts: Array<{
     id: string;
     salesAgentId: string;
@@ -28,7 +28,7 @@ export async function getProposedTactics(
     name?: string;
   }> = [];
 
-  for (const agent of salesAgents) {
+  for (const agent of agents) {
     try {
       const productsResponse = await scope3.products.discover({
         salesAgentId: agent.id,
@@ -54,7 +54,7 @@ export async function getProposedTactics(
   // Fail if no products found
   if (allProducts.length === 0) {
     throw new Error(
-      `No products available from ${salesAgents.length} sales agents. ` +
+      `No products available from ${agents.length} agents. ` +
         'Cannot propose tactics without available inventory.'
     );
   }

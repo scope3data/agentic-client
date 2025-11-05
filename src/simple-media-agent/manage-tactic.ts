@@ -60,15 +60,15 @@ export async function manageTactic(
 
   console.log(`Managing tactic ${tacticId}`);
 
-  // Get all registered sales agents
-  const salesAgentsResponse = await scope3.salesAgents.list();
-  const salesAgents = salesAgentsResponse.data || [];
+  // Get all registered agents (SALES type)
+  const agentsResponse = await scope3.agents.list({ type: 'SALES' });
+  const agents = agentsResponse.data || [];
 
-  if (!Array.isArray(salesAgents)) {
-    throw new Error('Expected salesAgents to be an array');
+  if (!Array.isArray(agents)) {
+    throw new Error('Expected agents to be an array');
   }
 
-  // Get products from all sales agents
+  // Get products from all agents
   const allProducts: Array<{
     id: string;
     salesAgentId: string;
@@ -77,7 +77,7 @@ export async function manageTactic(
     name?: string;
   }> = [];
 
-  for (const agent of salesAgents) {
+  for (const agent of agents) {
     try {
       const productsResponse = await scope3.products.discover({
         salesAgentId: agent.id,
