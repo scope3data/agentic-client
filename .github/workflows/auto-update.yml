@@ -1,0 +1,73 @@
+name: Auto-update types from OpenAPI
+
+on:
+  schedule:
+    # Run daily at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:  # Allow manual trigger
+
+jobs:
+  update-and-publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.PAT_TOKEN || secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Fetch latest OpenAPI schemas
+        run: npm run update-schemas
+
+      - name: Check for changes
+        id: git-check
+        run: |
+          git diff --exit-code src/types/ || echo "changed=true" >> $GITHUB_OUTPUT
+
+      - name: Commit and push if changed
+        if: steps.git-check.outputs.changed == 'true'
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add src/types/ openapi.yaml media-agent-openapi.yaml
+          git commit -m "chore: update types from OpenAPI spec"
+          git push
+
+      - name: Create changeset
+        if: steps.git-check.outputs.changed == 'true'
+        run: |
+          cat << EOF > .changeset/auto-update-$(date +%s).md
+          ---
+          "@scope3/agentic-client": patch
+          ---
+
+          Update types from latest OpenAPI specification
+          EOF
+          git add .changeset/
+          git commit -m "chore: create changeset for type updates"
+          git push
+
+      - name: Version packages
+        if: steps.git-check.outputs.changed == 'true'
+        run: |
+          npx changeset version
+          git add .
+          git commit -m "chore: version packages"
+          git push
+
+      - name: Build and publish
+        if: steps.git-check.outputs.changed == 'true'
+        run: npm run release
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

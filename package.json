@@ -1,9 +1,12 @@
 {
   "name": "@scope3/agentic-client",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "TypeScript client for the Scope3 Agentic API with AdCP webhook support",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "publishConfig": {
+    "access": "public"
+  },
   "bin": {
     "simple-media-agent": "dist/simple-media-agent-server.js"
   },
@@ -35,6 +38,14 @@
   "publishConfig": {
     "access": "public"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/scope3data/agentic-client.git"
+  },
+  "bugs": {
+    "url": "https://github.com/scope3data/agentic-client/issues"
+  },
+  "homepage": "https://github.com/scope3data/agentic-client#readme",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.20.1",
     "express": "^4.18.0",

@@ -25,6 +25,12 @@ jobs:
 
       - name: Check for changeset
         run: |
+          # Skip changeset check for release PRs created by changesets/action
+          if [[ "${{ github.head_ref }}" == changeset-release/* ]] || [[ "${{ github.event.pull_request.title }}" == "chore: version packages" ]]; then
+            echo "⏭️  Skipping changeset check for release PR"
+            exit 0
+          fi
+
           if [ -z "$(ls -A .changeset/*.md 2>/dev/null | grep -v README)" ]; then
             echo "❌ No changeset found. Please add a changeset by running 'npm run changeset'"
             echo ""
