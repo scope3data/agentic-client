@@ -113,8 +113,8 @@ If something fails:
 ## Common Issues
 
 **"No products found"**
-- You need to register agents first
-- Agents need to have products available
+- You need to register sales agents first
+- Sales agents need to have products available
 
 **"Budget calculation is wrong"**
 - Check that overallocationPercent is set correctly

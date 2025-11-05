@@ -14,7 +14,7 @@ This media agent exposes MCP tools that Scope3 platform calls to manage media bu
 ## Algorithm
 
 ### Budget Allocation
-- Fetches all products from registered agents
+- Fetches all products from registered sales agents
 - Sorts products by floor price (cheapest first)
 - **Applies overallocation** (default 40%) to ensure delivery targets are met
 - Calculates N = number of products where daily budget ≥ min daily budget (default $100)
