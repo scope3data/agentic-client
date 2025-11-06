@@ -11,18 +11,27 @@ import * as os from 'os';
 // Configuration file location
 const CONFIG_DIR = path.join(os.homedir(), '.scope3');
 const CONFIG_FILE = path.join(CONFIG_DIR, 'config.json');
+const TOOLS_CACHE_FILE = path.join(CONFIG_DIR, 'tools-cache.json');
+const CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours
 
 interface CliConfig {
   apiKey?: string;
   baseUrl?: string;
 }
 
-interface MethodConfig {
-  params: string[];
-  optional?: boolean;
-  required?: string[];
-  json?: string[];
-  array?: string[];
+interface ToolsCache {
+  tools: McpTool[];
+  timestamp: number;
+}
+
+interface McpTool {
+  name: string;
+  description?: string;
+  inputSchema: {
+    type: string;
+    properties?: Record<string, unknown>;
+    required?: string[];
+  };
 }
 
 // Load config from file or environment
@@ -58,6 +67,78 @@ function saveConfig(config: CliConfig): void {
   }
   fs.writeFileSync(CONFIG_FILE, JSON.stringify(config, null, 2));
   console.log(chalk.green(`Configuration saved to ${CONFIG_FILE}`));
+}
+
+// Load tools cache
+function loadToolsCache(): ToolsCache | null {
+  if (!fs.existsSync(TOOLS_CACHE_FILE)) {
+    return null;
+  }
+
+  try {
+    const cache: ToolsCache = JSON.parse(fs.readFileSync(TOOLS_CACHE_FILE, 'utf-8'));
+    const age = Date.now() - cache.timestamp;
+
+    if (age > CACHE_TTL) {
+      return null; // Cache expired
+    }
+
+    return cache;
+  } catch (error) {
+    return null;
+  }
+}
+
+// Save tools cache
+function saveToolsCache(tools: McpTool[]): void {
+  if (!fs.existsSync(CONFIG_DIR)) {
+    fs.mkdirSync(CONFIG_DIR, { recursive: true });
+  }
+
+  const cache: ToolsCache = {
+    tools,
+    timestamp: Date.now(),
+  };
+
+  fs.writeFileSync(TOOLS_CACHE_FILE, JSON.stringify(cache, null, 2));
+}
+
+// Fetch available tools from MCP server
+async function fetchAvailableTools(
+  client: Scope3AgenticClient,
+  useCache = true
+): Promise<McpTool[]> {
+  // Try cache first
+  if (useCache) {
+    const cache = loadToolsCache();
+    if (cache) {
+      return cache.tools;
+    }
+  }
+
+  // Fetch from server
+  try {
+    await client.connect();
+    const response = (await client.listTools()) as { tools: McpTool[] };
+    const tools = response.tools;
+
+    // Save to cache
+    saveToolsCache(tools);
+
+    return tools;
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error(chalk.red('Error fetching tools:'), errorMessage);
+
+    // Try to use stale cache as fallback
+    if (fs.existsSync(TOOLS_CACHE_FILE)) {
+      console.log(chalk.yellow('Using cached tools (may be outdated)'));
+      const cache: ToolsCache = JSON.parse(fs.readFileSync(TOOLS_CACHE_FILE, 'utf-8'));
+      return cache.tools;
+    }
+
+    throw error;
+  }
 }
 
 // Format output based on format option
@@ -156,19 +237,52 @@ function createClient(apiKey?: string, baseUrl?: string): Scope3AgenticClient {
   });
 }
 
-// Parse JSON argument
-function parseJsonArg(value: string): unknown {
-  try {
-    return JSON.parse(value);
-  } catch (error) {
-    console.error(chalk.red(`Error: Invalid JSON: ${value}`));
+// Parse parameter value based on schema type
+function parseParameterValue(value: string, schema: Record<string, unknown>): unknown {
+  const type = schema.type as string;
+
+  if (type === 'object' || type === 'array') {
+    try {
+      return JSON.parse(value);
+    } catch (error) {
+      console.error(chalk.red(`Error: Invalid JSON for parameter: ${value}`));
+      process.exit(1);
+    }
+  }
+
+  if (type === 'integer' || type === 'number') {
+    const num = Number(value);
+    if (isNaN(num)) {
+      console.error(chalk.red(`Error: Invalid number: ${value}`));
+      process.exit(1);
+    }
+    return num;
+  }
+
+  if (type === 'boolean') {
+    if (value === 'true') return true;
+    if (value === 'false') return false;
+    console.error(chalk.red(`Error: Invalid boolean (use 'true' or 'false'): ${value}`));
     process.exit(1);
   }
+
+  // Default to string
+  return value;
 }
 
-// Parse array argument
-function parseArrayArg(value: string): string[] {
-  return value.split(',').map((s) => s.trim());
+// Parse tool name into resource and method
+function parseToolName(toolName: string): { resource: string; method: string } {
+  const parts = toolName.split('_');
+
+  if (parts.length < 2) {
+    return { resource: 'tools', method: toolName };
+  }
+
+  // Handle cases like "campaigns_create", "brand_agents_list", etc.
+  const method = parts[parts.length - 1];
+  const resource = parts.slice(0, -1).join('-');
+
+  return { resource, method };
 }
 
 // Main program
@@ -176,11 +290,12 @@ const program = new Command();
 
 program
   .name('scope3')
-  .description('CLI tool for Scope3 Agentic API')
+  .description('CLI tool for Scope3 Agentic API (dynamically generated from MCP server)')
   .version('1.0.0')
   .option('--api-key <key>', 'API key for authentication')
   .option('--base-url <url>', 'Base URL for API (default: production)')
-  .option('--format <format>', 'Output format: json or table', 'table');
+  .option('--format <format>', 'Output format: json or table', 'table')
+  .option('--no-cache', 'Skip cache and fetch fresh tools list');
 
 // Config command
 const configCmd = program.command('config').description('Manage CLI configuration');
@@ -232,323 +347,179 @@ configCmd
     }
   });
 
-// Resource commands - Auto-generated
-const resources: Record<string, Record<string, MethodConfig>> = {
-  agents: {
-    list: { params: ['type', 'status', 'organizationId', 'relationship', 'name'], optional: true },
-    get: { params: ['agentId'], required: ['agentId'] },
-    register: {
-      params: [
-        'type',
-        'name',
-        'endpointUrl',
-        'protocol',
-        'authenticationType',
-        'description',
-        'organizationId',
-        'authConfig',
-      ],
-      required: ['type', 'name', 'endpointUrl', 'protocol'],
-    },
-    update: {
-      params: [
-        'agentId',
-        'name',
-        'description',
-        'endpointUrl',
-        'protocol',
-        'authenticationType',
-        'authConfig',
-      ],
-      required: ['agentId'],
-    },
-    unregister: { params: ['agentId'], required: ['agentId'] },
-  },
-  assets: {
-    upload: {
-      params: ['brandAgentId', 'assets'],
-      required: ['brandAgentId', 'assets'],
-      json: ['assets'],
-    },
-    list: { params: ['brandAgentId'], optional: true },
-  },
-  'brand-agents': {
-    list: { params: [], optional: true },
-    create: {
-      params: ['name', 'description', 'nickname', 'externalId', 'advertiserDomains'],
-      required: ['name'],
-      array: ['advertiserDomains'],
-    },
-    get: { params: ['brandAgentId'], required: ['brandAgentId'] },
-    update: {
-      params: ['brandAgentId', 'name', 'description', 'tacticSeedDataCoop'],
-      required: ['brandAgentId'],
-    },
-    delete: { params: ['brandAgentId'], required: ['brandAgentId'] },
-  },
-  'brand-standards': {
-    list: {
-      params: ['where', 'orderBy', 'take', 'skip'],
-      optional: true,
-      json: ['where', 'orderBy'],
-    },
-    create: {
-      params: [
-        'brandAgentId',
-        'prompt',
-        'name',
-        'description',
-        'isArchived',
-        'countries',
-        'channels',
-        'brands',
-      ],
-      required: ['brandAgentId', 'prompt'],
-      array: ['countries', 'channels', 'brands'],
-    },
-    delete: { params: ['brandStandardId'], required: ['brandStandardId'] },
-  },
-  'brand-stories': {
-    list: { params: ['brandAgentId'], required: ['brandAgentId'] },
-    create: {
-      params: ['brandAgentId', 'name', 'prompt', 'countries', 'channels', 'languages', 'brands'],
-      required: ['brandAgentId', 'name', 'prompt'],
-      array: ['countries', 'channels', 'languages', 'brands'],
-    },
-    update: { params: ['brandStoryId', 'prompt'], required: ['brandStoryId', 'prompt'] },
-    delete: { params: ['brandStoryId'], required: ['brandStoryId'] },
-  },
-  campaigns: {
-    list: { params: ['brandAgentId', 'status', 'limit', 'offset'], optional: true },
-    create: {
-      params: [
-        'prompt',
-        'brandAgentId',
-        'name',
-        'budget',
-        'startDate',
-        'endDate',
-        'scoringWeights',
-        'outcomeScoreWindowDays',
-        'segmentIds',
-        'dealIds',
-        'visibility',
-        'status',
-      ],
-      required: ['prompt', 'brandAgentId'],
-      json: ['budget', 'scoringWeights'],
-      array: ['segmentIds', 'dealIds'],
-    },
-    update: {
-      params: [
-        'campaignId',
-        'name',
-        'prompt',
-        'status',
-        'budget',
-        'startDate',
-        'endDate',
-        'scoringWeights',
-        'outcomeScoreWindowDays',
-        'segmentIds',
-        'dealIds',
-        'visibility',
-      ],
-      required: ['campaignId'],
-      json: ['budget', 'scoringWeights'],
-      array: ['segmentIds', 'dealIds'],
-    },
-    delete: { params: ['campaignId', 'hardDelete'], required: ['campaignId'] },
-    'get-summary': { params: ['campaignId'], required: ['campaignId'] },
-    'list-tactics': { params: ['campaignId', 'includeArchived'], required: ['campaignId'] },
-    'validate-brief': { params: ['brief', 'brandAgentId', 'threshold'], required: ['brief'] },
-  },
-  channels: {
-    list: { params: [], optional: true },
-  },
-  creatives: {
-    list: { params: ['brandAgentId', 'campaignId'], optional: true },
-    create: {
-      params: [
-        'brandAgentId',
-        'name',
-        'organizationId',
-        'description',
-        'formatSource',
-        'formatId',
-        'mediaUrl',
-        'content',
-        'assemblyMethod',
-        'campaignId',
-      ],
-      required: ['brandAgentId', 'name'],
-      json: ['content'],
-    },
-    get: { params: ['creativeId'], required: ['creativeId'] },
-    update: { params: ['creativeId', 'name', 'status'], required: ['creativeId'] },
-    delete: { params: ['creativeId'], required: ['creativeId'] },
-    assign: { params: ['creativeId', 'campaignId'], required: ['creativeId', 'campaignId'] },
-    'sync-sales-agents': { params: ['creativeId'], required: ['creativeId'] },
-  },
-  tactics: {
-    list: { params: ['campaignId', 'includeArchived'], optional: true },
-    create: {
-      params: ['name', 'campaignId', 'prompt', 'channelCodes', 'countryCodes'],
-      required: ['name', 'campaignId'],
-      array: ['channelCodes', 'countryCodes'],
-    },
-    get: { params: ['tacticId'], required: ['tacticId'] },
-    update: {
-      params: ['tacticId', 'name', 'prompt', 'channelCodes', 'countryCodes'],
-      required: ['tacticId'],
-      array: ['channelCodes', 'countryCodes'],
-    },
-    delete: { params: ['tacticId'], required: ['tacticId'] },
-    'link-campaign': { params: ['tacticId', 'campaignId'], required: ['tacticId', 'campaignId'] },
-    'unlink-campaign': { params: ['tacticId', 'campaignId'], required: ['tacticId', 'campaignId'] },
-  },
-  'media-buys': {
-    list: { params: ['tacticId', 'campaignId', 'includeArchived'], optional: true },
-    create: {
-      params: ['tacticId', 'name', 'products', 'budget', 'description', 'creativeIds'],
-      required: ['tacticId', 'name', 'products', 'budget'],
-      json: ['products', 'budget'],
-      array: ['creativeIds'],
-    },
-    get: { params: ['mediaBuyId'], required: ['mediaBuyId'] },
-    update: {
-      params: ['mediaBuyId', 'name', 'budget', 'cpm', 'creativeIds'],
-      required: ['mediaBuyId'],
-      json: ['budget'],
-      array: ['creativeIds'],
-    },
-    delete: { params: ['mediaBuyId'], required: ['mediaBuyId'] },
-    execute: { params: ['mediaBuyId'], required: ['mediaBuyId'] },
-  },
-  notifications: {
-    list: { params: ['unreadOnly', 'limit'], optional: true },
-    'mark-read': { params: ['notificationId'], required: ['notificationId'] },
-    'mark-acknowledged': { params: ['notificationId'], required: ['notificationId'] },
-    'mark-all-read': { params: [], optional: true },
-  },
-  products: {
-    list: { params: ['salesAgentId'], optional: true },
-    discover: { params: ['salesAgentId'], optional: true },
-    sync: { params: ['salesAgentId'], required: ['salesAgentId'] },
-  },
-};
+// List available tools command
+program
+  .command('list-tools')
+  .description('List all available API tools')
+  .option('--refresh', 'Refresh tools cache')
+  .action(async (options) => {
+    const globalOpts = program.opts();
+    const client = createClient(globalOpts.apiKey, globalOpts.baseUrl);
 
-// Generate commands for each resource
-Object.entries(resources).forEach(([resourceName, methods]) => {
-  const resourceCmd = program.command(resourceName).description(`Manage ${resourceName}`);
+    try {
+      const useCache = !options.refresh && globalOpts.cache !== false;
+      const tools = await fetchAvailableTools(client, useCache);
 
-  Object.entries(methods).forEach(([methodName, config]) => {
-    const cmd = resourceCmd.command(methodName).description(`${methodName} ${resourceName}`);
+      console.log(chalk.green(`\nFound ${tools.length} available tools:\n`));
 
-    // Add options for each parameter
-    config.params.forEach((param) => {
-      const isRequired = config.required?.includes(param);
-      const flag = `--${param} <value>`;
-      const description = isRequired ? `${param} (required)` : `${param} (optional)`;
-      cmd.option(flag, description);
-    });
+      // Group by resource
+      const grouped: Record<string, McpTool[]> = {};
+      tools.forEach((tool) => {
+        const { resource } = parseToolName(tool.name);
+        if (!grouped[resource]) {
+          grouped[resource] = [];
+        }
+        grouped[resource].push(tool);
+      });
 
-    cmd.action(async (options) => {
-      const globalOpts = program.opts();
-      const client = createClient(globalOpts.apiKey, globalOpts.baseUrl);
-
-      try {
-        // Build request object
-        const request: Record<string, unknown> = {};
-
-        config.params.forEach((param) => {
-          const value = options[param];
-          if (value !== undefined) {
-            // Parse JSON fields
-            if (config.json?.includes(param)) {
-              request[param] = parseJsonArg(value);
-            }
-            // Parse array fields
-            else if (config.array?.includes(param)) {
-              request[param] = parseArrayArg(value);
-            }
-            // Parse numeric fields (only for actual numbers, not IDs that are strings)
-            else if (
-              ['limit', 'offset', 'take', 'skip', 'threshold', 'outcomeScoreWindowDays'].includes(
-                param
-              )
-            ) {
-              request[param] = parseInt(value, 10);
-            }
-            // Parse numeric ID fields (brandAgentId, organizationId, creativeId are numbers)
-            else if (['brandAgentId', 'organizationId', 'creativeId'].includes(param)) {
-              request[param] = parseInt(value, 10);
-            }
-            // Parse boolean fields
-            else if (
-              [
-                'hardDelete',
-                'includeArchived',
-                'tacticSeedDataCoop',
-                'isArchived',
-                'unreadOnly',
-              ].includes(param)
-            ) {
-              request[param] = value === 'true';
-            }
-            // Regular string fields
-            else {
-              request[param] = value;
-            }
-          }
+      // Display grouped
+      Object.entries(grouped)
+        .sort()
+        .forEach(([resource, resourceTools]) => {
+          console.log(chalk.cyan.bold(`\n${resource}:`));
+          resourceTools.forEach((tool) => {
+            const { method } = parseToolName(tool.name);
+            const desc = tool.description || 'No description';
+            console.log(`  ${chalk.yellow(method)} - ${desc}`);
+          });
         });
 
-        // Validate required params
-        const missingParams = config.required?.filter((p) => !options[p]) || [];
-        if (missingParams.length > 0) {
-          console.error(
-            chalk.red(`Error: Missing required parameters: ${missingParams.join(', ')}`)
-          );
-          process.exit(1);
-        }
-
-        // Call the appropriate method
-        const resourceKey = resourceName.replace(/-/g, '');
-        const camelCaseResource = resourceKey.charAt(0).toLowerCase() + resourceKey.slice(1);
-        const camelCaseMethod = methodName.replace(/-([a-z])/g, (g) => g[1].toUpperCase());
-
-        let resource = (client as unknown as Record<string, unknown>)[camelCaseResource];
-
-        // Handle special cases
-        if (resourceName === 'brand-agents') resource = client.brandAgents;
-        if (resourceName === 'brand-standards') resource = client.brandStandards;
-        if (resourceName === 'brand-stories') resource = client.brandStories;
-        if (resourceName === 'media-buys') resource = client.mediaBuys;
-
-        const resourceObj = resource as Record<string, unknown>;
-        if (!resource || typeof resourceObj[camelCaseMethod] !== 'function') {
-          console.error(chalk.red(`Error: Method ${camelCaseMethod} not found on ${resourceName}`));
-          process.exit(1);
-        }
-
-        const method = resourceObj[camelCaseMethod] as (args?: unknown) => Promise<unknown>;
-        const result = await method(Object.keys(request).length > 0 ? request : undefined);
-
-        formatOutput(result, globalOpts.format);
-      } catch (error: unknown) {
-        const errorMessage = error instanceof Error ? error.message : String(error);
-        const errorStack = error instanceof Error ? error.stack : undefined;
-        console.error(chalk.red('Error:'), errorMessage);
-        if (errorStack && process.env.DEBUG) {
-          console.error(chalk.gray(errorStack));
-        }
-        process.exit(1);
-      } finally {
-        await client.disconnect();
-      }
-    });
+      console.log();
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error(chalk.red('Error:'), errorMessage);
+      process.exit(1);
+    } finally {
+      await client.disconnect();
+    }
   });
-});
 
-// Parse arguments
-program.parse();
+// Dynamic command generation
+async function setupDynamicCommands() {
+  const globalOpts = program.opts();
+
+  // For help/version/config commands, don't fetch tools
+  const args = process.argv.slice(2);
+  if (
+    args.length === 0 ||
+    args.includes('--help') ||
+    args.includes('-h') ||
+    args.includes('--version') ||
+    args.includes('-V') ||
+    args[0] === 'config' ||
+    args[0] === 'list-tools'
+  ) {
+    return;
+  }
+
+  try {
+    const client = createClient(globalOpts.apiKey, globalOpts.baseUrl);
+    const useCache = globalOpts.cache !== false;
+    const tools = await fetchAvailableTools(client, useCache);
+    await client.disconnect();
+
+    // Group tools by resource
+    const resourceGroups: Record<string, McpTool[]> = {};
+    tools.forEach((tool) => {
+      const { resource } = parseToolName(tool.name);
+      if (!resourceGroups[resource]) {
+        resourceGroups[resource] = [];
+      }
+      resourceGroups[resource].push(tool);
+    });
+
+    // Create commands for each resource
+    Object.entries(resourceGroups).forEach(([resourceName, resourceTools]) => {
+      const resourceCmd = program
+        .command(resourceName)
+        .description(`Manage ${resourceName} (${resourceTools.length} operations)`);
+
+      resourceTools.forEach((tool) => {
+        const { method } = parseToolName(tool.name);
+        const cmd = resourceCmd
+          .command(method)
+          .description(tool.description || `${method} operation`);
+
+        // Add options from schema
+        const properties = (tool.inputSchema.properties || {}) as Record<
+          string,
+          Record<string, unknown>
+        >;
+        const required = tool.inputSchema.required || [];
+
+        Object.entries(properties).forEach(([paramName, paramSchema]) => {
+          const isRequired = required.includes(paramName);
+          const paramType = paramSchema.type as string;
+          const paramDesc = (paramSchema.description as string) || paramName;
+
+          const flag = `--${paramName} <value>`;
+          const description = `${paramDesc}${isRequired ? ' (required)' : ' (optional)'} [${paramType}]`;
+
+          cmd.option(flag, description);
+        });
+
+        // Action handler
+        cmd.action(async (options) => {
+          const client = createClient(globalOpts.apiKey, globalOpts.baseUrl);
+
+          try {
+            await client.connect();
+
+            // Build request from options
+            const request: Record<string, unknown> = {};
+            Object.entries(properties).forEach(([paramName, paramSchema]) => {
+              const value = options[paramName];
+              if (value !== undefined) {
+                request[paramName] = parseParameterValue(
+                  value,
+                  paramSchema as Record<string, unknown>
+                );
+              }
+            });
+
+            // Validate required params
+            const missing = required.filter((p) => request[p] === undefined);
+            if (missing.length > 0) {
+              console.error(chalk.red(`Error: Missing required parameters: ${missing.join(', ')}`));
+              process.exit(1);
+            }
+
+            // Call the tool
+            const result = await client.callTool(tool.name, request);
+            formatOutput(result, globalOpts.format);
+          } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            const errorStack = error instanceof Error ? error.stack : undefined;
+            console.error(chalk.red('Error:'), errorMessage);
+            if (errorStack && process.env.DEBUG) {
+              console.error(chalk.gray(errorStack));
+            }
+            process.exit(1);
+          } finally {
+            await client.disconnect();
+          }
+        });
+      });
+    });
+  } catch (error) {
+    // If we can't fetch tools, show a helpful error
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error(chalk.red('Error initializing CLI:'), errorMessage);
+    console.log(chalk.yellow('\nMake sure your API key is configured:'));
+    console.log('  scope3 config set apiKey YOUR_KEY');
+    console.log('\nOr set via environment:');
+    console.log('  export SCOPE3_API_KEY=YOUR_KEY');
+    process.exit(1);
+  }
+}
+
+// Setup and parse
+setupDynamicCommands()
+  .then(() => {
+    program.parse();
+  })
+  .catch((error) => {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error(chalk.red('Fatal error:'), errorMessage);
+    process.exit(1);
+  });
