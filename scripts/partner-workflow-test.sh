@@ -54,7 +54,7 @@ echo "This test demonstrates partner-level operations:"
 echo "✓ Register and manage sales/outcome agents"
 echo "✓ Create and manage tactics"
 echo "✓ Create and manage media buys"
-echo "✓ Execute campaigns via agents"
+echo "✓ Execute campaign via agents"
 echo ""
 print_warning "NOTE: This workflow requires a PARTNER-level API key"
 print_info "If you have a platform key, use platform-workflow-test.sh instead"
@@ -62,7 +62,7 @@ echo ""
 
 # Step 1: List Existing Agents
 print_step "Step 1: Listing Registered Agents..."
-AGENTS_RESPONSE=$($CLI_CMD agents list --format $OUTPUT_FORMAT 2>&1)
+AGENTS_RESPONSE=$($CLI_CMD agent list --format $OUTPUT_FORMAT 2>&1)
 if [ $? -eq 0 ]; then
     print_success "Agents listed successfully"
     echo "$AGENTS_RESPONSE" | head -20
@@ -74,7 +74,7 @@ echo ""
 # Step 2: Register Sales Agent (Partner Operation)
 print_step "Step 2: Registering Sales Agent..."
 print_info "Attempting to register a sales agent (partner operation)"
-SALES_AGENT_RESPONSE=$($CLI_CMD agents register \
+SALES_AGENT_RESPONSE=$($CLI_CMD agent register \
     --type SALES \
     --name "Partner Test Sales Agent $(date +%s)" \
     --endpointUrl "https://example.com/sales-agent/mcp" \
@@ -95,7 +95,7 @@ echo ""
 # Step 3: Register Outcome Agent (Partner Operation)
 print_step "Step 3: Registering Outcome Agent..."
 print_info "Attempting to register an outcome agent (partner operation)"
-OUTCOME_AGENT_RESPONSE=$($CLI_CMD agents register \
+OUTCOME_AGENT_RESPONSE=$($CLI_CMD agent register \
     --type OUTCOME \
     --name "Partner Test Outcome Agent $(date +%s)" \
     --endpointUrl "https://example.com/outcome-agent/mcp" \
@@ -115,7 +115,7 @@ echo ""
 
 # Step 4: Get Existing Campaign for Testing
 print_step "Step 4: Finding Existing Campaign..."
-CAMPAIGNS_RESPONSE=$($CLI_CMD campaigns list --format $OUTPUT_FORMAT 2>&1)
+CAMPAIGNS_RESPONSE=$($CLI_CMD campaign list --format $OUTPUT_FORMAT 2>&1)
 if [ $? -eq 0 ]; then
     print_success "Campaigns retrieved"
     # Try to extract first campaign ID
@@ -123,7 +123,7 @@ if [ $? -eq 0 ]; then
     if [ -n "$CAMPAIGN_ID" ]; then
         echo "Using existing campaign: $CAMPAIGN_ID"
     else
-        print_warning "No campaigns found. Create one first with buyer workflow."
+        print_warning "No campaign found. Create one first with buyer workflow."
         CAMPAIGN_ID=""
     fi
 else
@@ -136,7 +136,7 @@ echo ""
 if [ -n "$CAMPAIGN_ID" ]; then
     print_step "Step 5: Creating Tactic (Partner Operation)..."
     print_info "Attempting to create a tactic (requires partner access)"
-    TACTIC_RESPONSE=$($CLI_CMD tactics create \
+    TACTIC_RESPONSE=$($CLI_CMD tactic create \
         --name "Partner Test Tactic $(date +%s)" \
         --campaignId "$CAMPAIGN_ID" \
         --prompt "Focus on high-impact video placements" \
@@ -163,7 +163,7 @@ echo ""
 
 # Step 6: List Tactics
 print_step "Step 6: Listing All Tactics..."
-$CLI_CMD tactics list --format $OUTPUT_FORMAT > /dev/null 2>&1
+$CLI_CMD tactic list --format $OUTPUT_FORMAT > /dev/null 2>&1
 if [ $? -eq 0 ]; then
     print_success "Tactics listed successfully"
 else
@@ -175,10 +175,10 @@ echo ""
 if [ -n "$TACTIC_ID" ] && [ -n "$SALES_AGENT_ID" ]; then
     print_step "Step 7: Creating Media Buy (Partner Operation)..."
     print_info "Attempting to create a media buy (requires partner access)"
-    MEDIA_BUY_RESPONSE=$($CLI_CMD media-buys create \
+    MEDIA_BUY_RESPONSE=$($CLI_CMD media-buy create \
         --tacticId "$TACTIC_ID" \
         --name "Partner Test Media Buy" \
-        --products '[{"mediaProductId":"prod-123","salesAgentId":"'$SALES_AGENT_ID'"}]' \
+        --media-product '[{"mediaProductId":"prod-123","salesAgentId":"'$SALES_AGENT_ID'"}]' \
         --budget '{"amount":50000,"currency":"USD"}' \
         --format $OUTPUT_FORMAT 2>&1)
 
@@ -199,7 +199,7 @@ echo ""
 
 # Step 8: List Media Buys
 print_step "Step 8: Listing All Media Buys..."
-$CLI_CMD media-buys list --format $OUTPUT_FORMAT > /dev/null 2>&1
+$CLI_CMD media-buy list --format $OUTPUT_FORMAT > /dev/null 2>&1
 if [ $? -eq 0 ]; then
     print_success "Media buys listed successfully"
 else
@@ -211,7 +211,7 @@ echo ""
 if [ -n "$MEDIA_BUY_ID" ]; then
     print_step "Step 9: Executing Media Buy (Partner Operation)..."
     print_info "Attempting to execute media buy"
-    EXECUTE_RESPONSE=$($CLI_CMD media-buys execute \
+    EXECUTE_RESPONSE=$($CLI_CMD media-buy execute \
         --mediaBuyId "$MEDIA_BUY_ID" \
         --format $OUTPUT_FORMAT 2>&1)
 
@@ -229,7 +229,7 @@ echo ""
 # Step 10: Sync Products (Partner Operation)
 if [ -n "$SALES_AGENT_ID" ]; then
     print_step "Step 10: Syncing Products from Sales Agent..."
-    SYNC_RESPONSE=$($CLI_CMD products sync \
+    SYNC_RESPONSE=$($CLI_CMD media-product sync \
         --salesAgentId "$SALES_AGENT_ID" \
         --format $OUTPUT_FORMAT 2>&1)
 
@@ -266,10 +266,10 @@ if [ -n "$SALES_AGENT_ID" ] || [ -n "$OUTCOME_AGENT_ID" ] || [ -n "$TACTIC_ID" ]
     echo "  • Execute campaigns"
     echo ""
     echo "📋 To clean up test resources:"
-    [ -n "$MEDIA_BUY_ID" ] && echo "  $CLI_CMD media-buys delete --mediaBuyId $MEDIA_BUY_ID"
-    [ -n "$TACTIC_ID" ] && echo "  $CLI_CMD tactics delete --tacticId $TACTIC_ID"
-    [ -n "$SALES_AGENT_ID" ] && echo "  $CLI_CMD agents unregister --agentId $SALES_AGENT_ID"
-    [ -n "$OUTCOME_AGENT_ID" ] && echo "  $CLI_CMD agents unregister --agentId $OUTCOME_AGENT_ID"
+    [ -n "$MEDIA_BUY_ID" ] && echo "  $CLI_CMD media-buy delete --mediaBuyId $MEDIA_BUY_ID"
+    [ -n "$TACTIC_ID" ] && echo "  $CLI_CMD tactic delete --tacticId $TACTIC_ID"
+    [ -n "$SALES_AGENT_ID" ] && echo "  $CLI_CMD agent unregister --agentId $SALES_AGENT_ID"
+    [ -n "$OUTCOME_AGENT_ID" ] && echo "  $CLI_CMD agent unregister --agentId $OUTCOME_AGENT_ID"
     echo ""
     print_success "Partner workflow test successful!"
 else

@@ -57,12 +57,12 @@ echo "This test demonstrates platform-level operations:"
 echo "✓ Brand agent management"
 echo "✓ Campaign creation and management"
 echo "✓ Marketplace discovery"
-echo "✓ Read-only access to tactics and media buys"
+echo "✓ Read-only access to tactic and media buys"
 echo ""
 
 # Step 1: List available channels
 print_step "Step 1: Discovering Available Channels..."
-CHANNELS_RESPONSE=$($CLI_CMD channels list --format $OUTPUT_FORMAT 2>&1)
+CHANNELS_RESPONSE=$($CLI_CMD channel list --format $OUTPUT_FORMAT 2>&1)
 if [ $? -eq 0 ]; then
     print_success "Channels discovered"
     echo "Available channels: display, ctv, video, audio, social, dooh, etc."
@@ -75,9 +75,10 @@ echo ""
 
 # Step 2: Create Brand Agent
 print_step "Step 2: Creating Brand Agent..."
-BRAND_AGENT_RESPONSE=$($CLI_CMD brand-agents create \
+BRAND_AGENT_RESPONSE=$($CLI_CMD brand-agent create \
     --name "Test Platform Agent $(date +%s)" \
     --description "Automated platform workflow test" \
+    --manifestUrl "https://example.com/manifest.json" \
     --format $OUTPUT_FORMAT 2>&1)
 
 if [ $? -eq 0 ]; then
@@ -96,9 +97,9 @@ echo ""
 
 # Step 3: List Brand Agents
 print_step "Step 3: Verifying Brand Agent in List..."
-$CLI_CMD brand-agents list --format $OUTPUT_FORMAT > /dev/null 2>&1
+$CLI_CMD brand-agent list --format $OUTPUT_FORMAT > /dev/null 2>&1
 if [ $? -eq 0 ]; then
-    print_success "Brand agents listed successfully"
+    print_success "Brand agent listed successfully"
 else
     print_warning "Failed to list brand agents"
 fi
@@ -106,7 +107,7 @@ echo ""
 
 # Step 4: Create Campaign
 print_step "Step 4: Creating Campaign..."
-CAMPAIGN_RESPONSE=$($CLI_CMD campaigns create \
+CAMPAIGN_RESPONSE=$($CLI_CMD campaign create \
     --prompt "Q1 2024 awareness campaign targeting eco-conscious millennials across digital channels with focus on video and social media" \
     --brandAgentId "$BRAND_AGENT_ID" \
     --name "Buyer Test Campaign $(date +%s)" \
@@ -125,7 +126,7 @@ echo ""
 
 # Step 5: List Campaigns
 print_step "Step 5: Listing All Campaigns..."
-$CLI_CMD campaigns list --format $OUTPUT_FORMAT > /dev/null 2>&1
+$CLI_CMD campaign list --format $OUTPUT_FORMAT > /dev/null 2>&1
 if [ $? -eq 0 ]; then
     print_success "Campaigns listed successfully"
 else
@@ -135,7 +136,7 @@ echo ""
 
 # Step 6: Get Campaign Summary
 print_step "Step 6: Getting Campaign Summary..."
-SUMMARY_RESPONSE=$($CLI_CMD campaigns get-summary --campaignId "$CAMPAIGN_ID" --format $OUTPUT_FORMAT 2>&1)
+SUMMARY_RESPONSE=$($CLI_CMD campaign-get summary --campaignId "$CAMPAIGN_ID" --format $OUTPUT_FORMAT 2>&1)
 if [ $? -eq 0 ]; then
     print_success "Campaign summary retrieved"
 else
@@ -145,10 +146,10 @@ echo ""
 
 # Step 7: Discover Marketplace Agents
 print_step "Step 7: Discovering Marketplace Agents..."
-AGENTS_RESPONSE=$($CLI_CMD agents list --format $OUTPUT_FORMAT 2>&1)
+AGENTS_RESPONSE=$($CLI_CMD agent list --format $OUTPUT_FORMAT 2>&1)
 if [ $? -eq 0 ]; then
-    print_success "Marketplace agents discovered"
-    echo "Found sales agents available for partnerships"
+    print_success "Marketplace agent discovered"
+    echo "Found sales agent available for partnerships"
 else
     print_warning "Failed to discover agents"
 fi
@@ -156,30 +157,30 @@ echo ""
 
 # Step 8: Discover Media Products
 print_step "Step 8: Discovering Available Media Products..."
-PRODUCTS_RESPONSE=$($CLI_CMD products discover --format $OUTPUT_FORMAT 2>&1)
+PRODUCTS_RESPONSE=$($CLI_CMD media-product discover --format $OUTPUT_FORMAT 2>&1)
 if [ $? -eq 0 ]; then
-    print_success "Media products discovered"
+    print_success "Media media-product discovered"
     echo "Found available inventory from sales agents"
 else
-    print_warning "Failed to discover products (may require registered sales agents)"
+    print_warning "Failed to discover media-product (may require registered sales agents)"
 fi
 echo ""
 
 # Step 9: View Tactics (Read-Only)
 print_step "Step 9: Viewing Tactics (Read-Only Access)..."
 print_warning "Note: Platform users can only READ tactics, not create them"
-TACTICS_RESPONSE=$($CLI_CMD tactics list --format $OUTPUT_FORMAT 2>&1)
+TACTICS_RESPONSE=$($CLI_CMD tactic list --format $OUTPUT_FORMAT 2>&1)
 if [ $? -eq 0 ]; then
     print_success "Tactics viewed successfully (read-only)"
 else
-    print_warning "No tactics available or access denied"
+    print_warning "No tactic available or access denied"
 fi
 echo ""
 
 # Step 10: View Media Buys (Read-Only)
 print_step "Step 10: Viewing Media Buys (Read-Only Access)..."
 print_warning "Note: Platform users can only READ media buys, not create them"
-MEDIA_BUYS_RESPONSE=$($CLI_CMD media-buys list --format $OUTPUT_FORMAT 2>&1)
+MEDIA_BUYS_RESPONSE=$($CLI_CMD media-buy list --format $OUTPUT_FORMAT 2>&1)
 if [ $? -eq 0 ]; then
     print_success "Media buys viewed successfully (read-only)"
 else
@@ -212,17 +213,17 @@ echo ""
 echo "✅ Buyer Capabilities Verified:"
 echo "  • Create and manage brand agents"
 echo "  • Create and manage campaigns"
-echo "  • Discover marketplace agents and products"
-echo "  • View tactics and media buys (read-only)"
+echo "  • Discover marketplace agent and products"
+echo "  • View tactic and media buys (read-only)"
 echo "  • Manage notifications"
 echo ""
 echo "ℹ️  Buyer Limitations:"
-echo "  • Cannot create tactics (partner operation)"
+echo "  • Cannot create tactic (partner operation)"
 echo "  • Cannot create media buys (partner operation)"
-echo "  • Cannot execute campaigns directly (requires partner agents)"
+echo "  • Cannot execute campaign directly (requires partner agents)"
 echo ""
 echo "📋 To clean up test resources:"
-echo "  $CLI_CMD campaigns delete --campaignId $CAMPAIGN_ID"
-echo "  $CLI_CMD brand-agents delete --brandAgentId $BRAND_AGENT_ID"
+echo "  $CLI_CMD campaign delete --campaignId $CAMPAIGN_ID"
+echo "  $CLI_CMD brand-agent delete --brandAgentId $BRAND_AGENT_ID"
 echo ""
 print_success "Buyer workflow test successful!"
