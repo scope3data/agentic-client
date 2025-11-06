@@ -93,10 +93,7 @@ function filterProducts(products: Product[], request: GetProposalsRequest): Prod
  * Generate proposals with simple budget optimization
  * Strategy: Allocate budget across products to maximize reach
  */
-function generateProposals(
-  products: Product[],
-  request: GetProposalsRequest
-): Proposal[] {
+function generateProposals(products: Product[], request: GetProposalsRequest): Proposal[] {
   const proposals: Proposal[] = [];
 
   // Group products by channel for diversification
@@ -159,10 +156,7 @@ function groupByChannel(products: Product[]): Record<string, Product[]> {
  * Calculate budget capacity for a set of products
  * Simple heuristic: use budget range max, or sum of floor prices * 100
  */
-function calculateBudgetCapacity(
-  products: Product[],
-  request: GetProposalsRequest
-): number {
+function calculateBudgetCapacity(products: Product[], request: GetProposalsRequest): number {
   // If budget range provided, use max as capacity
   if (request.budgetRange?.max) {
     return request.budgetRange.max;

@@ -138,9 +138,7 @@ describe('getProposals', () => {
       // Should have proposals for display and video channels
       expect(result.proposals.length).toBe(2);
 
-      const channelsInProposals = result.proposals.map(
-        (p) => p.additional_info?.channel
-      );
+      const channelsInProposals = result.proposals.map((p) => p.additional_info?.channel);
       expect(channelsInProposals).toContain('display');
       expect(channelsInProposals).toContain('video');
     });
