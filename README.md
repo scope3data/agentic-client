@@ -11,6 +11,7 @@ TypeScript client for the Scope3 Agentic API with AdCP webhook support.
 - 🪝 Optional webhook server for AdCP events
 - ✨ Clean, intuitive API design
 - 🧪 Comprehensive test coverage
+- 💻 **CLI tool** for all API resources (80+ commands)
 
 **Architecture:** This client uses the official `@modelcontextprotocol/sdk` to connect to the Scope3 MCP server at `https://api.agentic.scope3.com/mcp` via Streamable HTTP transport. This uses HTTP POST for sending messages and HTTP GET with Server-Sent Events for receiving messages, providing reliable bidirectional communication with automatic reconnection support.
 
@@ -43,7 +44,34 @@ const campaign = await client.campaigns.create({
 });
 ```
 
-## Configuration
+## CLI Usage
+
+The package includes a comprehensive CLI tool for all API resources:
+
+```bash
+# Install globally
+npm install -g @scope3/agentic-client
+
+# Configure authentication
+scope3 config set apiKey your_api_key_here
+
+# List campaigns
+scope3 campaigns list
+
+# Create a campaign
+scope3 campaigns create \
+  --prompt "Q1 2024 Spring Campaign" \
+  --budget '{"amount":100000,"currency":"USD"}'
+
+# Get help for any command
+scope3 campaigns --help
+```
+
+See [CLI.md](./CLI.md) for complete documentation with 80+ commands covering all API resources.
+
+**Workflow Tests:** See [scripts/README.md](./scripts/README.md) for platform and partner workflow examples.
+
+## SDK Configuration
 
 ```typescript
 const client = new Scope3AgenticClient({
