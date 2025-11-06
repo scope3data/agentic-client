@@ -1,5 +1,25 @@
 # @scope3/agentic-client
 
+## 1.0.0
+
+### Major Changes
+
+- [#6](https://github.com/scope3data/agentic-client/pull/6) [`186144c`](https://github.com/scope3data/agentic-client/commit/186144cf4c3cc2647d852f320ed1ce4cda0311c7) Thanks [@nastassiafulconis](https://github.com/nastassiafulconis)! - Add unified agents API and remove salesAgents
+
+  BREAKING CHANGE: Removed `salesAgents` resource. Use `agents` resource instead with type filtering.
+  - Add unified agents resource supporting both SALES and OUTCOME agent types
+  - Remove deprecated salesAgents resource
+  - Add JWT authentication support
+  - Update simple-media-agent to use new agents API
+  - Update documentation to use 'Agent' instead of 'Sales Agent'
+  - Add publishConfig for npm publishing
+  - Update schemas from merged outcomes-agent-registration branch
+
+  Migration guide:
+  - Replace `client.salesAgents.list()` with `client.agents.list({ type: 'SALES' })`
+  - Replace `client.salesAgents.get()` with `client.agents.get()`
+  - Replace `client.salesAgents.register()` with `client.agents.register({ type: 'SALES', ... })`
+
 ## 0.2.0
 
 ### Minor Changes
