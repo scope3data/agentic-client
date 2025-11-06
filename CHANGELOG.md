@@ -1,5 +1,11 @@
 # @scope3/agentic-client
 
+## 1.0.4
+
+### Patch Changes
+
+- [#16](https://github.com/scope3data/agentic-client/pull/16) [`f901817`](https://github.com/scope3data/agentic-client/commit/f90181750d7248ee40c1350d76931fe59f7e87c5) Thanks [@nastassiafulconis](https://github.com/nastassiafulconis)! - Remove .npmrc file as we now use trusted publisher for npm publishing
+
 ## 1.0.3
 
 ### Patch Changes
