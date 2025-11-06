@@ -1,5 +1,11 @@
 # @scope3/agentic-client
 
+## 1.0.2
+
+### Patch Changes
+
+- [#10](https://github.com/scope3data/agentic-client/pull/10) [`e92b6d9`](https://github.com/scope3data/agentic-client/commit/e92b6d9fd097e15444aefa68ef406a2908ef2bb5) Thanks [@nastassiafulconis](https://github.com/nastassiafulconis)! - Fix npm authentication in release workflow by manually configuring .npmrc file
+
 ## 1.0.1
 
 ### Patch Changes
