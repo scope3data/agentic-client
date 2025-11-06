@@ -2,9 +2,18 @@ export { Scope3AgenticClient } from './sdk';
 // Legacy export for backwards compatibility
 export { Scope3AgenticClient as Scope3SDK } from './sdk';
 export { WebhookServer } from './webhook-server';
-export { SimpleMediaAgent } from './simple-media-agent';
+export { OutcomeAgent } from './outcome-agent';
 export type { ClientConfig, ToolResponse, Environment } from './types';
 export type { WebhookEvent, WebhookHandler, WebhookServerConfig } from './webhook-server';
+export type {
+  OutcomeAgentConfig,
+  GetProposalsRequest,
+  GetProposalsResponse,
+  AcceptProposalRequest,
+  AcceptProposalResponse,
+  Proposal,
+  CampaignContext,
+} from './outcome-agent/types';
 
 export * from './resources/agents';
 export * from './resources/assets';
