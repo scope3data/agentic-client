@@ -61,7 +61,7 @@ function saveConfig(config: CliConfig): void {
 }
 
 // Format output based on format option
-function formatOutput(data: any, format: string): void {
+function formatOutput(data: unknown, format: string): void {
   if (format === 'json') {
     console.log(JSON.stringify(data, null, 2));
     return;
@@ -156,7 +156,7 @@ function createClient(apiKey?: string, baseUrl?: string): Scope3AgenticClient {
 }
 
 // Parse JSON argument
-function parseJsonArg(value: string): any {
+function parseJsonArg(value: string): unknown {
   try {
     return JSON.parse(value);
   } catch (error) {
@@ -458,7 +458,7 @@ Object.entries(resources).forEach(([resourceName, methods]) => {
 
       try {
         // Build request object
-        const request: any = {};
+        const request: Record<string, unknown> = {};
 
         config.params.forEach((param) => {
           const value = options[param];
@@ -516,7 +516,7 @@ Object.entries(resources).forEach(([resourceName, methods]) => {
         const camelCaseResource = resourceKey.charAt(0).toLowerCase() + resourceKey.slice(1);
         const camelCaseMethod = methodName.replace(/-([a-z])/g, (g) => g[1].toUpperCase());
 
-        let resource = (client as any)[camelCaseResource];
+        let resource = (client as Record<string, unknown>)[camelCaseResource];
 
         // Handle special cases
         if (resourceName === 'brand-agents') resource = client.brandAgents;
@@ -534,10 +534,12 @@ Object.entries(resources).forEach(([resourceName, methods]) => {
         );
 
         formatOutput(result, globalOpts.format);
-      } catch (error: any) {
-        console.error(chalk.red('Error:'), error.message);
-        if (error.stack && process.env.DEBUG) {
-          console.error(chalk.gray(error.stack));
+      } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        const errorStack = error instanceof Error ? error.stack : undefined;
+        console.error(chalk.red('Error:'), errorMessage);
+        if (errorStack && process.env.DEBUG) {
+          console.error(chalk.gray(errorStack));
         }
         process.exit(1);
       } finally {
