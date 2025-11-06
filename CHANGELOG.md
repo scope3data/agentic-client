@@ -1,5 +1,11 @@
 # @scope3/agentic-client
 
+## 1.0.1
+
+### Patch Changes
+
+- [#8](https://github.com/scope3data/agentic-client/pull/8) [`1fe1262`](https://github.com/scope3data/agentic-client/commit/1fe1262a41090672fbab9267ab5d60a21c4b4b7e) Thanks [@nastassiafulconis](https://github.com/nastassiafulconis)! - Update OpenAPI auto-update workflow to create PRs and fetch from agentic-api repo. Configure release workflow for npm Trusted Publishing with OIDC.
+
 ## 1.0.0
 
 ### Major Changes
