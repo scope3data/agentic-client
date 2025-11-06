@@ -91,12 +91,14 @@ function formatOutput(data: any, format: string): void {
     });
 
     actualData.forEach((item) => {
-      table.push(keys.map((k) => {
-        const value = item[k];
-        if (value === null || value === undefined) return '';
-        if (typeof value === 'object') return JSON.stringify(value);
-        return String(value);
-      }));
+      table.push(
+        keys.map((k) => {
+          const value = item[k];
+          if (value === null || value === undefined) return '';
+          if (typeof value === 'object') return JSON.stringify(value);
+          return String(value);
+        })
+      );
     });
 
     console.log(table.toString());
@@ -234,36 +236,127 @@ const resources: Record<string, Record<string, MethodConfig>> = {
   agents: {
     list: { params: ['type', 'status', 'organizationId', 'relationship', 'name'], optional: true },
     get: { params: ['agentId'], required: ['agentId'] },
-    register: { params: ['type', 'name', 'endpointUrl', 'protocol', 'authenticationType', 'description', 'organizationId', 'authConfig'], required: ['type', 'name', 'endpointUrl', 'protocol'] },
-    update: { params: ['agentId', 'name', 'description', 'endpointUrl', 'protocol', 'authenticationType', 'authConfig'], required: ['agentId'] },
+    register: {
+      params: [
+        'type',
+        'name',
+        'endpointUrl',
+        'protocol',
+        'authenticationType',
+        'description',
+        'organizationId',
+        'authConfig',
+      ],
+      required: ['type', 'name', 'endpointUrl', 'protocol'],
+    },
+    update: {
+      params: [
+        'agentId',
+        'name',
+        'description',
+        'endpointUrl',
+        'protocol',
+        'authenticationType',
+        'authConfig',
+      ],
+      required: ['agentId'],
+    },
     unregister: { params: ['agentId'], required: ['agentId'] },
   },
   assets: {
-    upload: { params: ['brandAgentId', 'assets'], required: ['brandAgentId', 'assets'], json: ['assets'] },
+    upload: {
+      params: ['brandAgentId', 'assets'],
+      required: ['brandAgentId', 'assets'],
+      json: ['assets'],
+    },
     list: { params: ['brandAgentId'], optional: true },
   },
   'brand-agents': {
     list: { params: [], optional: true },
-    create: { params: ['name', 'description', 'nickname', 'externalId', 'advertiserDomains'], required: ['name'], array: ['advertiserDomains'] },
+    create: {
+      params: ['name', 'description', 'nickname', 'externalId', 'advertiserDomains'],
+      required: ['name'],
+      array: ['advertiserDomains'],
+    },
     get: { params: ['brandAgentId'], required: ['brandAgentId'] },
-    update: { params: ['brandAgentId', 'name', 'description', 'tacticSeedDataCoop'], required: ['brandAgentId'] },
+    update: {
+      params: ['brandAgentId', 'name', 'description', 'tacticSeedDataCoop'],
+      required: ['brandAgentId'],
+    },
     delete: { params: ['brandAgentId'], required: ['brandAgentId'] },
   },
   'brand-standards': {
-    list: { params: ['where', 'orderBy', 'take', 'skip'], optional: true, json: ['where', 'orderBy'] },
-    create: { params: ['brandAgentId', 'prompt', 'name', 'description', 'isArchived', 'countries', 'channels', 'brands'], required: ['brandAgentId', 'prompt'], array: ['countries', 'channels', 'brands'] },
+    list: {
+      params: ['where', 'orderBy', 'take', 'skip'],
+      optional: true,
+      json: ['where', 'orderBy'],
+    },
+    create: {
+      params: [
+        'brandAgentId',
+        'prompt',
+        'name',
+        'description',
+        'isArchived',
+        'countries',
+        'channels',
+        'brands',
+      ],
+      required: ['brandAgentId', 'prompt'],
+      array: ['countries', 'channels', 'brands'],
+    },
     delete: { params: ['brandStandardId'], required: ['brandStandardId'] },
   },
   'brand-stories': {
     list: { params: ['brandAgentId'], required: ['brandAgentId'] },
-    create: { params: ['brandAgentId', 'name', 'prompt', 'countries', 'channels', 'languages', 'brands'], required: ['brandAgentId', 'name', 'prompt'], array: ['countries', 'channels', 'languages', 'brands'] },
+    create: {
+      params: ['brandAgentId', 'name', 'prompt', 'countries', 'channels', 'languages', 'brands'],
+      required: ['brandAgentId', 'name', 'prompt'],
+      array: ['countries', 'channels', 'languages', 'brands'],
+    },
     update: { params: ['brandStoryId', 'prompt'], required: ['brandStoryId', 'prompt'] },
     delete: { params: ['brandStoryId'], required: ['brandStoryId'] },
   },
   campaigns: {
     list: { params: ['brandAgentId', 'status', 'limit', 'offset'], optional: true },
-    create: { params: ['prompt', 'brandAgentId', 'name', 'budget', 'startDate', 'endDate', 'scoringWeights', 'outcomeScoreWindowDays', 'segmentIds', 'dealIds', 'visibility', 'status'], required: ['prompt', 'brandAgentId'], json: ['budget', 'scoringWeights'], array: ['segmentIds', 'dealIds'] },
-    update: { params: ['campaignId', 'name', 'prompt', 'status', 'budget', 'startDate', 'endDate', 'scoringWeights', 'outcomeScoreWindowDays', 'segmentIds', 'dealIds', 'visibility'], required: ['campaignId'], json: ['budget', 'scoringWeights'], array: ['segmentIds', 'dealIds'] },
+    create: {
+      params: [
+        'prompt',
+        'brandAgentId',
+        'name',
+        'budget',
+        'startDate',
+        'endDate',
+        'scoringWeights',
+        'outcomeScoreWindowDays',
+        'segmentIds',
+        'dealIds',
+        'visibility',
+        'status',
+      ],
+      required: ['prompt', 'brandAgentId'],
+      json: ['budget', 'scoringWeights'],
+      array: ['segmentIds', 'dealIds'],
+    },
+    update: {
+      params: [
+        'campaignId',
+        'name',
+        'prompt',
+        'status',
+        'budget',
+        'startDate',
+        'endDate',
+        'scoringWeights',
+        'outcomeScoreWindowDays',
+        'segmentIds',
+        'dealIds',
+        'visibility',
+      ],
+      required: ['campaignId'],
+      json: ['budget', 'scoringWeights'],
+      array: ['segmentIds', 'dealIds'],
+    },
     delete: { params: ['campaignId', 'hardDelete'], required: ['campaignId'] },
     'get-summary': { params: ['campaignId'], required: ['campaignId'] },
     'list-tactics': { params: ['campaignId', 'includeArchived'], required: ['campaignId'] },
@@ -274,7 +367,22 @@ const resources: Record<string, Record<string, MethodConfig>> = {
   },
   creatives: {
     list: { params: ['brandAgentId', 'campaignId'], optional: true },
-    create: { params: ['brandAgentId', 'name', 'organizationId', 'description', 'formatSource', 'formatId', 'mediaUrl', 'content', 'assemblyMethod', 'campaignId'], required: ['brandAgentId', 'name'], json: ['content'] },
+    create: {
+      params: [
+        'brandAgentId',
+        'name',
+        'organizationId',
+        'description',
+        'formatSource',
+        'formatId',
+        'mediaUrl',
+        'content',
+        'assemblyMethod',
+        'campaignId',
+      ],
+      required: ['brandAgentId', 'name'],
+      json: ['content'],
+    },
     get: { params: ['creativeId'], required: ['creativeId'] },
     update: { params: ['creativeId', 'name', 'status'], required: ['creativeId'] },
     delete: { params: ['creativeId'], required: ['creativeId'] },
@@ -283,18 +391,36 @@ const resources: Record<string, Record<string, MethodConfig>> = {
   },
   tactics: {
     list: { params: ['campaignId', 'includeArchived'], optional: true },
-    create: { params: ['name', 'campaignId', 'prompt', 'channelCodes', 'countryCodes'], required: ['name', 'campaignId'], array: ['channelCodes', 'countryCodes'] },
+    create: {
+      params: ['name', 'campaignId', 'prompt', 'channelCodes', 'countryCodes'],
+      required: ['name', 'campaignId'],
+      array: ['channelCodes', 'countryCodes'],
+    },
     get: { params: ['tacticId'], required: ['tacticId'] },
-    update: { params: ['tacticId', 'name', 'prompt', 'channelCodes', 'countryCodes'], required: ['tacticId'], array: ['channelCodes', 'countryCodes'] },
+    update: {
+      params: ['tacticId', 'name', 'prompt', 'channelCodes', 'countryCodes'],
+      required: ['tacticId'],
+      array: ['channelCodes', 'countryCodes'],
+    },
     delete: { params: ['tacticId'], required: ['tacticId'] },
     'link-campaign': { params: ['tacticId', 'campaignId'], required: ['tacticId', 'campaignId'] },
     'unlink-campaign': { params: ['tacticId', 'campaignId'], required: ['tacticId', 'campaignId'] },
   },
   'media-buys': {
     list: { params: ['tacticId', 'campaignId', 'includeArchived'], optional: true },
-    create: { params: ['tacticId', 'name', 'products', 'budget', 'description', 'creativeIds'], required: ['tacticId', 'name', 'products', 'budget'], json: ['products', 'budget'], array: ['creativeIds'] },
+    create: {
+      params: ['tacticId', 'name', 'products', 'budget', 'description', 'creativeIds'],
+      required: ['tacticId', 'name', 'products', 'budget'],
+      json: ['products', 'budget'],
+      array: ['creativeIds'],
+    },
     get: { params: ['mediaBuyId'], required: ['mediaBuyId'] },
-    update: { params: ['mediaBuyId', 'name', 'budget', 'cpm', 'creativeIds'], required: ['mediaBuyId'], json: ['budget'], array: ['creativeIds'] },
+    update: {
+      params: ['mediaBuyId', 'name', 'budget', 'cpm', 'creativeIds'],
+      required: ['mediaBuyId'],
+      json: ['budget'],
+      array: ['creativeIds'],
+    },
     delete: { params: ['mediaBuyId'], required: ['mediaBuyId'] },
     execute: { params: ['mediaBuyId'], required: ['mediaBuyId'] },
   },
@@ -316,9 +442,7 @@ Object.entries(resources).forEach(([resourceName, methods]) => {
   const resourceCmd = program.command(resourceName).description(`Manage ${resourceName}`);
 
   Object.entries(methods).forEach(([methodName, config]) => {
-    const cmd = resourceCmd
-      .command(methodName)
-      .description(`${methodName} ${resourceName}`);
+    const cmd = resourceCmd.command(methodName).description(`${methodName} ${resourceName}`);
 
     // Add options for each parameter
     config.params.forEach((param) => {
@@ -348,7 +472,11 @@ Object.entries(resources).forEach(([resourceName, methods]) => {
               request[param] = parseArrayArg(value);
             }
             // Parse numeric fields (only for actual numbers, not IDs that are strings)
-            else if (['limit', 'offset', 'take', 'skip', 'threshold', 'outcomeScoreWindowDays'].includes(param)) {
+            else if (
+              ['limit', 'offset', 'take', 'skip', 'threshold', 'outcomeScoreWindowDays'].includes(
+                param
+              )
+            ) {
               request[param] = parseInt(value, 10);
             }
             // Parse numeric ID fields (brandAgentId, organizationId, creativeId are numbers)
@@ -356,7 +484,15 @@ Object.entries(resources).forEach(([resourceName, methods]) => {
               request[param] = parseInt(value, 10);
             }
             // Parse boolean fields
-            else if (['hardDelete', 'includeArchived', 'tacticSeedDataCoop', 'isArchived', 'unreadOnly'].includes(param)) {
+            else if (
+              [
+                'hardDelete',
+                'includeArchived',
+                'tacticSeedDataCoop',
+                'isArchived',
+                'unreadOnly',
+              ].includes(param)
+            ) {
               request[param] = value === 'true';
             }
             // Regular string fields
@@ -369,7 +505,9 @@ Object.entries(resources).forEach(([resourceName, methods]) => {
         // Validate required params
         const missingParams = config.required?.filter((p) => !options[p]) || [];
         if (missingParams.length > 0) {
-          console.error(chalk.red(`Error: Missing required parameters: ${missingParams.join(', ')}`));
+          console.error(
+            chalk.red(`Error: Missing required parameters: ${missingParams.join(', ')}`)
+          );
           process.exit(1);
         }
 
