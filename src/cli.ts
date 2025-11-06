@@ -74,7 +74,8 @@ function formatOutput(data: unknown, format: string): void {
   }
 
   // Handle ToolResponse wrapper
-  const actualData = data.data || data;
+  const dataObj = data as Record<string, unknown>;
+  const actualData = dataObj.data || data;
 
   if (Array.isArray(actualData)) {
     if (actualData.length === 0) {
@@ -127,11 +128,11 @@ function formatOutput(data: unknown, format: string): void {
   }
 
   // Show success/message if present
-  if (data.success !== undefined) {
-    console.log(data.success ? chalk.green('✓ Success') : chalk.red('✗ Failed'));
+  if (dataObj.success !== undefined) {
+    console.log(dataObj.success ? chalk.green('✓ Success') : chalk.red('✗ Failed'));
   }
-  if (data.message) {
-    console.log(chalk.blue('Message:'), data.message);
+  if (dataObj.message) {
+    console.log(chalk.blue('Message:'), dataObj.message);
   }
 }
 
@@ -516,7 +517,7 @@ Object.entries(resources).forEach(([resourceName, methods]) => {
         const camelCaseResource = resourceKey.charAt(0).toLowerCase() + resourceKey.slice(1);
         const camelCaseMethod = methodName.replace(/-([a-z])/g, (g) => g[1].toUpperCase());
 
-        let resource = (client as Record<string, unknown>)[camelCaseResource];
+        let resource = (client as unknown as Record<string, unknown>)[camelCaseResource];
 
         // Handle special cases
         if (resourceName === 'brand-agents') resource = client.brandAgents;
@@ -524,14 +525,14 @@ Object.entries(resources).forEach(([resourceName, methods]) => {
         if (resourceName === 'brand-stories') resource = client.brandStories;
         if (resourceName === 'media-buys') resource = client.mediaBuys;
 
-        if (!resource || typeof resource[camelCaseMethod] !== 'function') {
+        const resourceObj = resource as Record<string, unknown>;
+        if (!resource || typeof resourceObj[camelCaseMethod] !== 'function') {
           console.error(chalk.red(`Error: Method ${camelCaseMethod} not found on ${resourceName}`));
           process.exit(1);
         }
 
-        const result = await resource[camelCaseMethod](
-          Object.keys(request).length > 0 ? request : undefined
-        );
+        const method = resourceObj[camelCaseMethod] as (args?: unknown) => Promise<unknown>;
+        const result = await method(Object.keys(request).length > 0 ? request : undefined);
 
         formatOutput(result, globalOpts.format);
       } catch (error: unknown) {
