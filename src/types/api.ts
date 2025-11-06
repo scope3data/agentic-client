@@ -319,38 +319,78 @@ export interface paths {
      */
     post: operations['media_product_sync'];
   };
+  '/agent-get': {
+    /**
+     * Get agent
+     * @description Get detailed information about a specific agent (SALES or OUTCOME type). Type is automatically inferred from the agent ID.
+     */
+    post: operations['agent_get'];
+  };
+  '/agent-list': {
+    /**
+     * List agents
+     * @description List all registered agents with comprehensive filtering. Supports filtering by type (SALES/OUTCOME), status, organization, relationship (SELF/SCOPE3/MARKETPLACE), and name.
+     */
+    post: operations['agent_list'];
+  };
+  '/agent-register': {
+    /**
+     * Register agent
+     * @description Register a new agent for media buying (SALES type) or outcome optimization (OUTCOME type).
+     */
+    post: operations['agent_register'];
+  };
+  '/agent-unregister': {
+    /**
+     * Unregister agent
+     * @description Unregister an agent and disconnect it from the platform. Type is automatically inferred from the agent ID.
+     */
+    post: operations['agent_unregister'];
+  };
+  '/agent-update': {
+    /**
+     * Update agent
+     * @description Update agent configuration and credentials. Type is automatically inferred from the agent ID.
+     */
+    post: operations['agent_update'];
+  };
   '/sales-agent-get': {
     /**
-     * Get sales agent
-     * @description Get detailed information about a specific sales agent (DSP, publisher platform).
+     * Get sales agent (DEPRECATED)
+     * @deprecated
+     * @description DEPRECATED: Use agent_get instead. Get detailed information about a specific sales agent (DSP, publisher platform).
      */
     post: operations['sales_agent_get'];
   };
   '/sales-agent-list': {
     /**
-     * List sales agents
-     * @description List all registered sales agents (DSPs, publisher platforms).
+     * List sales agents (DEPRECATED)
+     * @deprecated
+     * @description DEPRECATED: Use agent_list instead. List all registered sales agents (DSPs, publisher platforms).
      */
     post: operations['sales_agent_list'];
   };
   '/sales-agent-register': {
     /**
-     * Register sales agent
-     * @description Register a new sales agent (DSP, publisher platform) for media buying.
+     * Register sales agent (DEPRECATED)
+     * @deprecated
+     * @description DEPRECATED: Use agent_register instead. Register a new sales agent (DSP, publisher platform) for media buying.
      */
     post: operations['sales_agent_register'];
   };
   '/sales-agent-unregister': {
     /**
-     * Unregister sales agent
-     * @description Unregister a sales agent and disconnect it from the platform.
+     * Unregister sales agent (DEPRECATED)
+     * @deprecated
+     * @description DEPRECATED: Use agent_unregister instead. Unregister a sales agent and disconnect it from the platform.
      */
     post: operations['sales_agent_unregister'];
   };
   '/sales-agent-update': {
     /**
-     * Update sales agent
-     * @description Update sales agent configuration and credentials.
+     * Update sales agent (DEPRECATED)
+     * @deprecated
+     * @description DEPRECATED: Use agent_update instead. Update sales agent configuration and credentials.
      */
     post: operations['sales_agent_update'];
   };
@@ -572,6 +612,8 @@ export interface components {
       brandStandardId: string;
     };
     ListBrandStandardsInput: {
+      /** @description Optional brand agent ID to filter brand standards by */
+      brandAgentId?: number;
       /** @description Prisma-style where clause for filtering standards */
       where?: {
         [key: string]: unknown;
@@ -612,6 +654,8 @@ export interface components {
       brandStoryId: string;
     };
     ListBrandStoriesInput: {
+      /** @description Optional brand agent ID to filter brand stories by */
+      brandAgentId?: number;
       /** @description Filtering criteria */
       where?: {
         [key: string]: unknown;
@@ -791,6 +835,7 @@ export interface components {
       description?: string;
       /** @enum {string} */
       formatSource?: 'ADCP' | 'CREATIVE_AGENT' | 'PUBLISHER';
+      /** @description Format identifier. For ADCP sources, this should be a format ID string recognized by the target sales agent (e.g., display_300x250, video_1920x1080). Valid formats are agent-specific. */
       formatId?: string;
       mediaUrl?: string;
       /** @description Optional: Upload assets inline with the creative. Each asset requires: name, contentType, data (base64), and assetType. */
@@ -846,37 +891,58 @@ export interface components {
     };
     CreateMediaBuyInput: {
       tacticId: number;
+      agentId: string;
       name: string;
       description?: string;
       products: {
         mediaProductId: string;
-        salesAgentId: string;
-        budgetAmount?: number;
+        budgetAmount: number;
         budgetCurrency?: string;
         pricingCpm?: number;
         pricingSignalCost?: number;
         displayOrder?: number;
+        creatives?: {
+          creative_id: string;
+          name: string;
+          format_id:
+            | string
+            | {
+                agent_url: string;
+                id: string;
+              };
+          assets?: {
+            [key: string]: {
+              url: string;
+              width?: number;
+              height?: number;
+            };
+          };
+          click_url?: string;
+        }[];
       }[];
-      creativeIds?: string[];
-      budget: {
-        amount: number;
-        currency: string;
-        dailyCap?: number;
-        /** @enum {string} */
-        pacing: 'asap' | 'even' | 'front_loaded';
-      };
+      creatives?: {
+        creative_id: string;
+        name: string;
+        format_id:
+          | string
+          | {
+              agent_url: string;
+              id: string;
+            };
+        assets?: {
+          [key: string]: {
+            url: string;
+            width?: number;
+            height?: number;
+          };
+        };
+        click_url?: string;
+      }[];
     };
     UpdateMediaBuyInput: {
       mediaBuyId: string;
       name?: string;
       description?: string;
-      budget?: {
-        amount?: number;
-        currency?: string;
-        dailyCap?: number;
-        /** @enum {string} */
-        pacing?: 'asap' | 'even' | 'front_loaded';
-      };
       /** @enum {string} */
       status?:
         | 'DRAFT'
@@ -887,6 +953,10 @@ export interface components {
         | 'FAILED'
         | 'REJECTED';
       creativeIds?: string[];
+      packages?: {
+        packageId: string;
+        creativeIds: string[];
+      }[];
     };
     DeleteMediaBuyInput: {
       mediaBuyId: string;
@@ -944,7 +1014,7 @@ export interface components {
       maxCpm?: number;
       minCpm?: number;
       publisherIds?: string[];
-      salesAgentId?: number;
+      agentId?: string;
     };
     SaveProductInput: {
       productId: string;
@@ -980,6 +1050,152 @@ export interface components {
     SyncProductsInput: {
       sourceId: string;
     };
+    GetAgentInput: {
+      /** @description The agent ID to retrieve */
+      agentId: string;
+    };
+    ListAgentsInput: {
+      /**
+       * @description Filter by agent type (SALES or OUTCOME)
+       * @enum {string}
+       */
+      type?: 'SALES' | 'OUTCOME';
+      /**
+       * @description Filter by status (PENDING, ACTIVE, DISABLED)
+       * @enum {string}
+       */
+      status?: 'PENDING' | 'ACTIVE' | 'DISABLED';
+      /** @description Filter by organization ID */
+      organizationId?: string;
+      /**
+       * @description Filter by relationship (SELF = owned by you, SCOPE3 = Scope3-provided, MARKETPLACE = third-party marketplace agents)
+       * @enum {string}
+       */
+      relationship?: 'SELF' | 'SCOPE3' | 'MARKETPLACE';
+      /** @description Filter by agent name (partial match) */
+      name?: string;
+    };
+    RegisterAgentInput: {
+      /**
+       * @description The type of agent to register
+       * @enum {string}
+       */
+      type: 'SALES' | 'OUTCOME';
+      /** @description Agent name */
+      name: string;
+      /** @description Agent description */
+      description?: string;
+      /**
+       * Format: uri
+       * @description Agent endpoint URL
+       */
+      endpointUrl: string;
+      /**
+       * @description Protocol used by the agent (MCP or A2A)
+       * @enum {string}
+       */
+      protocol: 'MCP' | 'A2A';
+      /**
+       * @description Authentication type
+       * @enum {string}
+       */
+      authenticationType?: 'API_KEY' | 'OAUTH' | 'NO_AUTH' | 'JWT';
+      /** @description Organization ID */
+      organizationId?: string;
+      /** @description Authentication configuration object */
+      authConfig?:
+        | {
+            /** @enum {string} */
+            type: 'jwt';
+            privateKey: string;
+            issuer: string;
+            subject: string;
+            keyId: string;
+            scope: string;
+            /** Format: uri */
+            tokenEndpointUrl: string;
+            /** Format: uri */
+            audienceUrl: string;
+            /** @enum {string} */
+            algorithm?: 'ES256' | 'RS256';
+            environment?: string;
+          }
+        | {
+            auth: {
+              /** @enum {string} */
+              type: 'bearer' | 'apikey' | 'api_key';
+              token: string;
+            };
+          }
+        | {
+            auth: {
+              /** @enum {string} */
+              type: 'oauth' | 'oauth2';
+              token: string;
+            };
+          }
+        | Record<string, never>;
+    };
+    UnregisterAgentInput: {
+      /** @description The agent ID to unregister */
+      agentId: string;
+    };
+    UpdateAgentInput: {
+      /** @description The agent ID to update */
+      agentId: string;
+      /** @description New agent name */
+      name?: string;
+      /** @description New agent description */
+      description?: string;
+      /**
+       * Format: uri
+       * @description New endpoint URL
+       */
+      endpointUrl?: string;
+      /**
+       * @description New protocol
+       * @enum {string}
+       */
+      protocol?: 'MCP' | 'A2A';
+      /**
+       * @description New authentication type
+       * @enum {string}
+       */
+      authenticationType?: 'API_KEY' | 'OAUTH' | 'NO_AUTH' | 'JWT';
+      /** @description New authentication configuration */
+      authConfig?:
+        | {
+            /** @enum {string} */
+            type: 'jwt';
+            privateKey: string;
+            issuer: string;
+            subject: string;
+            keyId: string;
+            scope: string;
+            /** Format: uri */
+            tokenEndpointUrl: string;
+            /** Format: uri */
+            audienceUrl: string;
+            /** @enum {string} */
+            algorithm?: 'ES256' | 'RS256';
+            environment?: string;
+          }
+        | {
+            auth: {
+              /** @enum {string} */
+              type: 'bearer' | 'apikey' | 'api_key';
+              token: string;
+            };
+          }
+        | {
+            auth: {
+              /** @enum {string} */
+              type: 'oauth' | 'oauth2';
+              token: string;
+            };
+          }
+        | Record<string, never>;
+    };
     GetSalesAgentInput: {
       agentId: string;
     };
@@ -992,11 +1208,40 @@ export interface components {
       /** @enum {string} */
       protocol: 'MCP' | 'A2A';
       /** @enum {string} */
-      authenticationType: 'API_KEY' | 'OAUTH' | 'NO_AUTH';
+      authenticationType?: 'API_KEY' | 'OAUTH' | 'NO_AUTH' | 'JWT';
       organizationId?: string;
-      authConfig?: {
-        [key: string]: unknown;
-      };
+      authConfig?:
+        | {
+            /** @enum {string} */
+            type: 'jwt';
+            privateKey: string;
+            issuer: string;
+            subject: string;
+            keyId: string;
+            scope: string;
+            /** Format: uri */
+            tokenEndpointUrl: string;
+            /** Format: uri */
+            audienceUrl: string;
+            /** @enum {string} */
+            algorithm?: 'ES256' | 'RS256';
+            environment?: string;
+          }
+        | {
+            auth: {
+              /** @enum {string} */
+              type: 'bearer' | 'apikey' | 'api_key';
+              token: string;
+            };
+          }
+        | {
+            auth: {
+              /** @enum {string} */
+              type: 'oauth' | 'oauth2';
+              token: string;
+            };
+          }
+        | Record<string, never>;
     };
     UnregisterSalesAgentInput: {
       agentId: string;
@@ -1010,20 +1255,78 @@ export interface components {
       /** @enum {string} */
       protocol?: 'MCP' | 'A2A';
       /** @enum {string} */
-      authenticationType?: 'API_KEY' | 'OAUTH' | 'NO_AUTH';
-      authConfig?: {
-        [key: string]: unknown;
-      };
+      authenticationType?: 'API_KEY' | 'OAUTH' | 'NO_AUTH' | 'JWT';
+      authConfig?:
+        | {
+            /** @enum {string} */
+            type: 'jwt';
+            privateKey: string;
+            issuer: string;
+            subject: string;
+            keyId: string;
+            scope: string;
+            /** Format: uri */
+            tokenEndpointUrl: string;
+            /** Format: uri */
+            audienceUrl: string;
+            /** @enum {string} */
+            algorithm?: 'ES256' | 'RS256';
+            environment?: string;
+          }
+        | {
+            auth: {
+              /** @enum {string} */
+              type: 'bearer' | 'apikey' | 'api_key';
+              token: string;
+            };
+          }
+        | {
+            auth: {
+              /** @enum {string} */
+              type: 'oauth' | 'oauth2';
+              token: string;
+            };
+          }
+        | Record<string, never>;
     };
     ListSalesAgentAccountsInput: {
       agentId: string;
     };
     RegisterSalesAgentAccountInput: {
-      salesAgentId: string;
+      agentId: string;
       accountIdentifier: string;
-      authConfig?: {
-        [key: string]: unknown;
-      };
+      authConfig?:
+        | {
+            /** @enum {string} */
+            type: 'jwt';
+            privateKey: string;
+            issuer: string;
+            subject: string;
+            keyId: string;
+            scope: string;
+            /** Format: uri */
+            tokenEndpointUrl: string;
+            /** Format: uri */
+            audienceUrl: string;
+            /** @enum {string} */
+            algorithm?: 'ES256' | 'RS256';
+            environment?: string;
+          }
+        | {
+            auth: {
+              /** @enum {string} */
+              type: 'bearer' | 'apikey' | 'api_key';
+              token: string;
+            };
+          }
+        | {
+            auth: {
+              /** @enum {string} */
+              type: 'oauth' | 'oauth2';
+              token: string;
+            };
+          }
+        | Record<string, never>;
     };
     UnregisterSalesAgentAccountInput: {
       accountId: string;
@@ -1144,13 +1447,23 @@ export interface components {
       countryCodes: string[];
       channelCodes: string[];
       brands: string[];
+      models: {
+        id: string;
+        name: string;
+        prompt: string;
+        status: string | null;
+        /** Format: date-time */
+        createdAt: string;
+        /** Format: date-time */
+        updatedAt: string;
+      }[];
       /** Format: date-time */
       createdAt: string;
       /** Format: date-time */
       updatedAt: string;
     };
     CampaignUpdate: {
-      id: string;
+      campaignId: string;
       name: string;
       status: string;
       /** Format: date-time */
@@ -1171,7 +1484,76 @@ export interface components {
     MediaBuyGet: {
       id: string;
       tacticId: number;
+      customerId: number;
+      name: string;
+      description?: string;
+      products?: {
+        mediaProductId: string;
+        salesAgentId: string;
+        salesAgentName?: string;
+        budgetAmount?: number;
+        budgetCurrency?: string;
+        pricingCpm?: number;
+        pricingSignalCost?: number;
+        displayOrder?: number;
+        creativeFormats?: {
+          agent_url: string;
+          id: string;
+        }[];
+      }[];
+      packages?: {
+        packageId: string;
+        productIds: string[];
+        impressions: number;
+        budget: number;
+        targetingOverlay: unknown;
+        creatives: {
+          creativeId: string;
+          name: string;
+          formatId: string;
+          mediaUrl: string;
+          status: string;
+        }[];
+        /** Format: date-time */
+        createdAt: string;
+        /** Format: date-time */
+        updatedAt: string;
+        salesAgentId?: string;
+        salesAgentName?: string;
+        pricingCpm?: number;
+        pricingSignalCost?: number;
+        bidPrice?: number;
+        pricingOptionId?: string;
+        creativeFormats?: {
+          agent_url: string;
+          id: string;
+        }[];
+      }[];
+      creatives?: {
+        creativeId: string;
+        name: string;
+        formatId: string;
+        mediaUrl: string;
+        status: string;
+      }[];
+      pricing: {
+        cpm: number;
+        signalCost?: number;
+        totalCpm: number;
+      };
       status: string;
+      adcp?: {
+        mediaBuyId?: string;
+        status?: string;
+        webhookUrl?: string;
+      };
+      performance?: {
+        impressions: number;
+        spend: number;
+        clicks: number;
+        /** Format: date-time */
+        lastUpdated?: string;
+      };
       /** Format: date-time */
       archivedAt?: string;
       /** Format: date-time */
@@ -1251,6 +1633,16 @@ export interface components {
       channelCodes?: string[];
       languages?: string[];
       brands?: string[];
+      currentModel?: {
+        id: string;
+        name: string;
+        prompt: string;
+        status: string | null;
+        /** Format: date-time */
+        createdAt: string;
+        /** Format: date-time */
+        updatedAt: string;
+      };
       /** Format: date-time */
       createdAt: string;
       /** Format: date-time */
@@ -1278,6 +1670,17 @@ export interface components {
         description?: string;
         status: string;
         type: string;
+        languages: string[];
+        currentModel?: {
+          id: string;
+          name: string;
+          prompt: string;
+          status: string | null;
+          /** Format: date-time */
+          createdAt: string;
+          /** Format: date-time */
+          updatedAt: string;
+        };
         /** Format: date-time */
         createdAt: string;
         /** Format: date-time */
@@ -1440,8 +1843,93 @@ export interface components {
       success: boolean;
       productsSaved: number;
     };
+    AgentGet:
+      | {
+          agentId: string;
+          name: string;
+          /** @enum {string} */
+          type: 'SALES' | 'OUTCOME';
+          status: string;
+          relationship: string;
+          endpointUrl: string;
+          protocol: string;
+          authenticationType: string;
+          description?: string;
+          organizationId?: string;
+          registeredBy?: string;
+          /** Format: date-time */
+          createdAt: string;
+          /** Format: date-time */
+          updatedAt: string;
+        }
+      | {
+          agentId: string;
+          name: string;
+          /** @enum {string} */
+          type: 'SALES' | 'OUTCOME';
+          status: string;
+          relationship: string;
+          endpointUrl: string;
+          protocol: string;
+          authenticationType: string;
+          description?: string;
+          organizationId?: string;
+          registeredBy?: string;
+          /** Format: date-time */
+          createdAt: string;
+          /** Format: date-time */
+          updatedAt: string;
+          customerAccountCount: number;
+        };
+    AgentList: {
+      total: number;
+      items: (
+        | {
+            agentId: string;
+            name: string;
+            /** @enum {string} */
+            type: 'SALES' | 'OUTCOME';
+            status: string;
+            relationship: string;
+            endpointUrl: string;
+            protocol: string;
+          }
+        | {
+            agentId: string;
+            name: string;
+            /** @enum {string} */
+            type: 'SALES' | 'OUTCOME';
+            status: string;
+            relationship: string;
+            endpointUrl: string;
+            protocol: string;
+            customerAccountCount: number;
+          }
+      )[];
+    };
+    AgentRegister: {
+      agentId: string;
+      name: string;
+      /** @enum {string} */
+      type: 'SALES' | 'OUTCOME';
+      status: string;
+      endpointUrl: string;
+    };
+    AgentUnregister: {
+      success: boolean;
+      agentId: string;
+      /** @enum {string} */
+      type: 'SALES' | 'OUTCOME';
+    };
+    AgentUpdate: {
+      agentId: string;
+      name: string;
+      /** @enum {string} */
+      type: 'SALES' | 'OUTCOME';
+      status: string;
+    };
     SalesAgentGet: {
-      id: number;
+      agentId: string;
       name: string;
       status: string;
       relationship: string;
@@ -1460,7 +1948,7 @@ export interface components {
     SalesAgentList: {
       total: number;
       items: {
-        id: number;
+        agentId: string;
         name: string;
         status: string;
         relationship: string;
@@ -1470,17 +1958,17 @@ export interface components {
       }[];
     };
     SalesAgentRegister: {
-      id: number;
+      agentId: string;
       name: string;
       status: string;
       endpointUrl: string;
     };
     SalesAgentUnregister: {
       success: boolean;
-      id: string;
+      agentId: string;
     };
     SalesAgentUpdate: {
-      id: string;
+      agentId: string;
       name: string;
       status: string;
     };
@@ -1504,7 +1992,7 @@ export interface components {
     };
     SalesAgentAccountUnregister: {
       success: boolean;
-      salesAgentId: string;
+      agentId: string;
     };
     SalesAgentAccountUpdate: {
       id: string;
@@ -1611,13 +2099,23 @@ export interface components {
       countryCodes: string[];
       channelCodes: string[];
       brands: string[];
+      models: {
+        id: string;
+        name: string;
+        prompt: string;
+        status: string | null;
+        /** Format: date-time */
+        createdAt: string;
+        /** Format: date-time */
+        updatedAt: string;
+      }[];
       /** Format: date-time */
       createdAt: string;
       /** Format: date-time */
       updatedAt: string;
     };
     CampaignUpdateOutput: {
-      id: string;
+      campaignId: string;
       name: string;
       status: string;
       /** Format: date-time */
@@ -1638,7 +2136,76 @@ export interface components {
     MediaBuyGetOutput: {
       id: string;
       tacticId: number;
+      customerId: number;
+      name: string;
+      description?: string;
+      products?: {
+        mediaProductId: string;
+        salesAgentId: string;
+        salesAgentName?: string;
+        budgetAmount?: number;
+        budgetCurrency?: string;
+        pricingCpm?: number;
+        pricingSignalCost?: number;
+        displayOrder?: number;
+        creativeFormats?: {
+          agent_url: string;
+          id: string;
+        }[];
+      }[];
+      packages?: {
+        packageId: string;
+        productIds: string[];
+        impressions: number;
+        budget: number;
+        targetingOverlay: unknown;
+        creatives: {
+          creativeId: string;
+          name: string;
+          formatId: string;
+          mediaUrl: string;
+          status: string;
+        }[];
+        /** Format: date-time */
+        createdAt: string;
+        /** Format: date-time */
+        updatedAt: string;
+        salesAgentId?: string;
+        salesAgentName?: string;
+        pricingCpm?: number;
+        pricingSignalCost?: number;
+        bidPrice?: number;
+        pricingOptionId?: string;
+        creativeFormats?: {
+          agent_url: string;
+          id: string;
+        }[];
+      }[];
+      creatives?: {
+        creativeId: string;
+        name: string;
+        formatId: string;
+        mediaUrl: string;
+        status: string;
+      }[];
+      pricing: {
+        cpm: number;
+        signalCost?: number;
+        totalCpm: number;
+      };
       status: string;
+      adcp?: {
+        mediaBuyId?: string;
+        status?: string;
+        webhookUrl?: string;
+      };
+      performance?: {
+        impressions: number;
+        spend: number;
+        clicks: number;
+        /** Format: date-time */
+        lastUpdated?: string;
+      };
       /** Format: date-time */
       archivedAt?: string;
       /** Format: date-time */
@@ -1686,7 +2253,7 @@ export interface components {
       updatedAt: string;
     };
     CampaignCreate: {
-      id: string;
+      campaignId: string;
       name: string;
       status: string;
       /** Format: date-time */
@@ -1695,7 +2262,7 @@ export interface components {
       updatedAt: string;
     };
     CampaignGet: {
-      id: string;
+      campaignId: string;
       name: string;
       status: string;
       /** Format: date-time */
@@ -1726,7 +2293,76 @@ export interface components {
     MediaBuyCreate: {
       id: string;
       tacticId: number;
+      customerId: number;
+      name: string;
+      description?: string;
+      products?: {
+        mediaProductId: string;
+        salesAgentId: string;
+        salesAgentName?: string;
+        budgetAmount?: number;
+        budgetCurrency?: string;
+        pricingCpm?: number;
+        pricingSignalCost?: number;
+        displayOrder?: number;
+        creativeFormats?: {
+          agent_url: string;
+          id: string;
+        }[];
+      }[];
+      packages?: {
+        packageId: string;
+        productIds: string[];
+        impressions: number;
+        budget: number;
+        targetingOverlay: unknown;
+        creatives: {
+          creativeId: string;
+          name: string;
+          formatId: string;
+          mediaUrl: string;
+          status: string;
+        }[];
+        /** Format: date-time */
+        createdAt: string;
+        /** Format: date-time */
+        updatedAt: string;
+        salesAgentId?: string;
+        salesAgentName?: string;
+        pricingCpm?: number;
+        pricingSignalCost?: number;
+        bidPrice?: number;
+        pricingOptionId?: string;
+        creativeFormats?: {
+          agent_url: string;
+          id: string;
+        }[];
+      }[];
+      creatives?: {
+        creativeId: string;
+        name: string;
+        formatId: string;
+        mediaUrl: string;
+        status: string;
+      }[];
+      pricing: {
+        cpm: number;
+        signalCost?: number;
+        totalCpm: number;
+      };
       status: string;
+      adcp?: {
+        mediaBuyId?: string;
+        status?: string;
+        webhookUrl?: string;
+      };
+      performance?: {
+        impressions: number;
+        spend: number;
+        clicks: number;
+        /** Format: date-time */
+        lastUpdated?: string;
+      };
       /** Format: date-time */
       archivedAt?: string;
       /** Format: date-time */
@@ -1737,7 +2373,76 @@ export interface components {
     MediaBuyUpdate: {
       id: string;
       tacticId: number;
+      customerId: number;
+      name: string;
+      description?: string;
+      products?: {
+        mediaProductId: string;
+        salesAgentId: string;
+        salesAgentName?: string;
+        budgetAmount?: number;
+        budgetCurrency?: string;
+        pricingCpm?: number;
+        pricingSignalCost?: number;
+        displayOrder?: number;
+        creativeFormats?: {
+          agent_url: string;
+          id: string;
+        }[];
+      }[];
+      packages?: {
+        packageId: string;
+        productIds: string[];
+        impressions: number;
+        budget: number;
+        targetingOverlay: unknown;
+        creatives: {
+          creativeId: string;
+          name: string;
+          formatId: string;
+          mediaUrl: string;
+          status: string;
+        }[];
+        /** Format: date-time */
+        createdAt: string;
+        /** Format: date-time */
+        updatedAt: string;
+        salesAgentId?: string;
+        salesAgentName?: string;
+        pricingCpm?: number;
+        pricingSignalCost?: number;
+        bidPrice?: number;
+        pricingOptionId?: string;
+        creativeFormats?: {
+          agent_url: string;
+          id: string;
+        }[];
+      }[];
+      creatives?: {
+        creativeId: string;
+        name: string;
+        formatId: string;
+        mediaUrl: string;
+        status: string;
+      }[];
+      pricing: {
+        cpm: number;
+        signalCost?: number;
+        totalCpm: number;
+      };
       status: string;
+      adcp?: {
+        mediaBuyId?: string;
+        status?: string;
+        webhookUrl?: string;
+      };
+      performance?: {
+        impressions: number;
+        spend: number;
+        clicks: number;
+        /** Format: date-time */
+        lastUpdated?: string;
+      };
       /** Format: date-time */
       archivedAt?: string;
       /** Format: date-time */
@@ -4032,8 +4737,259 @@ export interface operations {
     };
   };
   /**
-   * Get sales agent
-   * @description Get detailed information about a specific sales agent (DSP, publisher platform).
+   * Get agent
+   * @description Get detailed information about a specific agent (SALES or OUTCOME type). Type is automatically inferred from the agent ID.
+   */
+  agent_get: {
+    parameters: {
+      header: {
+        /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
+        'mcp-session-id': string;
+      };
+    };
+    requestBody: {
+      content: {
+        'application/json': {
+          /** @enum {string} */
+          tool: 'agent_get';
+          arguments: components['schemas']['GetAgentInput'];
+        };
+      };
+    };
+    responses: {
+      /** @description Successful response */
+      200: {
+        content: {
+          'application/json': {
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['AgentGet'];
+          };
+        };
+      };
+      /** @description Bad request */
+      400: {
+        content: {
+          'application/json': components['schemas']['BadRequest'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          'application/json': components['schemas']['Unauthorized'];
+        };
+      };
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['InternalError'];
+        };
+      };
+    };
+  };
+  /**
+   * List agents
+   * @description List all registered agents with comprehensive filtering. Supports filtering by type (SALES/OUTCOME), status, organization, relationship (SELF/SCOPE3/MARKETPLACE), and name.
+   */
+  agent_list: {
+    parameters: {
+      header: {
+        /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
+        'mcp-session-id': string;
+      };
+    };
+    requestBody: {
+      content: {
+        'application/json': {
+          /** @enum {string} */
+          tool: 'agent_list';
+          arguments: components['schemas']['ListAgentsInput'];
+        };
+      };
+    };
+    responses: {
+      /** @description Successful response */
+      200: {
+        content: {
+          'application/json': {
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['AgentList'];
+          };
+        };
+      };
+      /** @description Bad request */
+      400: {
+        content: {
+          'application/json': components['schemas']['BadRequest'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          'application/json': components['schemas']['Unauthorized'];
+        };
+      };
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['InternalError'];
+        };
+      };
+    };
+  };
+  /**
+   * Register agent
+   * @description Register a new agent for media buying (SALES type) or outcome optimization (OUTCOME type).
+   */
+  agent_register: {
+    parameters: {
+      header: {
+        /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
+        'mcp-session-id': string;
+      };
+    };
+    requestBody: {
+      content: {
+        'application/json': {
+          /** @enum {string} */
+          tool: 'agent_register';
+          arguments: components['schemas']['RegisterAgentInput'];
+        };
+      };
+    };
+    responses: {
+      /** @description Successful response */
+      200: {
+        content: {
+          'application/json': {
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['AgentRegister'];
+          };
+        };
+      };
+      /** @description Bad request */
+      400: {
+        content: {
+          'application/json': components['schemas']['BadRequest'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          'application/json': components['schemas']['Unauthorized'];
+        };
+      };
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['InternalError'];
+        };
+      };
+    };
+  };
+  /**
+   * Unregister agent
+   * @description Unregister an agent and disconnect it from the platform. Type is automatically inferred from the agent ID.
+   */
+  agent_unregister: {
+    parameters: {
+      header: {
+        /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
+        'mcp-session-id': string;
+      };
+    };
+    requestBody: {
+      content: {
+        'application/json': {
+          /** @enum {string} */
+          tool: 'agent_unregister';
+          arguments: components['schemas']['UnregisterAgentInput'];
+        };
+      };
+    };
+    responses: {
+      /** @description Successful response */
+      200: {
+        content: {
+          'application/json': {
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['AgentUnregister'];
+          };
+        };
+      };
+      /** @description Bad request */
+      400: {
+        content: {
+          'application/json': components['schemas']['BadRequest'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          'application/json': components['schemas']['Unauthorized'];
+        };
+      };
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['InternalError'];
+        };
+      };
+    };
+  };
+  /**
+   * Update agent
+   * @description Update agent configuration and credentials. Type is automatically inferred from the agent ID.
+   */
+  agent_update: {
+    parameters: {
+      header: {
+        /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
+        'mcp-session-id': string;
+      };
+    };
+    requestBody: {
+      content: {
+        'application/json': {
+          /** @enum {string} */
+          tool: 'agent_update';
+          arguments: components['schemas']['UpdateAgentInput'];
+        };
+      };
+    };
+    responses: {
+      /** @description Successful response */
+      200: {
+        content: {
+          'application/json': {
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['AgentUpdate'];
+          };
+        };
+      };
+      /** @description Bad request */
+      400: {
+        content: {
+          'application/json': components['schemas']['BadRequest'];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        content: {
+          'application/json': components['schemas']['Unauthorized'];
+        };
+      };
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['InternalError'];
+        };
+      };
+    };
+  };
+  /**
+   * Get sales agent (DEPRECATED)
+   * @deprecated
+   * @description DEPRECATED: Use agent_get instead. Get detailed information about a specific sales agent (DSP, publisher platform).
    */
   sales_agent_get: {
     parameters: {
@@ -4082,8 +5038,9 @@ export interface operations {
     };
   };
   /**
-   * List sales agents
-   * @description List all registered sales agents (DSPs, publisher platforms).
+   * List sales agents (DEPRECATED)
+   * @deprecated
+   * @description DEPRECATED: Use agent_list instead. List all registered sales agents (DSPs, publisher platforms).
    */
   sales_agent_list: {
     parameters: {
@@ -4132,8 +5089,9 @@ export interface operations {
     };
   };
   /**
-   * Register sales agent
-   * @description Register a new sales agent (DSP, publisher platform) for media buying.
+   * Register sales agent (DEPRECATED)
+   * @deprecated
+   * @description DEPRECATED: Use agent_register instead. Register a new sales agent (DSP, publisher platform) for media buying.
    */
   sales_agent_register: {
     parameters: {
@@ -4182,8 +5140,9 @@ export interface operations {
     };
   };
   /**
-   * Unregister sales agent
-   * @description Unregister a sales agent and disconnect it from the platform.
+   * Unregister sales agent (DEPRECATED)
+   * @deprecated
+   * @description DEPRECATED: Use agent_unregister instead. Unregister a sales agent and disconnect it from the platform.
    */
   sales_agent_unregister: {
     parameters: {
@@ -4232,8 +5191,9 @@ export interface operations {
     };
   };
   /**
-   * Update sales agent
-   * @description Update sales agent configuration and credentials.
+   * Update sales agent (DEPRECATED)
+   * @deprecated
+   * @description DEPRECATED: Use agent_update instead. Update sales agent configuration and credentials.
    */
   sales_agent_update: {
     parameters: {

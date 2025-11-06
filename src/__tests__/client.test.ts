@@ -14,6 +14,7 @@ describe('Scope3AgenticClient', () => {
   });
 
   it('should have all resource modules', () => {
+    expect(client.agents).toBeDefined();
     expect(client.assets).toBeDefined();
     expect(client.brandAgents).toBeDefined();
     expect(client.brandStandards).toBeDefined();
@@ -21,7 +22,6 @@ describe('Scope3AgenticClient', () => {
     expect(client.campaigns).toBeDefined();
     expect(client.channels).toBeDefined();
     expect(client.creatives).toBeDefined();
-    expect(client.salesAgents).toBeDefined();
     expect(client.tactics).toBeDefined();
     expect(client.mediaBuys).toBeDefined();
     expect(client.notifications).toBeDefined();

@@ -4,8 +4,8 @@
 
 You need:
 - Scope3 API key
-- Registered sales agents in your Scope3 account
-- Products available from those sales agents
+- Registered agents in your Scope3 account
+- Products available from those agents
 
 ## Method 1: Direct Testing (Recommended First)
 
@@ -77,7 +77,7 @@ This opens a web UI where you can:
 ### manage_tactic
 ✅ Creates media buys with:
 - Sum of all budgets = original budget * 1.4 (40% overallocation)
-- Each media buy has correct product ID, sales agent ID, CPM
+- Each media buy has correct product ID, agent ID, CPM
 - Uses MediaBuyProduct structure from ADCP client
 - N products where daily budget >= $100
 
@@ -107,7 +107,7 @@ If something fails:
 
 1. **Check logs**: The server outputs to stderr
 2. **Verify API key**: Make sure it's valid and has proper permissions
-3. **Check sales agents**: Run `scope3.salesAgents.list()` to verify you have agents registered
+3. **Check agents**: Run `scope3.agents.list({ type: 'SALES' })` to verify you have agents registered
 4. **Check products**: Run `scope3.products.discover()` to verify products are available
 
 ## Common Issues

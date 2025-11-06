@@ -108,15 +108,33 @@ await client.mediaBuys.create({
 await client.mediaBuys.execute({ mediaBuyId });
 ```
 
-### Sales Agents
+### Agents
 ```typescript
-await client.salesAgents.list();
-await client.salesAgents.register({
+// List all agents (sales and outcome)
+await client.agents.list();
+await client.agents.list({ type: 'SALES' });
+await client.agents.list({ type: 'OUTCOME' });
+
+// Register a new agent
+await client.agents.register({
+  type: 'SALES',
   name: '...',
   endpointUrl: '...',
-  protocol: 'A2A',
+  protocol: 'MCP',
   authenticationType: 'API_KEY',
 });
+
+// Get agent details
+await client.agents.get({ agentId: '...' });
+
+// Update agent
+await client.agents.update({
+  agentId: '...',
+  name: 'Updated Name',
+});
+
+// Unregister agent
+await client.agents.unregister({ agentId: '...' });
 ```
 
 ### Other Resources
