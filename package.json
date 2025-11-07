@@ -8,7 +8,8 @@
     "access": "public"
   },
   "bin": {
-    "outcome-agent": "dist/outcome-agent-server.js"
+    "outcome-agent": "dist/outcome-agent-server.js",
+    "scope3": "dist/cli.js"
   },
   "scripts": {
     "build": "npm run type-check && tsc",
@@ -47,6 +48,9 @@
   "homepage": "https://github.com/scope3data/agentic-client#readme",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.20.1",
+    "chalk": "^4.1.2",
+    "cli-table3": "^0.6.5",
+    "commander": "^14.0.2",
     "express": "^4.18.0",
     "fastmcp": "^3.20.2",
     "zod": "^3.25.76"

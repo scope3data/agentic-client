@@ -43,4 +43,19 @@ export class Scope3AgenticClient extends Scope3Client {
     this.notifications = new NotificationsResource(this);
     this.products = new ProductsResource(this);
   }
+
+  // Expose MCP methods for CLI dynamic command generation
+  async listTools(): Promise<unknown> {
+    if (!this.getClient()) {
+      await this.connect();
+    }
+    return this.getClient().listTools();
+  }
+
+  async callTool<TRequest = Record<string, unknown>, TResponse = unknown>(
+    toolName: string,
+    args: TRequest
+  ): Promise<TResponse> {
+    return super.callTool(toolName, args);
+  }
 }
