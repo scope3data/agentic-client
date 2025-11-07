@@ -46,7 +46,7 @@ const campaign = await client.campaigns.create({
 
 ## CLI Usage
 
-The package includes a comprehensive CLI tool for all API resources:
+The CLI dynamically discovers available commands from the API server, ensuring it's always up-to-date:
 
 ```bash
 # Install globally
@@ -55,21 +55,16 @@ npm install -g @scope3/agentic-client
 # Configure authentication
 scope3 config set apiKey your_api_key_here
 
-# List campaigns
-scope3 campaigns list
+# Discover available commands (80+ auto-generated)
+scope3 list-tools
 
-# Create a campaign
-scope3 campaigns create \
-  --prompt "Q1 2024 Spring Campaign" \
-  --budget '{"amount":100000,"currency":"USD"}'
-
-# Get help for any command
-scope3 campaigns --help
+# Examples
+scope3 brand-agent list
+scope3 campaign create --prompt "Q1 2024 Spring Campaign" --brandAgentId 123
+scope3 media-buy execute --mediaBuyId "buy_123"
 ```
 
-See [CLI.md](./CLI.md) for complete documentation with 80+ commands covering all API resources.
-
-**Workflow Tests:** See [scripts/README.md](./scripts/README.md) for platform and partner workflow examples.
+**Dynamic Updates:** Commands automatically stay in sync with API changes. No manual updates needed!
 
 ## SDK Configuration
 
