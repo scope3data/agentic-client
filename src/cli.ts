@@ -7,7 +7,7 @@ import chalk from 'chalk';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
-import { logger } from './logger';
+import { logger } from './utils/logger';
 
 // Configuration file location
 const CONFIG_DIR = path.join(os.homedir(), '.scope3');
