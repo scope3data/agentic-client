@@ -7,6 +7,7 @@ import chalk from 'chalk';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
+import { logger } from './logger';
 
 // Configuration file location
 const CONFIG_DIR = path.join(os.homedir(), '.scope3');
@@ -45,6 +46,7 @@ function loadConfig(): CliConfig {
       config.apiKey = fileConfig.apiKey;
       config.baseUrl = fileConfig.baseUrl;
     } catch (error) {
+      logger.warn('Failed to parse config file', { error });
       console.error(chalk.yellow('Warning: Failed to parse config file'));
     }
   }
@@ -128,6 +130,7 @@ async function fetchAvailableTools(
     return tools;
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
+    logger.error('Error fetching tools', error);
     console.error(chalk.red('Error fetching tools:'), errorMessage);
 
     // Try to use stale cache as fallback
@@ -245,6 +248,7 @@ function parseParameterValue(value: string, schema: Record<string, unknown>): un
     try {
       return JSON.parse(value);
     } catch (error) {
+      logger.error('Invalid JSON parameter', error, { value, type });
       console.error(chalk.red(`Error: Invalid JSON for parameter: ${value}`));
       process.exit(1);
     }
@@ -253,6 +257,7 @@ function parseParameterValue(value: string, schema: Record<string, unknown>): un
   if (type === 'integer' || type === 'number') {
     const num = Number(value);
     if (isNaN(num)) {
+      logger.error('Invalid number parameter', undefined, { value, type });
       console.error(chalk.red(`Error: Invalid number: ${value}`));
       process.exit(1);
     }
@@ -262,6 +267,7 @@ function parseParameterValue(value: string, schema: Record<string, unknown>): un
   if (type === 'boolean') {
     if (value === 'true') return true;
     if (value === 'false') return false;
+    logger.error('Invalid boolean parameter', undefined, { value, type });
     console.error(chalk.red(`Error: Invalid boolean (use 'true' or 'false'): ${value}`));
     process.exit(1);
   }
@@ -490,6 +496,7 @@ async function setupDynamicCommands() {
           } catch (error: unknown) {
             const errorMessage = error instanceof Error ? error.message : String(error);
             const errorStack = error instanceof Error ? error.stack : undefined;
+            logger.error('Tool execution failed', error, { toolName: tool.name });
             console.error(chalk.red('Error:'), errorMessage);
             if (errorStack && process.env.DEBUG) {
               console.error(chalk.gray(errorStack));
@@ -504,6 +511,7 @@ async function setupDynamicCommands() {
   } catch (error) {
     // If we can't fetch tools, show a helpful error
     const errorMessage = error instanceof Error ? error.message : String(error);
+    logger.error('CLI initialization failed', error);
     console.error(chalk.red('Error initializing CLI:'), errorMessage);
     console.log(chalk.yellow('\nMake sure your API key is configured:'));
     console.log('  scope3 config set apiKey YOUR_KEY');
@@ -520,6 +528,7 @@ setupDynamicCommands()
   })
   .catch((error) => {
     const errorMessage = error instanceof Error ? error.message : String(error);
+    logger.error('Fatal CLI error', error);
     console.error(chalk.red('Fatal error:'), errorMessage);
     process.exit(1);
   });
