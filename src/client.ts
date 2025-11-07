@@ -28,7 +28,7 @@ export class Scope3Client {
     this.transport = new StreamableHTTPClientTransport(new URL(`${baseURL}/mcp`), {
       requestInit: {
         headers: {
-          Authorization: `Bearer ${this.apiKey}`,
+          'x-scope3-api-key': this.apiKey,
         },
       },
     });
