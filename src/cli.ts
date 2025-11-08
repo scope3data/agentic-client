@@ -163,9 +163,14 @@ async function fetchAvailableTools(
 
     // Try to use stale cache as fallback
     if (fs.existsSync(TOOLS_CACHE_FILE)) {
-      console.log(chalk.yellow('Using cached tools (may be outdated)'));
-      const cache: ToolsCache = JSON.parse(fs.readFileSync(TOOLS_CACHE_FILE, 'utf-8'));
-      return cache.tools;
+      try {
+        console.log(chalk.yellow('Using cached tools (may be outdated)'));
+        const cache: ToolsCache = JSON.parse(fs.readFileSync(TOOLS_CACHE_FILE, 'utf-8'));
+        return cache.tools;
+      } catch (cacheError) {
+        logger.warn('Failed to read stale cache', { error: cacheError });
+        // Fall through to throw original error since we can't recover
+      }
     }
 
     throw error;
@@ -192,10 +197,8 @@ function formatOutput(data: unknown, format: string): void {
   // Check for: items, brandAgents, campaigns, agents, etc.
   if (typeof actualData === 'object' && actualData && !Array.isArray(actualData)) {
     const dataRecord = actualData as Record<string, unknown>;
-    // Find the first array field
-    const arrayField = Object.keys(dataRecord).find(
-      (key) => Array.isArray(dataRecord[key]) && dataRecord[key].length > 0
-    );
+    // Find the first array field (including empty arrays)
+    const arrayField = Object.keys(dataRecord).find((key) => Array.isArray(dataRecord[key]));
     if (arrayField) {
       actualData = dataRecord[arrayField];
     }
@@ -485,7 +488,12 @@ configCmd
   .action((key?: string) => {
     const config = loadConfig();
     if (!key) {
-      console.log(JSON.stringify(config, null, 2));
+      // Redact sensitive values when displaying full config
+      const safeConfig = { ...config };
+      if (safeConfig.apiKey) {
+        safeConfig.apiKey = safeConfig.apiKey.substring(0, 8) + '...[REDACTED]';
+      }
+      console.log(JSON.stringify(safeConfig, null, 2));
     } else if (key in config) {
       console.log(config[key as keyof CliConfig]);
     } else {
