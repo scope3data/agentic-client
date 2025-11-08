@@ -1,10 +1,12 @@
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 import { ClientConfig, Environment } from './types';
+import { logger } from './utils/logger';
 
 export class Scope3Client {
   protected readonly mcpClient: Client;
   protected readonly apiKey: string;
+  protected readonly baseUrl: string;
   private transport?: StreamableHTTPClientTransport;
   private connected = false;
 
@@ -13,6 +15,13 @@ export class Scope3Client {
 
     // Priority: explicit baseUrl > environment > default to production
     const baseURL = config.baseUrl || this.getDefaultBaseUrl(config.environment || 'production');
+    this.baseUrl = baseURL;
+
+    logger.info('Initializing Scope3 client', {
+      baseUrl: baseURL,
+      environment: config.environment || 'production',
+      isCustomUrl: !!config.baseUrl,
+    });
 
     this.mcpClient = new Client(
       {
@@ -94,5 +103,9 @@ export class Scope3Client {
 
   protected getClient(): Client {
     return this.mcpClient;
+  }
+
+  public getBaseUrl(): string {
+    return this.baseUrl;
   }
 }
