@@ -168,15 +168,17 @@ function formatOutput(data: unknown, format: string): void {
   const dataObj = data as Record<string, unknown>;
   let actualData: unknown = dataObj.data || data;
 
-  // If the response has 'items' array, use that (common pattern for list responses)
-  if (
-    typeof actualData === 'object' &&
-    actualData &&
-    !Array.isArray(actualData) &&
-    'items' in actualData &&
-    Array.isArray((actualData as Record<string, unknown>).items)
-  ) {
-    actualData = (actualData as Record<string, unknown>).items;
+  // If the response has an array field, extract it (common pattern for list responses)
+  // Check for: items, brandAgents, campaigns, agents, etc.
+  if (typeof actualData === 'object' && actualData && !Array.isArray(actualData)) {
+    const dataRecord = actualData as Record<string, unknown>;
+    // Find the first array field
+    const arrayField = Object.keys(dataRecord).find(
+      (key) => Array.isArray(dataRecord[key]) && dataRecord[key].length > 0
+    );
+    if (arrayField) {
+      actualData = dataRecord[arrayField];
+    }
   }
 
   // If the response is just a single object with only a "message" field,
