@@ -159,7 +159,6 @@ function formatOutput(data: unknown, format: string): void {
     return;
   }
 
-  // Table format
   if (!data) {
     console.log(chalk.yellow('No data to display'));
     return;
@@ -199,26 +198,45 @@ function formatOutput(data: unknown, format: string): void {
       return;
     }
 
-    // Create table from array
-    const keys = Object.keys(actualData[0]);
-    const table = new Table({
-      head: keys.map((k) => chalk.cyan(k)),
-      wordWrap: true,
-      wrapOnWordBoundary: false,
-    });
+    if (format === 'list') {
+      // List format: show each item with all fields, no truncation
+      actualData.forEach((item, index) => {
+        console.log(chalk.cyan(`\n${index + 1}.`));
+        Object.entries(item).forEach(([key, value]) => {
+          let displayValue: string;
+          if (value === null || value === undefined) {
+            displayValue = chalk.gray('(empty)');
+          } else if (typeof value === 'object') {
+            displayValue = JSON.stringify(value, null, 2);
+          } else {
+            displayValue = String(value);
+          }
+          console.log(`  ${chalk.yellow(key)}: ${displayValue}`);
+        });
+      });
+      console.log(); // Extra line at end
+    } else {
+      // Table format: columnar view (may truncate)
+      const keys = Object.keys(actualData[0]);
+      const table = new Table({
+        head: keys.map((k) => chalk.cyan(k)),
+        wordWrap: true,
+        wrapOnWordBoundary: false,
+      });
 
-    actualData.forEach((item) => {
-      table.push(
-        keys.map((k) => {
-          const value = item[k];
-          if (value === null || value === undefined) return '';
-          if (typeof value === 'object') return JSON.stringify(value);
-          return String(value);
-        })
-      );
-    });
+      actualData.forEach((item) => {
+        table.push(
+          keys.map((k) => {
+            const value = item[k];
+            if (value === null || value === undefined) return '';
+            if (typeof value === 'object') return JSON.stringify(value);
+            return String(value);
+          })
+        );
+      });
 
-    console.log(table.toString());
+      console.log(table.toString());
+    }
   } else if (typeof actualData === 'object' && actualData) {
     // Create table for single object (but not if it's just a message - handled above)
     const table = new Table({
@@ -341,7 +359,7 @@ program
     'production'
   )
   .option('--base-url <url>', 'Base URL for API (overrides environment)')
-  .option('--format <format>', 'Output format: json or table', 'table')
+  .option('--format <format>', 'Output format: json, table, or list (default: table)', 'table')
   .option('--debug', 'Enable debug mode (show request/response details)')
   .option('--no-cache', 'Skip cache and fetch fresh tools list');
 
