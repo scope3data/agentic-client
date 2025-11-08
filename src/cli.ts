@@ -167,12 +167,24 @@ function formatOutput(data: unknown, format: string): void {
 
   // Handle ToolResponse wrapper
   const dataObj = data as Record<string, unknown>;
-  const actualData = dataObj.data || data;
+  let actualData: unknown = dataObj.data || data;
+
+  // If the response has 'items' array, use that (common pattern for list responses)
+  if (
+    typeof actualData === 'object' &&
+    actualData &&
+    !Array.isArray(actualData) &&
+    'items' in actualData &&
+    Array.isArray((actualData as Record<string, unknown>).items)
+  ) {
+    actualData = (actualData as Record<string, unknown>).items;
+  }
 
   // If the response is just a single object with only a "message" field,
   // display the message directly without table formatting
   if (
     typeof actualData === 'object' &&
+    actualData &&
     !Array.isArray(actualData) &&
     Object.keys(actualData).length === 1 &&
     'message' in actualData
@@ -207,14 +219,14 @@ function formatOutput(data: unknown, format: string): void {
     });
 
     console.log(table.toString());
-  } else if (typeof actualData === 'object') {
+  } else if (typeof actualData === 'object' && actualData) {
     // Create table for single object (but not if it's just a message - handled above)
     const table = new Table({
       wordWrap: true,
       wrapOnWordBoundary: false,
     });
 
-    Object.entries(actualData).forEach(([key, value]) => {
+    Object.entries(actualData as Record<string, unknown>).forEach(([key, value]) => {
       let displayValue: string;
       if (value === null || value === undefined) {
         displayValue = '';
@@ -241,7 +253,8 @@ function formatOutput(data: unknown, format: string): void {
 function createClient(
   apiKey?: string,
   environment?: 'production' | 'staging',
-  baseUrl?: string
+  baseUrl?: string,
+  debug?: boolean
 ): Scope3AgenticClient {
   const config = loadConfig();
 
@@ -259,6 +272,7 @@ function createClient(
     apiKey: finalApiKey,
     environment: environment || config.environment,
     baseUrl: baseUrl || config.baseUrl,
+    debug: debug || false,
   });
 }
 
@@ -328,6 +342,7 @@ program
   )
   .option('--base-url <url>', 'Base URL for API (overrides environment)')
   .option('--format <format>', 'Output format: json or table', 'table')
+  .option('--debug', 'Enable debug mode (show request/response details)')
   .option('--no-cache', 'Skip cache and fetch fresh tools list');
 
 // Config command
@@ -394,7 +409,12 @@ program
   .option('--refresh', 'Refresh tools cache')
   .action(async (options) => {
     const globalOpts = program.opts();
-    const client = createClient(globalOpts.apiKey, globalOpts.environment, globalOpts.baseUrl);
+    const client = createClient(
+      globalOpts.apiKey,
+      globalOpts.environment,
+      globalOpts.baseUrl,
+      globalOpts.debug
+    );
 
     try {
       const useCache = !options.refresh && globalOpts.cache !== false;
@@ -453,7 +473,12 @@ async function setupDynamicCommands() {
   }
 
   try {
-    const client = createClient(globalOpts.apiKey, globalOpts.environment, globalOpts.baseUrl);
+    const client = createClient(
+      globalOpts.apiKey,
+      globalOpts.environment,
+      globalOpts.baseUrl,
+      globalOpts.debug
+    );
     const useCache = globalOpts.cache !== false;
     const tools = await fetchAvailableTools(client, useCache);
     await client.disconnect();
@@ -503,7 +528,8 @@ async function setupDynamicCommands() {
           const client = createClient(
             globalOpts.apiKey,
             globalOpts.environment,
-            globalOpts.baseUrl
+            globalOpts.baseUrl,
+            globalOpts.debug
           );
 
           try {
