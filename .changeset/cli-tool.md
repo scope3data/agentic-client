@@ -1,5 +1,4 @@
 ---
-"@scope3/agentic-client": minor
 "scope3": minor
 ---
 

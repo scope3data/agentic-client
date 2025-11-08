@@ -16,7 +16,9 @@ const TOOLS_CACHE_FILE = path.join(CONFIG_DIR, 'tools-cache.json');
 const CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours
 
 interface CliConfig {
-  apiKey?: string;
+  apiKey?: string; // Legacy single API key
+  productionApiKey?: string; // Production-specific API key
+  stagingApiKey?: string; // Staging-specific API key
   environment?: 'production' | 'staging';
   baseUrl?: string;
 }
@@ -45,6 +47,8 @@ function loadConfig(): CliConfig {
     try {
       const fileConfig = JSON.parse(fs.readFileSync(CONFIG_FILE, 'utf-8'));
       config.apiKey = fileConfig.apiKey;
+      config.productionApiKey = fileConfig.productionApiKey;
+      config.stagingApiKey = fileConfig.stagingApiKey;
       config.environment = fileConfig.environment;
       config.baseUrl = fileConfig.baseUrl;
     } catch (error) {
@@ -382,19 +386,39 @@ function createClient(
 ): Scope3AgenticClient {
   const config = loadConfig();
 
-  const finalApiKey = apiKey || config.apiKey;
+  // Determine final environment
+  const finalEnvironment = environment || config.environment || 'production';
+
+  // Select API key based on priority:
+  // 1. Explicitly passed apiKey (--api-key flag)
+  // 2. Environment-specific key from config (productionApiKey/stagingApiKey)
+  // 3. Legacy single apiKey from config
+  let finalApiKey = apiKey;
+  if (!finalApiKey) {
+    if (finalEnvironment === 'staging' && config.stagingApiKey) {
+      finalApiKey = config.stagingApiKey;
+    } else if (finalEnvironment === 'production' && config.productionApiKey) {
+      finalApiKey = config.productionApiKey;
+    } else {
+      finalApiKey = config.apiKey; // Fallback to legacy key
+    }
+  }
+
   if (!finalApiKey) {
     console.error(chalk.red('Error: API key is required'));
     console.log('Set it via:');
     console.log('  - Environment variable: export SCOPE3_API_KEY=your_key');
     console.log('  - Config command: scope3 config set apiKey your_key');
+    console.log('  - Or use environment-specific keys:');
+    console.log('    scope3 config set productionApiKey your_production_key');
+    console.log('    scope3 config set stagingApiKey your_staging_key');
     console.log('  - Flag: --api-key your_key');
     process.exit(1);
   }
 
   return new Scope3AgenticClient({
     apiKey: finalApiKey,
-    environment: environment || config.environment,
+    environment: finalEnvironment,
     baseUrl: baseUrl || config.baseUrl,
     debug: debug || false,
   });
@@ -475,12 +499,19 @@ const configCmd = program.command('config').description('Manage CLI configuratio
 configCmd
   .command('set')
   .description('Set configuration value')
-  .argument('<key>', 'Configuration key (apiKey, environment, or baseUrl)')
+  .argument(
+    '<key>',
+    'Configuration key (apiKey, productionApiKey, stagingApiKey, environment, or baseUrl)'
+  )
   .argument('<value>', 'Configuration value')
   .action((key: string, value: string) => {
     const config = loadConfig();
     if (key === 'apiKey') {
       config.apiKey = value;
+    } else if (key === 'productionApiKey') {
+      config.productionApiKey = value;
+    } else if (key === 'stagingApiKey') {
+      config.stagingApiKey = value;
     } else if (key === 'environment') {
       if (value !== 'production' && value !== 'staging') {
         console.error(chalk.red(`Error: Invalid environment: ${value}`));
@@ -492,7 +523,7 @@ configCmd
       config.baseUrl = value;
     } else {
       console.error(chalk.red(`Error: Unknown config key: ${key}`));
-      console.log('Valid keys: apiKey, environment, baseUrl');
+      console.log('Valid keys: apiKey, productionApiKey, stagingApiKey, environment, baseUrl');
       process.exit(1);
     }
     saveConfig(config);
@@ -501,7 +532,10 @@ configCmd
 configCmd
   .command('get')
   .description('Get configuration value')
-  .argument('[key]', 'Configuration key (apiKey or baseUrl). If omitted, shows all config')
+  .argument(
+    '[key]',
+    'Configuration key (apiKey, productionApiKey, stagingApiKey, environment, or baseUrl). If omitted, shows all config'
+  )
   .action((key?: string) => {
     const config = loadConfig();
     if (!key) {
@@ -509,6 +543,12 @@ configCmd
       const safeConfig = { ...config };
       if (safeConfig.apiKey) {
         safeConfig.apiKey = safeConfig.apiKey.substring(0, 8) + '...[REDACTED]';
+      }
+      if (safeConfig.productionApiKey) {
+        safeConfig.productionApiKey = safeConfig.productionApiKey.substring(0, 8) + '...[REDACTED]';
+      }
+      if (safeConfig.stagingApiKey) {
+        safeConfig.stagingApiKey = safeConfig.stagingApiKey.substring(0, 8) + '...[REDACTED]';
       }
       console.log(JSON.stringify(safeConfig, null, 2));
     } else if (key in config) {
@@ -689,9 +729,17 @@ async function setupDynamicCommands() {
           } catch (error: unknown) {
             const errorMessage = error instanceof Error ? error.message : String(error);
             const errorStack = error instanceof Error ? error.stack : undefined;
-            logger.error('Tool execution failed', error, { toolName: tool.name });
+
+            // Only log to logger in debug mode
+            if (globalOpts.debug) {
+              logger.error('Tool execution failed', error, { toolName: tool.name });
+            }
+
             console.error(chalk.red('Error:'), errorMessage);
-            if (errorStack && process.env.DEBUG) {
+
+            // Show stack trace only in debug mode
+            if (errorStack && globalOpts.debug) {
+              console.error(chalk.gray('\nStack trace:'));
               console.error(chalk.gray(errorStack));
             }
             process.exit(1);
