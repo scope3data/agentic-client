@@ -103,11 +103,27 @@ describe('Scope3Client MCP Protocol', () => {
   });
 
   describe('structuredContent handling (preferred path)', () => {
-    it('should return structuredContent when present', async () => {
+    it('should return structuredContent with message when text content present', async () => {
+      const expectedData = { id: '123', name: 'Test Campaign', status: 'active' };
+      const textMessage = 'Campaign retrieved successfully';
+      mockMcpClient.callTool.mockResolvedValue({
+        structuredContent: expectedData,
+        content: [{ type: 'text', text: textMessage }],
+      });
+
+      const result = await client['callTool']<Record<string, unknown>, typeof expectedData>(
+        'campaigns_get',
+        { campaignId: '123' }
+      );
+
+      expect(result).toEqual({ _message: textMessage, ...expectedData });
+    });
+
+    it('should return structuredContent without message when no text content', async () => {
       const expectedData = { id: '123', name: 'Test Campaign', status: 'active' };
       mockMcpClient.callTool.mockResolvedValue({
         structuredContent: expectedData,
-        content: [{ type: 'text', text: 'This should be ignored' }],
+        content: [],
       });
 
       const result = await client['callTool']<Record<string, unknown>, typeof expectedData>(

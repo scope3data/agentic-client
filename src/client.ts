@@ -150,15 +150,25 @@ export class Scope3Client {
 
     // Check for structuredContent (required)
     if (result.structuredContent) {
+      // Extract human-readable message from content if present
+      const content = result.content as Array<{ type: string; text?: string }> | undefined;
+      const textMessage =
+        content && content.length > 0 && content[0].type === 'text' ? content[0].text : undefined;
+
+      // Wrap response with message if it exists
+      const response = textMessage
+        ? { _message: textMessage, ...result.structuredContent }
+        : result.structuredContent;
+
       if (this.debug) {
         this.lastDebugInfo = {
           toolName,
           request: args as Record<string, unknown>,
-          response: result.structuredContent,
+          response,
           durationMs,
         };
       }
-      return result.structuredContent as TResponse;
+      return response as TResponse;
     }
 
     // FAIL LOUDLY: structuredContent is missing
