@@ -214,6 +214,26 @@ function formatOutput(data: unknown, format: string): void {
     return;
   }
 
+  // Helper function to create a summary of arrays/objects
+  function summarizeValue(value: unknown): string {
+    if (value === null || value === undefined) {
+      return chalk.gray('(empty)');
+    }
+
+    if (Array.isArray(value)) {
+      if (value.length === 0) return chalk.gray('(empty array)');
+      return chalk.gray(`(${value.length} item${value.length === 1 ? '' : 's'})`);
+    }
+
+    if (typeof value === 'object') {
+      const keys = Object.keys(value as Record<string, unknown>);
+      if (keys.length === 0) return chalk.gray('(empty object)');
+      return chalk.gray(`(${keys.length} field${keys.length === 1 ? '' : 's'})`);
+    }
+
+    return String(value);
+  }
+
   if (Array.isArray(actualData)) {
     if (actualData.length === 0) {
       console.log(chalk.yellow('No results found'));
@@ -221,24 +241,17 @@ function formatOutput(data: unknown, format: string): void {
     }
 
     if (format === 'list') {
-      // List format: show each item with all fields, no truncation
+      // List format: show each item with summaries for arrays/objects
       actualData.forEach((item, index) => {
         console.log(chalk.cyan(`\n${index + 1}.`));
         Object.entries(item).forEach(([key, value]) => {
-          let displayValue: string;
-          if (value === null || value === undefined) {
-            displayValue = chalk.gray('(empty)');
-          } else if (typeof value === 'object') {
-            displayValue = JSON.stringify(value, null, 2);
-          } else {
-            displayValue = String(value);
-          }
+          const displayValue = summarizeValue(value);
           console.log(`  ${chalk.yellow(key)}: ${displayValue}`);
         });
       });
       console.log(); // Extra line at end
     } else {
-      // Table format: columnar view (may truncate)
+      // Table format: columnar view with summaries
       const keys = Object.keys(actualData[0]);
       const table = new Table({
         head: keys.map((k) => chalk.cyan(k)),
@@ -251,7 +264,17 @@ function formatOutput(data: unknown, format: string): void {
           keys.map((k) => {
             const value = item[k];
             if (value === null || value === undefined) return '';
-            if (typeof value === 'object') return JSON.stringify(value);
+            if (Array.isArray(value)) {
+              return value.length === 0
+                ? ''
+                : `${value.length} item${value.length === 1 ? '' : 's'}`;
+            }
+            if (typeof value === 'object') {
+              const objKeys = Object.keys(value as Record<string, unknown>);
+              return objKeys.length === 0
+                ? ''
+                : `${objKeys.length} field${objKeys.length === 1 ? '' : 's'}`;
+            }
             return String(value);
           })
         );
@@ -260,21 +283,14 @@ function formatOutput(data: unknown, format: string): void {
       console.log(table.toString());
     }
   } else if (typeof actualData === 'object' && actualData) {
-    // Create table for single object (but not if it's just a message - handled above)
+    // Create table for single object with summaries
     const table = new Table({
       wordWrap: true,
       wrapOnWordBoundary: false,
     });
 
     Object.entries(actualData as Record<string, unknown>).forEach(([key, value]) => {
-      let displayValue: string;
-      if (value === null || value === undefined) {
-        displayValue = '';
-      } else if (typeof value === 'object') {
-        displayValue = JSON.stringify(value, null, 2);
-      } else {
-        displayValue = String(value);
-      }
+      const displayValue = summarizeValue(value);
       table.push({ [chalk.cyan(key)]: displayValue });
     });
 
