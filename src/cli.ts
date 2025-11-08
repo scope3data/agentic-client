@@ -214,20 +214,46 @@ function formatOutput(data: unknown, format: string): void {
     return;
   }
 
-  // Helper function to create a summary of arrays/objects
+  // Helper function to intelligently display or summarize values
   function summarizeValue(value: unknown): string {
     if (value === null || value === undefined) {
       return chalk.gray('(empty)');
     }
 
+    // Handle arrays
     if (Array.isArray(value)) {
       if (value.length === 0) return chalk.gray('(empty array)');
+
+      // Small arrays of primitives: show inline
+      if (value.length <= 3 && value.every((item) => typeof item !== 'object' || item === null)) {
+        const str = JSON.stringify(value);
+        if (str.length <= 50) return str;
+      }
+
+      // Large or complex arrays: summarize
       return chalk.gray(`(${value.length} item${value.length === 1 ? '' : 's'})`);
     }
 
+    // Handle objects
     if (typeof value === 'object') {
-      const keys = Object.keys(value as Record<string, unknown>);
+      const obj = value as Record<string, unknown>;
+      const keys = Object.keys(obj);
       if (keys.length === 0) return chalk.gray('(empty object)');
+
+      // Simple objects with 1-2 primitive fields: show inline
+      if (keys.length <= 2) {
+        const allPrimitive = keys.every((k) => {
+          const v = obj[k];
+          return typeof v !== 'object' || v === null;
+        });
+
+        if (allPrimitive) {
+          const str = JSON.stringify(value);
+          if (str.length <= 50) return str;
+        }
+      }
+
+      // Complex objects: summarize
       return chalk.gray(`(${keys.length} field${keys.length === 1 ? '' : 's'})`);
     }
 
@@ -264,17 +290,39 @@ function formatOutput(data: unknown, format: string): void {
           keys.map((k) => {
             const value = item[k];
             if (value === null || value === undefined) return '';
+
+            // Use intelligent summarization for table cells too
             if (Array.isArray(value)) {
-              return value.length === 0
-                ? ''
-                : `${value.length} item${value.length === 1 ? '' : 's'}`;
+              if (value.length === 0) return '';
+              // Small primitive arrays: show inline
+              if (
+                value.length <= 3 &&
+                value.every((item) => typeof item !== 'object' || item === null)
+              ) {
+                const str = JSON.stringify(value);
+                if (str.length <= 50) return str;
+              }
+              return `${value.length} item${value.length === 1 ? '' : 's'}`;
             }
+
             if (typeof value === 'object') {
-              const objKeys = Object.keys(value as Record<string, unknown>);
-              return objKeys.length === 0
-                ? ''
-                : `${objKeys.length} field${objKeys.length === 1 ? '' : 's'}`;
+              const obj = value as Record<string, unknown>;
+              const objKeys = Object.keys(obj);
+              if (objKeys.length === 0) return '';
+              // Simple objects: show inline
+              if (objKeys.length <= 2) {
+                const allPrimitive = objKeys.every((k) => {
+                  const v = obj[k];
+                  return typeof v !== 'object' || v === null;
+                });
+                if (allPrimitive) {
+                  const str = JSON.stringify(value);
+                  if (str.length <= 50) return str;
+                }
+              }
+              return `${objKeys.length} field${objKeys.length === 1 ? '' : 's'}`;
             }
+
             return String(value);
           })
         );
