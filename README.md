@@ -48,12 +48,27 @@ const campaign = await client.campaigns.create({
 
 ## CLI Usage
 
-The CLI dynamically discovers available commands from the API server, ensuring it's always up-to-date:
+The CLI dynamically discovers available commands from the API server, ensuring it's always up-to-date.
+
+### Quick Start (Recommended)
+
+For the shortest command, use the `scope3` package:
 
 ```bash
-# Install globally or use npx
+# Use with npx (no install needed)
+npx scope3 --help
+
+# Or install globally
+npm install -g scope3
+scope3 --help
+```
+
+### Alternative: Full Package Name
+
+You can also use the full package name:
+
+```bash
 npm install -g @scope3/agentic-client
-# or
 npx @scope3/agentic-client --help
 
 # Configure authentication
