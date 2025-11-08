@@ -193,6 +193,23 @@ function formatOutput(data: unknown, format: string): void {
   const dataObj = data as Record<string, unknown>;
   let actualData: unknown = dataObj.data || data;
 
+  // Extract and display human-readable message if present (from MCP content.text)
+  let humanMessage: string | undefined;
+  if (typeof actualData === 'object' && actualData && '_message' in actualData) {
+    const dataRecord = actualData as Record<string, unknown>;
+    humanMessage = String(dataRecord._message);
+    // Remove _message from the data to process
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { _message, ...rest } = dataRecord;
+    actualData = rest;
+  }
+
+  // Display the human-readable message first (if not in JSON mode)
+  if (humanMessage) {
+    console.log(chalk.cyan(humanMessage));
+    console.log(); // Blank line before structured data
+  }
+
   // If the response has an array field, extract it (common pattern for list responses)
   // Check for: items, brandAgents, campaigns, agents, etc.
   if (typeof actualData === 'object' && actualData && !Array.isArray(actualData)) {
