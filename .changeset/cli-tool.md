@@ -1,5 +1,5 @@
 ---
-"@scope3/agentic-client": minor
+"scope3": minor
 ---
 
 Add dynamic CLI tool for Scope3 Agentic API with automatic command generation

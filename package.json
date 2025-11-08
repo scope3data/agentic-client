@@ -1,7 +1,7 @@
 {
-  "name": "@scope3/agentic-client",
+  "name": "scope3",
   "version": "1.0.5",
-  "description": "TypeScript client for the Scope3 Agentic API with AdCP webhook support",
+  "description": "CLI and TypeScript client for the Scope3 Agentic API with AdCP webhook support",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
@@ -46,7 +46,8 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/scope3data/agentic-client.git"
+    "url": "git+https://github.com/scope3data/agentic-client.git",
+    "directory": "."
   },
   "bugs": {
     "url": "https://github.com/scope3data/agentic-client/issues"

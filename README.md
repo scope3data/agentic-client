@@ -18,13 +18,13 @@ TypeScript client for the Scope3 Agentic API with AdCP webhook support.
 ## Installation
 
 ```bash
-npm install @scope3/agentic-client
+npm install scope3
 ```
 
 ## Quick Start
 
 ```typescript
-import { Scope3AgenticClient } from '@scope3/agentic-client';
+import { Scope3AgenticClient } from 'scope3';
 
 const client = new Scope3AgenticClient({
   apiKey: process.env.SCOPE3_API_KEY,
@@ -50,9 +50,7 @@ const campaign = await client.campaigns.create({
 
 The CLI dynamically discovers available commands from the API server, ensuring it's always up-to-date.
 
-### Quick Start (Recommended)
-
-For the shortest command, use the `scope3` package:
+### Quick Start
 
 ```bash
 # Use with npx (no install needed)
@@ -61,15 +59,6 @@ npx scope3 --help
 # Or install globally
 npm install -g scope3
 scope3 --help
-```
-
-### Alternative: Full Package Name
-
-You can also use the full package name:
-
-```bash
-npm install -g @scope3/agentic-client
-npx @scope3/agentic-client --help
 
 # Configure authentication
 scope3 config set apiKey your_api_key_here
