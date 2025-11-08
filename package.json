@@ -36,7 +36,7 @@
     "pretest": "npm run type-check",
     "changeset": "changeset",
     "version": "changeset version",
-    "release": "npm run build && npm publish"
+    "release": "npm run build && changeset publish"
   },
   "keywords": [
     "scope3",
