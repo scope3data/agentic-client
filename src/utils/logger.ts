@@ -9,6 +9,7 @@ type LogSeverity = 'DEBUG' | 'INFO' | 'WARNING' | 'ERROR';
 export class Logger {
   private static instance: Logger;
   private readonly isDevelopment: boolean;
+  private debugEnabled: boolean = false;
 
   constructor() {
     this.isDevelopment = process.env.NODE_ENV === 'development';
@@ -21,16 +22,26 @@ export class Logger {
     return Logger.instance;
   }
 
+  setDebug(enabled: boolean): void {
+    this.debugEnabled = enabled;
+  }
+
   debug(message: string, data?: Record<string, unknown>): void {
-    this.log('DEBUG', message, data);
+    if (this.debugEnabled) {
+      this.log('DEBUG', message, data);
+    }
   }
 
   info(message: string, data?: Record<string, unknown>): void {
-    this.log('INFO', message, data);
+    if (this.debugEnabled) {
+      this.log('INFO', message, data);
+    }
   }
 
   warn(message: string, data?: Record<string, unknown>): void {
-    this.log('WARNING', message, data);
+    if (this.debugEnabled) {
+      this.log('WARNING', message, data);
+    }
   }
 
   error(message: string, error?: unknown, data?: Record<string, unknown>): void {
@@ -46,6 +57,7 @@ export class Logger {
       errorData.error = String(error);
     }
 
+    // Errors always get logged
     this.log('ERROR', message, errorData);
   }
 

@@ -16,6 +16,11 @@ export class Scope3Client {
     this.apiKey = config.apiKey;
     this.debug = config.debug || false;
 
+    // Enable logger debug mode if debug is enabled
+    if (this.debug) {
+      logger.setDebug(true);
+    }
+
     // Priority: explicit baseUrl > environment > default to production
     const baseURL = config.baseUrl || this.getDefaultBaseUrl(config.environment || 'production');
     this.baseUrl = baseURL;
