@@ -61,6 +61,13 @@ function loadConfig(): CliConfig {
     const env = process.env.SCOPE3_ENVIRONMENT.toLowerCase();
     if (env === 'production' || env === 'staging') {
       config.environment = env;
+    } else {
+      console.warn(
+        chalk.yellow(
+          `Warning: Invalid SCOPE3_ENVIRONMENT value "${process.env.SCOPE3_ENVIRONMENT}". ` +
+            'Valid values: production, staging. Using default (production).'
+        )
+      );
     }
   }
   if (process.env.SCOPE3_BASE_URL) {
@@ -73,10 +80,23 @@ function loadConfig(): CliConfig {
 // Save config to file
 function saveConfig(config: CliConfig): void {
   if (!fs.existsSync(CONFIG_DIR)) {
-    fs.mkdirSync(CONFIG_DIR, { recursive: true });
+    fs.mkdirSync(CONFIG_DIR, { recursive: true, mode: 0o700 }); // Owner-only directory
   }
-  fs.writeFileSync(CONFIG_FILE, JSON.stringify(config, null, 2));
-  console.log(chalk.green(`Configuration saved to ${CONFIG_FILE}`));
+
+  // Write config with restricted permissions (owner read/write only)
+  fs.writeFileSync(CONFIG_FILE, JSON.stringify(config, null, 2), { mode: 0o600 });
+
+  console.log(chalk.green(`✓ Configuration saved to ${CONFIG_FILE}`));
+
+  // Warn about plain-text storage if API key is being saved
+  if (config.apiKey) {
+    console.log(chalk.yellow('\n⚠  Security Notice:'));
+    console.log(
+      chalk.gray('   API key stored in plain text with file permissions 0600 (owner only)')
+    );
+    console.log(chalk.gray('   For better security, consider using environment variables:'));
+    console.log(chalk.gray('   export SCOPE3_API_KEY=your_key'));
+  }
 }
 
 // Load tools cache

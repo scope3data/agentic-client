@@ -80,6 +80,39 @@ export class Scope3Client {
     this.connected = false;
   }
 
+  private sanitizeForLogging(obj: unknown): unknown {
+    if (!obj || typeof obj !== 'object') {
+      return obj;
+    }
+
+    const sensitiveKeys = [
+      'apiKey',
+      'api_key',
+      'token',
+      'password',
+      'secret',
+      'auth',
+      'authorization',
+      'credentials',
+    ];
+
+    if (Array.isArray(obj)) {
+      return obj.map((item) => this.sanitizeForLogging(item));
+    }
+
+    const sanitized: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(obj)) {
+      if (sensitiveKeys.some((k) => key.toLowerCase().includes(k))) {
+        sanitized[key] = '[REDACTED]';
+      } else if (typeof value === 'object' && value !== null) {
+        sanitized[key] = this.sanitizeForLogging(value);
+      } else {
+        sanitized[key] = value;
+      }
+    }
+    return sanitized;
+  }
+
   protected async callTool<TRequest, TResponse>(
     toolName: string,
     args: TRequest
@@ -96,17 +129,19 @@ export class Scope3Client {
     };
 
     if (this.debug) {
-      logger.info('MCP Request', { request });
+      const sanitizedRequest = this.sanitizeForLogging(request);
+      logger.info('MCP Request', { request: sanitizedRequest });
     }
 
     const result = await this.mcpClient.callTool(request);
     const durationMs = Date.now() - startTime;
 
     if (this.debug) {
+      const sanitizedResult = this.sanitizeForLogging(result);
       logger.info('MCP Response', {
         toolName,
         duration: `${durationMs}ms`,
-        result,
+        result: sanitizedResult,
       });
     }
 
