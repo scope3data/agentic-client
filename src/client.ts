@@ -175,24 +175,33 @@ export class Scope3Client {
     // This helps catch API bugs that need upstream fixes
     const content = result.content as Array<{ type: string; text?: string }> | undefined;
     const firstContent = content && content.length > 0 ? content[0] : null;
-    const errorDetails = {
-      toolName,
-      hasContent: Boolean(content),
-      contentType: firstContent?.type,
-      textPreview:
-        firstContent?.type === 'text' && firstContent.text
-          ? firstContent.text.substring(0, 200)
-          : undefined,
-    };
+    const textPreview =
+      firstContent?.type === 'text' && firstContent.text
+        ? firstContent.text.substring(0, 200)
+        : undefined;
 
-    logger.error('MCP API VIOLATION: Missing structuredContent', errorDetails);
+    // Only log detailed info in debug mode
+    if (this.debug) {
+      const errorDetails = {
+        toolName,
+        hasContent: Boolean(content),
+        contentType: firstContent?.type,
+        textPreview,
+      };
+      logger.error('MCP API VIOLATION: Missing structuredContent', errorDetails);
+    }
 
-    throw new Error(
-      `MCP API returned response without structuredContent for tool "${toolName}". ` +
-        `This violates the Scope3 API specification. ` +
-        `The API must be fixed to include structuredContent in all responses. ` +
-        `Debug info: ${JSON.stringify(errorDetails)}`
-    );
+    // User-friendly error message
+    const errorMessage = [
+      `API Error: Missing structured data for "${toolName}"`,
+      textPreview ? `\nAPI returned text: "${textPreview}"` : '',
+      '\n\nThe API should return structured JSON data but returned only text. ',
+      'This is an API bug that needs to be fixed upstream.',
+    ]
+      .filter(Boolean)
+      .join('');
+
+    throw new Error(errorMessage);
   }
 
   protected getClient(): Client {

@@ -729,9 +729,17 @@ async function setupDynamicCommands() {
           } catch (error: unknown) {
             const errorMessage = error instanceof Error ? error.message : String(error);
             const errorStack = error instanceof Error ? error.stack : undefined;
-            logger.error('Tool execution failed', error, { toolName: tool.name });
+
+            // Only log to logger in debug mode
+            if (globalOpts.debug) {
+              logger.error('Tool execution failed', error, { toolName: tool.name });
+            }
+
             console.error(chalk.red('Error:'), errorMessage);
-            if (errorStack && process.env.DEBUG) {
+
+            // Show stack trace only in debug mode
+            if (errorStack && globalOpts.debug) {
+              console.error(chalk.gray('\nStack trace:'));
               console.error(chalk.gray(errorStack));
             }
             process.exit(1);

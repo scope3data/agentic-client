@@ -173,10 +173,10 @@ describe('Scope3Client MCP Protocol', () => {
       });
 
       await expect(client['callTool']('test_tool', {})).rejects.toThrow(
-        'MCP API returned response without structuredContent'
+        'API Error: Missing structured data'
       );
       await expect(client['callTool']('test_tool', {})).rejects.toThrow(
-        'This violates the Scope3 API specification'
+        'This is an API bug that needs to be fixed upstream'
       );
     });
 
@@ -187,7 +187,7 @@ describe('Scope3Client MCP Protocol', () => {
       });
 
       await expect(client['callTool']('test_tool', {})).rejects.toThrow(
-        'MCP API returned response without structuredContent'
+        'API Error: Missing structured data'
       );
     });
 
@@ -198,7 +198,7 @@ describe('Scope3Client MCP Protocol', () => {
       });
 
       await expect(client['callTool']('test_tool', {})).rejects.toThrow(
-        'MCP API returned response without structuredContent'
+        'API Error: Missing structured data'
       );
     });
 
@@ -208,7 +208,7 @@ describe('Scope3Client MCP Protocol', () => {
       });
 
       await expect(client['callTool']('test_tool', {})).rejects.toThrow('test_tool');
-      await expect(client['callTool']('test_tool', {})).rejects.toThrow('Debug info');
+      await expect(client['callTool']('test_tool', {})).rejects.toThrow('API Error');
     });
   });
 
@@ -219,7 +219,7 @@ describe('Scope3Client MCP Protocol', () => {
       });
 
       await expect(client['callTool']('test_tool', {})).rejects.toThrow(
-        'MCP API returned response without structuredContent'
+        'API Error: Missing structured data'
       );
     });
 
@@ -229,7 +229,7 @@ describe('Scope3Client MCP Protocol', () => {
       });
 
       await expect(client['callTool']('test_tool', {})).rejects.toThrow(
-        'MCP API returned response without structuredContent'
+        'API Error: Missing structured data'
       );
     });
 
@@ -291,7 +291,7 @@ describe('Scope3Client MCP Protocol', () => {
 
       // Should throw before storing debug info
       await expect(client['callTool']('test_tool', {})).rejects.toThrow(
-        'MCP API returned response without structuredContent'
+        'API Error: Missing structured data'
       );
     });
 
