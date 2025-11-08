@@ -169,6 +169,18 @@ function formatOutput(data: unknown, format: string): void {
   const dataObj = data as Record<string, unknown>;
   const actualData = dataObj.data || data;
 
+  // If the response is just a single object with only a "message" field,
+  // display the message directly without table formatting
+  if (
+    typeof actualData === 'object' &&
+    !Array.isArray(actualData) &&
+    Object.keys(actualData).length === 1 &&
+    'message' in actualData
+  ) {
+    console.log(String((actualData as Record<string, unknown>).message));
+    return;
+  }
+
   if (Array.isArray(actualData)) {
     if (actualData.length === 0) {
       console.log(chalk.yellow('No results found'));
@@ -196,7 +208,7 @@ function formatOutput(data: unknown, format: string): void {
 
     console.log(table.toString());
   } else if (typeof actualData === 'object') {
-    // Create table for single object
+    // Create table for single object (but not if it's just a message - handled above)
     const table = new Table({
       wordWrap: true,
       wrapOnWordBoundary: false,
@@ -219,12 +231,9 @@ function formatOutput(data: unknown, format: string): void {
     console.log(actualData);
   }
 
-  // Show success/message if present
+  // Show success indicator if present (but don't duplicate message display)
   if (dataObj.success !== undefined) {
     console.log(dataObj.success ? chalk.green('✓ Success') : chalk.red('✗ Failed'));
-  }
-  if (dataObj.message) {
-    console.log(chalk.blue('Message:'), dataObj.message);
   }
 }
 
