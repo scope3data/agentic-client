@@ -1,5 +1,6 @@
 export interface ClientConfig {
   apiKey: string;
+  environment?: Environment;
   baseUrl?: string;
   timeout?: number;
 }

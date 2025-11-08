@@ -11,7 +11,8 @@ export class Scope3Client {
   constructor(config: ClientConfig) {
     this.apiKey = config.apiKey;
 
-    const baseURL = config.baseUrl || this.getDefaultBaseUrl('production');
+    // Priority: explicit baseUrl > environment > default to production
+    const baseURL = config.baseUrl || this.getDefaultBaseUrl(config.environment || 'production');
 
     this.mcpClient = new Client(
       {

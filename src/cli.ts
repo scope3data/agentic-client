@@ -17,6 +17,7 @@ const CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours
 
 interface CliConfig {
   apiKey?: string;
+  environment?: 'production' | 'staging';
   baseUrl?: string;
 }
 
@@ -44,6 +45,7 @@ function loadConfig(): CliConfig {
     try {
       const fileConfig = JSON.parse(fs.readFileSync(CONFIG_FILE, 'utf-8'));
       config.apiKey = fileConfig.apiKey;
+      config.environment = fileConfig.environment;
       config.baseUrl = fileConfig.baseUrl;
     } catch (error) {
       logger.warn('Failed to parse config file', { error });
@@ -54,6 +56,12 @@ function loadConfig(): CliConfig {
   // Environment variables override config file
   if (process.env.SCOPE3_API_KEY) {
     config.apiKey = process.env.SCOPE3_API_KEY;
+  }
+  if (process.env.SCOPE3_ENVIRONMENT) {
+    const env = process.env.SCOPE3_ENVIRONMENT.toLowerCase();
+    if (env === 'production' || env === 'staging') {
+      config.environment = env;
+    }
   }
   if (process.env.SCOPE3_BASE_URL) {
     config.baseUrl = process.env.SCOPE3_BASE_URL;
@@ -221,7 +229,11 @@ function formatOutput(data: unknown, format: string): void {
 }
 
 // Create client instance
-function createClient(apiKey?: string, baseUrl?: string): Scope3AgenticClient {
+function createClient(
+  apiKey?: string,
+  environment?: 'production' | 'staging',
+  baseUrl?: string
+): Scope3AgenticClient {
   const config = loadConfig();
 
   const finalApiKey = apiKey || config.apiKey;
@@ -236,6 +248,7 @@ function createClient(apiKey?: string, baseUrl?: string): Scope3AgenticClient {
 
   return new Scope3AgenticClient({
     apiKey: finalApiKey,
+    environment: environment || config.environment,
     baseUrl: baseUrl || config.baseUrl,
   });
 }
@@ -299,7 +312,12 @@ program
   .description('CLI tool for Scope3 Agentic API (dynamically generated from MCP server)')
   .version('1.0.0')
   .option('--api-key <key>', 'API key for authentication')
-  .option('--base-url <url>', 'Base URL for API (default: production)')
+  .option(
+    '--environment <env>',
+    'Environment: production or staging (default: production)',
+    'production'
+  )
+  .option('--base-url <url>', 'Base URL for API (overrides environment)')
   .option('--format <format>', 'Output format: json or table', 'table')
   .option('--no-cache', 'Skip cache and fetch fresh tools list');
 
@@ -309,17 +327,24 @@ const configCmd = program.command('config').description('Manage CLI configuratio
 configCmd
   .command('set')
   .description('Set configuration value')
-  .argument('<key>', 'Configuration key (apiKey or baseUrl)')
+  .argument('<key>', 'Configuration key (apiKey, environment, or baseUrl)')
   .argument('<value>', 'Configuration value')
   .action((key: string, value: string) => {
     const config = loadConfig();
     if (key === 'apiKey') {
       config.apiKey = value;
+    } else if (key === 'environment') {
+      if (value !== 'production' && value !== 'staging') {
+        console.error(chalk.red(`Error: Invalid environment: ${value}`));
+        console.log('Valid values: production, staging');
+        process.exit(1);
+      }
+      config.environment = value as 'production' | 'staging';
     } else if (key === 'baseUrl') {
       config.baseUrl = value;
     } else {
       console.error(chalk.red(`Error: Unknown config key: ${key}`));
-      console.log('Valid keys: apiKey, baseUrl');
+      console.log('Valid keys: apiKey, environment, baseUrl');
       process.exit(1);
     }
     saveConfig(config);
@@ -360,7 +385,7 @@ program
   .option('--refresh', 'Refresh tools cache')
   .action(async (options) => {
     const globalOpts = program.opts();
-    const client = createClient(globalOpts.apiKey, globalOpts.baseUrl);
+    const client = createClient(globalOpts.apiKey, globalOpts.environment, globalOpts.baseUrl);
 
     try {
       const useCache = !options.refresh && globalOpts.cache !== false;
@@ -419,7 +444,7 @@ async function setupDynamicCommands() {
   }
 
   try {
-    const client = createClient(globalOpts.apiKey, globalOpts.baseUrl);
+    const client = createClient(globalOpts.apiKey, globalOpts.environment, globalOpts.baseUrl);
     const useCache = globalOpts.cache !== false;
     const tools = await fetchAvailableTools(client, useCache);
     await client.disconnect();
@@ -466,7 +491,11 @@ async function setupDynamicCommands() {
 
         // Action handler
         cmd.action(async (options) => {
-          const client = createClient(globalOpts.apiKey, globalOpts.baseUrl);
+          const client = createClient(
+            globalOpts.apiKey,
+            globalOpts.environment,
+            globalOpts.baseUrl
+          );
 
           try {
             await client.connect();
