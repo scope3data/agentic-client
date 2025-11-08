@@ -145,10 +145,10 @@ export class Scope3Client {
       });
     }
 
-    // MCP tools can return structured content or text content
-    // Priority: structuredContent > parsed JSON from text > raw text
+    // MCP tools MUST return structured content according to Scope3 API spec
+    // If structuredContent is missing, this is an API bug that needs to be fixed upstream
 
-    // Check for structuredContent first (preferred)
+    // Check for structuredContent (required)
     if (result.structuredContent) {
       if (this.debug) {
         this.lastDebugInfo = {
@@ -161,51 +161,28 @@ export class Scope3Client {
       return result.structuredContent as TResponse;
     }
 
-    // Fall back to text content
-    if (result.content && Array.isArray(result.content) && result.content.length > 0) {
-      const content = result.content[0];
-      if (content.type === 'text') {
-        const rawResponse = content.text;
+    // FAIL LOUDLY: structuredContent is missing
+    // This helps catch API bugs that need upstream fixes
+    const content = result.content as Array<{ type: string; text?: string }> | undefined;
+    const firstContent = content && content.length > 0 ? content[0] : null;
+    const errorDetails = {
+      toolName,
+      hasContent: Boolean(content),
+      contentType: firstContent?.type,
+      textPreview:
+        firstContent?.type === 'text' && firstContent.text
+          ? firstContent.text.substring(0, 200)
+          : undefined,
+    };
 
-        // Try to parse as JSON first, if that fails return the text as-is
-        try {
-          const parsed = JSON.parse(rawResponse);
+    logger.error('MCP API VIOLATION: Missing structuredContent', errorDetails);
 
-          // Store debug info if enabled
-          if (this.debug) {
-            this.lastDebugInfo = {
-              toolName,
-              request: args as Record<string, unknown>,
-              response: parsed,
-              rawResponse,
-              durationMs,
-            };
-          }
-
-          return parsed as TResponse;
-        } catch {
-          // If not JSON, return the text wrapped in an object
-          if (this.debug) {
-            logger.warn('MCP tool returned non-JSON text (no structuredContent)', {
-              toolName,
-              textLength: rawResponse.length,
-            });
-
-            this.lastDebugInfo = {
-              toolName,
-              request: args as Record<string, unknown>,
-              response: { message: rawResponse },
-              rawResponse,
-              durationMs,
-            };
-          }
-
-          return { message: rawResponse } as TResponse;
-        }
-      }
-    }
-
-    throw new Error('Unexpected tool response format');
+    throw new Error(
+      `MCP API returned response without structuredContent for tool "${toolName}". ` +
+        `This violates the Scope3 API specification. ` +
+        `The API must be fixed to include structuredContent in all responses. ` +
+        `Debug info: ${JSON.stringify(errorDetails)}`
+    );
   }
 
   protected getClient(): Client {

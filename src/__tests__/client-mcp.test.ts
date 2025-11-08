@@ -149,52 +149,50 @@ describe('Scope3Client MCP Protocol', () => {
     });
   });
 
-  describe('text content fallback (JSON parsing)', () => {
-    it('should parse valid JSON from text content', async () => {
+  describe('API specification violations', () => {
+    it('should throw error when JSON is in text content instead of structuredContent', async () => {
       const data = { id: '456', status: 'completed' };
       mockMcpClient.callTool.mockResolvedValue({
         content: [{ type: 'text', text: JSON.stringify(data) }],
       });
 
-      const result = await client['callTool']('test_tool', {});
-
-      expect(result).toEqual(data);
+      await expect(client['callTool']('test_tool', {})).rejects.toThrow(
+        'MCP API returned response without structuredContent'
+      );
+      await expect(client['callTool']('test_tool', {})).rejects.toThrow(
+        'This violates the Scope3 API specification'
+      );
     });
 
-    it('should parse JSON array from text content', async () => {
+    it('should throw error when array is in text content instead of structuredContent', async () => {
       const data = [{ id: '1' }, { id: '2' }];
       mockMcpClient.callTool.mockResolvedValue({
         content: [{ type: 'text', text: JSON.stringify(data) }],
       });
 
-      const result = await client['callTool']('test_tool', {});
-
-      expect(result).toEqual(data);
+      await expect(client['callTool']('test_tool', {})).rejects.toThrow(
+        'MCP API returned response without structuredContent'
+      );
     });
 
-    it('should wrap non-JSON text in message object', async () => {
+    it('should throw error when plain text is returned without structuredContent', async () => {
       const plainText = 'Operation completed successfully';
       mockMcpClient.callTool.mockResolvedValue({
         content: [{ type: 'text', text: plainText }],
       });
 
-      const result = await client['callTool']<Record<string, unknown>, { message: string }>(
-        'test_tool',
-        {}
+      await expect(client['callTool']('test_tool', {})).rejects.toThrow(
+        'MCP API returned response without structuredContent'
       );
-
-      expect(result).toEqual({ message: plainText });
     });
 
-    it('should handle text content with special characters', async () => {
-      const data = { message: 'Success! 🎉 Campaign created.' };
+    it('should include debug info in error when structuredContent is missing', async () => {
       mockMcpClient.callTool.mockResolvedValue({
-        content: [{ type: 'text', text: JSON.stringify(data) }],
+        content: [{ type: 'text', text: 'some data' }],
       });
 
-      const result = await client['callTool']('test_tool', {});
-
-      expect(result).toEqual(data);
+      await expect(client['callTool']('test_tool', {})).rejects.toThrow('test_tool');
+      await expect(client['callTool']('test_tool', {})).rejects.toThrow('Debug info');
     });
   });
 
@@ -205,7 +203,7 @@ describe('Scope3Client MCP Protocol', () => {
       });
 
       await expect(client['callTool']('test_tool', {})).rejects.toThrow(
-        'Unexpected tool response format'
+        'MCP API returned response without structuredContent'
       );
     });
 
@@ -215,7 +213,7 @@ describe('Scope3Client MCP Protocol', () => {
       });
 
       await expect(client['callTool']('test_tool', {})).rejects.toThrow(
-        'Unexpected tool response format'
+        'MCP API returned response without structuredContent'
       );
     });
 
@@ -267,7 +265,7 @@ describe('Scope3Client MCP Protocol', () => {
       expect(client.lastDebugInfo?.durationMs).toBeGreaterThanOrEqual(0);
     });
 
-    it('should store raw response when parsing JSON from text', async () => {
+    it('should not store debug info when API violates spec (no structuredContent)', async () => {
       const data = { id: '456' };
       const rawText = JSON.stringify(data);
 
@@ -275,10 +273,10 @@ describe('Scope3Client MCP Protocol', () => {
         content: [{ type: 'text', text: rawText }],
       });
 
-      await client['callTool']('test_tool', {});
-
-      expect(client.lastDebugInfo?.rawResponse).toBe(rawText);
-      expect(client.lastDebugInfo?.response).toEqual(data);
+      // Should throw before storing debug info
+      await expect(client['callTool']('test_tool', {})).rejects.toThrow(
+        'MCP API returned response without structuredContent'
+      );
     });
 
     it('should not store debug info when debug mode is disabled', async () => {
