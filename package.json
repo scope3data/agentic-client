@@ -1,9 +1,15 @@
 {
-  "name": "@scope3/agentic-client",
-  "version": "1.0.4",
-  "description": "TypeScript client for the Scope3 Agentic API with AdCP webhook support",
+  "name": "scope3",
+  "version": "1.1.0",
+  "description": "CLI and TypeScript client for the Scope3 Agentic API with AdCP webhook support",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    ".env.example"
+  ],
   "publishConfig": {
     "access": "public"
   },
@@ -24,10 +30,11 @@
     "generate-platform-api-types": "openapi-typescript platform-api.yaml -o src/types/platform-api.ts",
     "update-schemas": "curl -f -o outcome-agent-openapi.yaml https://raw.githubusercontent.com/scope3data/agentic-api/main/mintlify/outcome-agent-openapi.yaml && curl -f -o partner-api.yaml https://raw.githubusercontent.com/scope3data/agentic-api/main/mintlify/partner-api.yaml && curl -f -o platform-api.yaml https://raw.githubusercontent.com/scope3data/agentic-api/main/mintlify/platform-api.yaml && npm run generate-outcome-agent-types && npm run generate-partner-api-types && npm run generate-platform-api-types",
     "prepare": "husky",
+    "prepublishOnly": "npm run build",
     "pretest": "npm run type-check",
     "changeset": "changeset",
     "version": "changeset version",
-    "release": "npm run build && npm publish"
+    "release": "npm run build && changeset publish"
   },
   "keywords": [
     "scope3",
@@ -40,7 +47,8 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/scope3data/agentic-client.git"
+    "url": "git+https://github.com/scope3data/agentic-client.git",
+    "directory": "."
   },
   "bugs": {
     "url": "https://github.com/scope3data/agentic-client/issues"

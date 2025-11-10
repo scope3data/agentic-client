@@ -18,16 +18,18 @@ TypeScript client for the Scope3 Agentic API with AdCP webhook support.
 ## Installation
 
 ```bash
-npm install @scope3/agentic-client
+npm install scope3
 ```
 
 ## Quick Start
 
 ```typescript
-import { Scope3AgenticClient } from '@scope3/agentic-client';
+import { Scope3AgenticClient } from 'scope3';
 
 const client = new Scope3AgenticClient({
   apiKey: process.env.SCOPE3_API_KEY,
+  // Optional: specify environment (defaults to 'production')
+  environment: 'production', // or 'staging'
 });
 
 // List brand agents
@@ -46,14 +48,30 @@ const campaign = await client.campaigns.create({
 
 ## CLI Usage
 
-The CLI dynamically discovers available commands from the API server, ensuring it's always up-to-date:
+The CLI dynamically discovers available commands from the API server, ensuring it's always up-to-date.
+
+### Quick Start
 
 ```bash
-# Install globally
-npm install -g @scope3/agentic-client
+# Use with npx (no install needed)
+npx scope3 --help
+
+# Or install globally
+npm install -g scope3
+scope3 --help
 
 # Configure authentication
 scope3 config set apiKey your_api_key_here
+
+# Configure environment (optional - defaults to production)
+scope3 config set environment staging
+
+# Or use environment variables
+export SCOPE3_API_KEY=your_api_key_here
+export SCOPE3_ENVIRONMENT=staging  # or 'production'
+
+# Or use command-line flags
+scope3 --environment staging list-tools
 
 # Discover available commands (80+ auto-generated)
 scope3 list-tools
@@ -62,6 +80,10 @@ scope3 list-tools
 scope3 brand-agent list
 scope3 campaign create --prompt "Q1 2024 Spring Campaign" --brandAgentId 123
 scope3 media-buy execute --mediaBuyId "buy_123"
+
+# Switch environments on the fly
+scope3 --environment production campaign list
+scope3 --environment staging campaign list
 ```
 
 **Dynamic Updates:** Commands automatically stay in sync with API changes. No manual updates needed!
@@ -71,10 +93,22 @@ scope3 media-buy execute --mediaBuyId "buy_123"
 ```typescript
 const client = new Scope3AgenticClient({
   apiKey: 'your-api-key',
-  baseUrl: 'https://api.agentic.scope3.com', // optional, defaults to production
-  timeout: 30000, // optional, request timeout in ms
+
+  // Option 1: Use environment (recommended)
+  environment: 'production', // 'production' or 'staging' (default: 'production')
+
+  // Option 2: Use custom base URL (overrides environment)
+  baseUrl: 'https://custom-api.example.com',
+
+  // Optional settings
+  timeout: 30000, // request timeout in ms
 });
 ```
+
+### Environment URLs
+
+- **Production**: `https://api.agentic.scope3.com`
+- **Staging**: `https://api.agentic.staging.scope3.com`
 
 ## API Resources
 

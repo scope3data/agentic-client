@@ -1,0 +1,60 @@
+# Source files (we only publish compiled JS)
+src/
+*.ts
+!*.d.ts
+
+# Tests
+**/*.test.js
+**/*.test.ts
+**/__tests__/
+
+# Development files
+.env
+.env.*
+!.env.example
+.vscode/
+.idea/
+
+# Build artifacts we don't need
+*.tsbuildinfo
+tsconfig.json
+
+# Documentation
+docs/
+examples/
+*.md
+!README.md
+
+# Git
+.git/
+.gitignore
+.github/
+
+# CI/CD
+.husky/
+
+# Config files
+.eslintrc.json
+.prettierrc.json
+jest.config.js
+
+# OpenAPI specs (large files not needed at runtime)
+*.yaml
+openapi.yaml
+media-agent-openapi.yaml
+outcome-agent-openapi.yaml
+partner-api.yaml
+platform-api.yaml
+
+# Test files
+test-*.ts
+test-*.js
+
+# Changesets
+.changeset/
+
+# Scripts
+scripts/
+
+# Conductor config
+conductor.json

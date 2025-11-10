@@ -16,7 +16,10 @@ const TOOLS_CACHE_FILE = path.join(CONFIG_DIR, 'tools-cache.json');
 const CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours
 
 interface CliConfig {
-  apiKey?: string;
+  apiKey?: string; // Legacy single API key
+  productionApiKey?: string; // Production-specific API key
+  stagingApiKey?: string; // Staging-specific API key
+  environment?: 'production' | 'staging';
   baseUrl?: string;
 }
 
@@ -44,6 +47,9 @@ function loadConfig(): CliConfig {
     try {
       const fileConfig = JSON.parse(fs.readFileSync(CONFIG_FILE, 'utf-8'));
       config.apiKey = fileConfig.apiKey;
+      config.productionApiKey = fileConfig.productionApiKey;
+      config.stagingApiKey = fileConfig.stagingApiKey;
+      config.environment = fileConfig.environment;
       config.baseUrl = fileConfig.baseUrl;
     } catch (error) {
       logger.warn('Failed to parse config file', { error });
@@ -55,6 +61,19 @@ function loadConfig(): CliConfig {
   if (process.env.SCOPE3_API_KEY) {
     config.apiKey = process.env.SCOPE3_API_KEY;
   }
+  if (process.env.SCOPE3_ENVIRONMENT) {
+    const env = process.env.SCOPE3_ENVIRONMENT.toLowerCase();
+    if (env === 'production' || env === 'staging') {
+      config.environment = env;
+    } else {
+      console.warn(
+        chalk.yellow(
+          `Warning: Invalid SCOPE3_ENVIRONMENT value "${process.env.SCOPE3_ENVIRONMENT}". ` +
+            'Valid values: production, staging. Using default (production).'
+        )
+      );
+    }
+  }
   if (process.env.SCOPE3_BASE_URL) {
     config.baseUrl = process.env.SCOPE3_BASE_URL;
   }
@@ -65,10 +84,23 @@ function loadConfig(): CliConfig {
 // Save config to file
 function saveConfig(config: CliConfig): void {
   if (!fs.existsSync(CONFIG_DIR)) {
-    fs.mkdirSync(CONFIG_DIR, { recursive: true });
+    fs.mkdirSync(CONFIG_DIR, { recursive: true, mode: 0o700 }); // Owner-only directory
   }
-  fs.writeFileSync(CONFIG_FILE, JSON.stringify(config, null, 2));
-  console.log(chalk.green(`Configuration saved to ${CONFIG_FILE}`));
+
+  // Write config with restricted permissions (owner read/write only)
+  fs.writeFileSync(CONFIG_FILE, JSON.stringify(config, null, 2), { mode: 0o600 });
+
+  console.log(chalk.green(`✓ Configuration saved to ${CONFIG_FILE}`));
+
+  // Warn about plain-text storage if API key is being saved
+  if (config.apiKey) {
+    console.log(chalk.yellow('\n⚠  Security Notice:'));
+    console.log(
+      chalk.gray('   API key stored in plain text with file permissions 0600 (owner only)')
+    );
+    console.log(chalk.gray('   For better security, consider using environment variables:'));
+    console.log(chalk.gray('   export SCOPE3_API_KEY=your_key'));
+  }
 }
 
 // Load tools cache
@@ -135,9 +167,14 @@ async function fetchAvailableTools(
 
     // Try to use stale cache as fallback
     if (fs.existsSync(TOOLS_CACHE_FILE)) {
-      console.log(chalk.yellow('Using cached tools (may be outdated)'));
-      const cache: ToolsCache = JSON.parse(fs.readFileSync(TOOLS_CACHE_FILE, 'utf-8'));
-      return cache.tools;
+      try {
+        console.log(chalk.yellow('Using cached tools (may be outdated)'));
+        const cache: ToolsCache = JSON.parse(fs.readFileSync(TOOLS_CACHE_FILE, 'utf-8'));
+        return cache.tools;
+      } catch (cacheError) {
+        logger.warn('Failed to read stale cache', { error: cacheError });
+        // Fall through to throw original error since we can't recover
+      }
     }
 
     throw error;
@@ -151,7 +188,6 @@ function formatOutput(data: unknown, format: string): void {
     return;
   }
 
-  // Table format
   if (!data) {
     console.log(chalk.yellow('No data to display'));
     return;
@@ -159,7 +195,94 @@ function formatOutput(data: unknown, format: string): void {
 
   // Handle ToolResponse wrapper
   const dataObj = data as Record<string, unknown>;
-  const actualData = dataObj.data || data;
+  let actualData: unknown = dataObj.data || data;
+
+  // Extract and display human-readable message if present (from MCP content.text)
+  let humanMessage: string | undefined;
+  if (typeof actualData === 'object' && actualData && '_message' in actualData) {
+    const dataRecord = actualData as Record<string, unknown>;
+    humanMessage = String(dataRecord._message);
+    // Remove _message from the data to process
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { _message, ...rest } = dataRecord;
+    actualData = rest;
+  }
+
+  // Display the human-readable message first (if not in JSON mode)
+  if (humanMessage) {
+    console.log(chalk.cyan(humanMessage));
+    console.log(); // Blank line before structured data
+  }
+
+  // If the response has an array field, extract it (common pattern for list responses)
+  // Check for: items, brandAgents, campaigns, agents, etc.
+  if (typeof actualData === 'object' && actualData && !Array.isArray(actualData)) {
+    const dataRecord = actualData as Record<string, unknown>;
+    // Find the first array field (including empty arrays)
+    const arrayField = Object.keys(dataRecord).find((key) => Array.isArray(dataRecord[key]));
+    if (arrayField) {
+      actualData = dataRecord[arrayField];
+    }
+  }
+
+  // If the response is just a single object with only a "message" field,
+  // display the message directly without table formatting
+  if (
+    typeof actualData === 'object' &&
+    actualData &&
+    !Array.isArray(actualData) &&
+    Object.keys(actualData).length === 1 &&
+    'message' in actualData
+  ) {
+    console.log(String((actualData as Record<string, unknown>).message));
+    return;
+  }
+
+  // Helper function to intelligently display or summarize values
+  function summarizeValue(value: unknown): string {
+    if (value === null || value === undefined) {
+      return chalk.gray('(empty)');
+    }
+
+    // Handle arrays
+    if (Array.isArray(value)) {
+      if (value.length === 0) return chalk.gray('(empty array)');
+
+      // Small arrays of primitives: show inline
+      if (value.length <= 3 && value.every((item) => typeof item !== 'object' || item === null)) {
+        const str = JSON.stringify(value);
+        if (str.length <= 50) return str;
+      }
+
+      // Large or complex arrays: summarize
+      return chalk.gray(`(${value.length} item${value.length === 1 ? '' : 's'})`);
+    }
+
+    // Handle objects
+    if (typeof value === 'object') {
+      const obj = value as Record<string, unknown>;
+      const keys = Object.keys(obj);
+      if (keys.length === 0) return chalk.gray('(empty object)');
+
+      // Simple objects with 1-2 primitive fields: show inline
+      if (keys.length <= 2) {
+        const allPrimitive = keys.every((k) => {
+          const v = obj[k];
+          return typeof v !== 'object' || v === null;
+        });
+
+        if (allPrimitive) {
+          const str = JSON.stringify(value);
+          if (str.length <= 50) return str;
+        }
+      }
+
+      // Complex objects: summarize
+      return chalk.gray(`(${keys.length} field${keys.length === 1 ? '' : 's'})`);
+    }
+
+    return String(value);
+  }
 
   if (Array.isArray(actualData)) {
     if (actualData.length === 0) {
@@ -167,42 +290,79 @@ function formatOutput(data: unknown, format: string): void {
       return;
     }
 
-    // Create table from array
-    const keys = Object.keys(actualData[0]);
+    if (format === 'list') {
+      // List format: show each item with summaries for arrays/objects
+      actualData.forEach((item, index) => {
+        console.log(chalk.cyan(`\n${index + 1}.`));
+        Object.entries(item).forEach(([key, value]) => {
+          const displayValue = summarizeValue(value);
+          console.log(`  ${chalk.yellow(key)}: ${displayValue}`);
+        });
+      });
+      console.log(); // Extra line at end
+    } else {
+      // Table format: columnar view with summaries
+      const keys = Object.keys(actualData[0]);
+      const table = new Table({
+        head: keys.map((k) => chalk.cyan(k)),
+        wordWrap: true,
+        wrapOnWordBoundary: false,
+      });
+
+      actualData.forEach((item) => {
+        table.push(
+          keys.map((k) => {
+            const value = item[k];
+            if (value === null || value === undefined) return '';
+
+            // Use intelligent summarization for table cells too
+            if (Array.isArray(value)) {
+              if (value.length === 0) return '';
+              // Small primitive arrays: show inline
+              if (
+                value.length <= 3 &&
+                value.every((item) => typeof item !== 'object' || item === null)
+              ) {
+                const str = JSON.stringify(value);
+                if (str.length <= 50) return str;
+              }
+              return `${value.length} item${value.length === 1 ? '' : 's'}`;
+            }
+
+            if (typeof value === 'object') {
+              const obj = value as Record<string, unknown>;
+              const objKeys = Object.keys(obj);
+              if (objKeys.length === 0) return '';
+              // Simple objects: show inline
+              if (objKeys.length <= 2) {
+                const allPrimitive = objKeys.every((k) => {
+                  const v = obj[k];
+                  return typeof v !== 'object' || v === null;
+                });
+                if (allPrimitive) {
+                  const str = JSON.stringify(value);
+                  if (str.length <= 50) return str;
+                }
+              }
+              return `${objKeys.length} field${objKeys.length === 1 ? '' : 's'}`;
+            }
+
+            return String(value);
+          })
+        );
+      });
+
+      console.log(table.toString());
+    }
+  } else if (typeof actualData === 'object' && actualData) {
+    // Create table for single object with summaries
     const table = new Table({
-      head: keys.map((k) => chalk.cyan(k)),
       wordWrap: true,
       wrapOnWordBoundary: false,
     });
 
-    actualData.forEach((item) => {
-      table.push(
-        keys.map((k) => {
-          const value = item[k];
-          if (value === null || value === undefined) return '';
-          if (typeof value === 'object') return JSON.stringify(value);
-          return String(value);
-        })
-      );
-    });
-
-    console.log(table.toString());
-  } else if (typeof actualData === 'object') {
-    // Create table for single object
-    const table = new Table({
-      wordWrap: true,
-      wrapOnWordBoundary: false,
-    });
-
-    Object.entries(actualData).forEach(([key, value]) => {
-      let displayValue: string;
-      if (value === null || value === undefined) {
-        displayValue = '';
-      } else if (typeof value === 'object') {
-        displayValue = JSON.stringify(value, null, 2);
-      } else {
-        displayValue = String(value);
-      }
+    Object.entries(actualData as Record<string, unknown>).forEach(([key, value]) => {
+      const displayValue = summarizeValue(value);
       table.push({ [chalk.cyan(key)]: displayValue });
     });
 
@@ -211,32 +371,56 @@ function formatOutput(data: unknown, format: string): void {
     console.log(actualData);
   }
 
-  // Show success/message if present
+  // Show success indicator if present (but don't duplicate message display)
   if (dataObj.success !== undefined) {
     console.log(dataObj.success ? chalk.green('✓ Success') : chalk.red('✗ Failed'));
-  }
-  if (dataObj.message) {
-    console.log(chalk.blue('Message:'), dataObj.message);
   }
 }
 
 // Create client instance
-function createClient(apiKey?: string, baseUrl?: string): Scope3AgenticClient {
+function createClient(
+  apiKey?: string,
+  environment?: 'production' | 'staging',
+  baseUrl?: string,
+  debug?: boolean
+): Scope3AgenticClient {
   const config = loadConfig();
 
-  const finalApiKey = apiKey || config.apiKey;
+  // Determine final environment
+  const finalEnvironment = environment || config.environment || 'production';
+
+  // Select API key based on priority:
+  // 1. Explicitly passed apiKey (--api-key flag)
+  // 2. Environment-specific key from config (productionApiKey/stagingApiKey)
+  // 3. Legacy single apiKey from config
+  let finalApiKey = apiKey;
+  if (!finalApiKey) {
+    if (finalEnvironment === 'staging' && config.stagingApiKey) {
+      finalApiKey = config.stagingApiKey;
+    } else if (finalEnvironment === 'production' && config.productionApiKey) {
+      finalApiKey = config.productionApiKey;
+    } else {
+      finalApiKey = config.apiKey; // Fallback to legacy key
+    }
+  }
+
   if (!finalApiKey) {
     console.error(chalk.red('Error: API key is required'));
     console.log('Set it via:');
     console.log('  - Environment variable: export SCOPE3_API_KEY=your_key');
     console.log('  - Config command: scope3 config set apiKey your_key');
+    console.log('  - Or use environment-specific keys:');
+    console.log('    scope3 config set productionApiKey your_production_key');
+    console.log('    scope3 config set stagingApiKey your_staging_key');
     console.log('  - Flag: --api-key your_key');
     process.exit(1);
   }
 
   return new Scope3AgenticClient({
     apiKey: finalApiKey,
+    environment: finalEnvironment,
     baseUrl: baseUrl || config.baseUrl,
+    debug: debug || false,
   });
 }
 
@@ -299,8 +483,14 @@ program
   .description('CLI tool for Scope3 Agentic API (dynamically generated from MCP server)')
   .version('1.0.0')
   .option('--api-key <key>', 'API key for authentication')
-  .option('--base-url <url>', 'Base URL for API (default: production)')
-  .option('--format <format>', 'Output format: json or table', 'table')
+  .option(
+    '--environment <env>',
+    'Environment: production or staging (default: production)',
+    'production'
+  )
+  .option('--base-url <url>', 'Base URL for API (overrides environment)')
+  .option('--format <format>', 'Output format: json, table, or list (default: table)', 'table')
+  .option('--debug', 'Enable debug mode (show request/response details)')
   .option('--no-cache', 'Skip cache and fetch fresh tools list');
 
 // Config command
@@ -309,17 +499,31 @@ const configCmd = program.command('config').description('Manage CLI configuratio
 configCmd
   .command('set')
   .description('Set configuration value')
-  .argument('<key>', 'Configuration key (apiKey or baseUrl)')
+  .argument(
+    '<key>',
+    'Configuration key (apiKey, productionApiKey, stagingApiKey, environment, or baseUrl)'
+  )
   .argument('<value>', 'Configuration value')
   .action((key: string, value: string) => {
     const config = loadConfig();
     if (key === 'apiKey') {
       config.apiKey = value;
+    } else if (key === 'productionApiKey') {
+      config.productionApiKey = value;
+    } else if (key === 'stagingApiKey') {
+      config.stagingApiKey = value;
+    } else if (key === 'environment') {
+      if (value !== 'production' && value !== 'staging') {
+        console.error(chalk.red(`Error: Invalid environment: ${value}`));
+        console.log('Valid values: production, staging');
+        process.exit(1);
+      }
+      config.environment = value as 'production' | 'staging';
     } else if (key === 'baseUrl') {
       config.baseUrl = value;
     } else {
       console.error(chalk.red(`Error: Unknown config key: ${key}`));
-      console.log('Valid keys: apiKey, baseUrl');
+      console.log('Valid keys: apiKey, productionApiKey, stagingApiKey, environment, baseUrl');
       process.exit(1);
     }
     saveConfig(config);
@@ -328,11 +532,25 @@ configCmd
 configCmd
   .command('get')
   .description('Get configuration value')
-  .argument('[key]', 'Configuration key (apiKey or baseUrl). If omitted, shows all config')
+  .argument(
+    '[key]',
+    'Configuration key (apiKey, productionApiKey, stagingApiKey, environment, or baseUrl). If omitted, shows all config'
+  )
   .action((key?: string) => {
     const config = loadConfig();
     if (!key) {
-      console.log(JSON.stringify(config, null, 2));
+      // Redact sensitive values when displaying full config
+      const safeConfig = { ...config };
+      if (safeConfig.apiKey) {
+        safeConfig.apiKey = safeConfig.apiKey.substring(0, 8) + '...[REDACTED]';
+      }
+      if (safeConfig.productionApiKey) {
+        safeConfig.productionApiKey = safeConfig.productionApiKey.substring(0, 8) + '...[REDACTED]';
+      }
+      if (safeConfig.stagingApiKey) {
+        safeConfig.stagingApiKey = safeConfig.stagingApiKey.substring(0, 8) + '...[REDACTED]';
+      }
+      console.log(JSON.stringify(safeConfig, null, 2));
     } else if (key in config) {
       console.log(config[key as keyof CliConfig]);
     } else {
@@ -360,7 +578,12 @@ program
   .option('--refresh', 'Refresh tools cache')
   .action(async (options) => {
     const globalOpts = program.opts();
-    const client = createClient(globalOpts.apiKey, globalOpts.baseUrl);
+    const client = createClient(
+      globalOpts.apiKey,
+      globalOpts.environment,
+      globalOpts.baseUrl,
+      globalOpts.debug
+    );
 
     try {
       const useCache = !options.refresh && globalOpts.cache !== false;
@@ -419,7 +642,12 @@ async function setupDynamicCommands() {
   }
 
   try {
-    const client = createClient(globalOpts.apiKey, globalOpts.baseUrl);
+    const client = createClient(
+      globalOpts.apiKey,
+      globalOpts.environment,
+      globalOpts.baseUrl,
+      globalOpts.debug
+    );
     const useCache = globalOpts.cache !== false;
     const tools = await fetchAvailableTools(client, useCache);
     await client.disconnect();
@@ -466,7 +694,12 @@ async function setupDynamicCommands() {
 
         // Action handler
         cmd.action(async (options) => {
-          const client = createClient(globalOpts.apiKey, globalOpts.baseUrl);
+          const client = createClient(
+            globalOpts.apiKey,
+            globalOpts.environment,
+            globalOpts.baseUrl,
+            globalOpts.debug
+          );
 
           try {
             await client.connect();
@@ -496,9 +729,17 @@ async function setupDynamicCommands() {
           } catch (error: unknown) {
             const errorMessage = error instanceof Error ? error.message : String(error);
             const errorStack = error instanceof Error ? error.stack : undefined;
-            logger.error('Tool execution failed', error, { toolName: tool.name });
+
+            // Only log to logger in debug mode
+            if (globalOpts.debug) {
+              logger.error('Tool execution failed', error, { toolName: tool.name });
+            }
+
             console.error(chalk.red('Error:'), errorMessage);
-            if (errorStack && process.env.DEBUG) {
+
+            // Show stack trace only in debug mode
+            if (errorStack && globalOpts.debug) {
+              console.error(chalk.gray('\nStack trace:'));
               console.error(chalk.gray(errorStack));
             }
             process.exit(1);
