@@ -14,7 +14,7 @@
     "access": "public"
   },
   "bin": {
-    "simple-media-agent": "dist/simple-media-agent-server.js",
+    "outcome-agent": "dist/outcome-agent-server.js",
     "scope3": "dist/cli.js"
   },
   "scripts": {
@@ -24,6 +24,7 @@
     "lint": "eslint src --ext .ts",
     "format": "prettier --write \"src/**/*.ts\"",
     "type-check": "tsc --noEmit",
+    "start:outcome-agent": "npm run build && node dist/outcome-agent-server.js",
     "generate-outcome-agent-types": "openapi-typescript outcome-agent-openapi.yaml -o src/types/outcome-agent-api.ts",
     "generate-partner-api-types": "openapi-typescript partner-api.yaml -o src/types/partner-api.ts",
     "generate-platform-api-types": "openapi-typescript platform-api.yaml -o src/types/platform-api.ts",
