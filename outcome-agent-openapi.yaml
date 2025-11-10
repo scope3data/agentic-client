@@ -1,0 +1,375 @@
+openapi: 3.0.0
+info:
+  title: Outcome Agent Protocol
+  version: 1.0.0
+  description: |
+    Protocol specification for outcome agents to implement on their own infrastructure.
+
+    Outcome agents are autonomous systems that manage tactics and optimize media buying to achieve
+    campaign outcomes on behalf of advertisers. When you build an outcome agent, you implement
+    these endpoints on YOUR servers, and Scope3's platform will call them to get proposals,
+    assign tactics, and send updates.
+
+    This is similar to how sales agents work - you implement the protocol on your infrastructure,
+    not in Scope3's codebase.
+
+servers:
+  - url: https://outcome-agent.yourcompany.com
+    description: Your outcome agent server (you implement this)
+
+tags:
+  - name: Proposals
+    description: Endpoints Scope3 calls to get your proposals
+  - name: Tactic Management
+    description: Endpoints for managing assigned tactics
+
+paths:
+  /get-proposals:
+    post:
+      tags: [Proposals]
+      summary: Get proposals from your agent
+      operationId: get_proposed_tactics
+      description: |
+        Scope3 calls this endpoint when setting up a campaign to ask for proposals
+        from your agent on how you would approach execution.
+
+        Analyze the campaign and respond with proposals, budget capacity,
+        and your pricing model.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GetProposalsRequest'
+      responses:
+        '200':
+          description: Proposals from your agent
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetProposalsResponse'
+        '400':
+          description: Invalid request
+        '500':
+          description: Internal error
+
+  /accept-proposal:
+    post:
+      tags: [Tactic Management]
+      summary: Accept or decline proposal assignment
+      operationId: accept_proposal
+      description: |
+        Scope3 calls this when your proposal is accepted and you are assigned to manage a tactic.
+        You should acknowledge and begin setup, or decline if you can't fulfill it.
+
+        The campaign context contains everything you need: budget, schedule,
+        targeting constraints, creatives, and any custom fields.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AcceptProposalRequest'
+      responses:
+        '200':
+          description: Acknowledgment of tactic assignment
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcceptProposalResponse'
+        '400':
+          description: Invalid request
+
+components:
+  securitySchemes:
+    apiKey:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: API key for authenticating Scope3's requests to your server
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT bearer token for OAuth-based authentication
+    basic:
+      type: http
+      scheme: basic
+      description: Basic authentication with username/password
+
+  schemas:
+    BudgetRange:
+      type: object
+      description: Budget range for campaign planning (buyer typically won't reveal full budget)
+      properties:
+        min:
+          type: number
+          description: Minimum budget available
+          example: 50000
+        max:
+          type: number
+          description: Maximum budget available
+          example: 150000
+        currency:
+          type: string
+          description: Currency for budget (ISO 4217 code)
+          default: USD
+          example: USD
+
+    TacticPricing:
+      type: object
+      required:
+        - method
+        - rate
+      properties:
+        method:
+          type: string
+          enum: [revshare, cost_per_unit]
+          description: How the outcome agent charges for this tactic (revshare or cost_per_unit)
+          example: revshare
+        rate:
+          type: number
+          description: Rate for the pricing method (e.g., 0.15 for 15% revshare, 2.50 for $2.50 CPM)
+          example: 0.15
+        unit:
+          type: string
+          enum: [cpm, cpc, cpa, cpv, cpcv]
+          description: Pricing unit (required when method is cost_per_unit)
+          example: cpm
+        currency:
+          type: string
+          description: Currency for pricing (ISO 4217 code)
+          default: USD
+          example: USD
+
+    CustomField:
+      type: object
+      properties:
+        fieldName:
+          type: string
+          description: Name of the custom field
+          example: targetVCPM
+        fieldType:
+          type: string
+          enum: [string, number, boolean, array, object]
+          description: Data type of the field
+          example: number
+        description:
+          type: string
+          description: Help text explaining what this field does
+          example: Target vCPM in USD
+
+    Product:
+      type: object
+      description: Product reference from sales agent
+      required:
+        - sales_agent_url
+        - product_ref
+        - pricing_option_id
+      properties:
+        sales_agent_url:
+          type: string
+          description: URL of the sales agent offering this product
+          example: https://sales-agent.example.com
+        product_ref:
+          type: string
+          description: Product reference ID from the sales agent
+          example: prod_premium_display
+        pricing_option_id:
+          type: string
+          description: Pricing option ID for this product
+          example: pricing_opt_123
+
+    GetProposalsRequest:
+      type: object
+      required:
+        - campaignId
+        - seatId
+      properties:
+        campaignId:
+          type: string
+          description: Campaign ID
+          example: camp_123
+        budgetRange:
+          $ref: '#/components/schemas/BudgetRange'
+        startDate:
+          type: string
+          format: date-time
+          description: Campaign start date in UTC (ISO 8601 format)
+          example: '2025-01-01T00:00:00Z'
+        endDate:
+          type: string
+          format: date-time
+          description: Campaign end date in UTC (ISO 8601 format)
+          example: '2025-01-31T23:59:59Z'
+        channels:
+          type: array
+          items:
+            type: string
+            enum: [display, video, native, audio, connected_tv]
+          description: Advertising channels (from ADCP specification)
+          example: [display, video]
+        countries:
+          type: array
+          items:
+            type: string
+          description: ISO 3166-1 alpha-2 country codes
+          example: [US, CA]
+        brief:
+          type: string
+          description: Campaign brief text
+          example: Launch campaign for new product...
+        products:
+          type: array
+          items:
+            $ref: '#/components/schemas/Product'
+          description: Optional product objects to include in proposals (full product details, not just IDs)
+        propertyListIds:
+          type: array
+          items:
+            type: integer
+            format: int64
+          description: Optional property list IDs for targeting (references Scope3 property lists)
+          example: [123, 456]
+        seatId:
+          type: string
+          description: Seat/account ID for this request
+          example: seat_456
+
+    Proposal:
+      type: object
+      required:
+        - proposalId
+        - execution
+        - budgetCapacity
+        - pricing
+      properties:
+        proposalId:
+          type: string
+          description: Unique identifier for this proposal (you generate this). The tactic ID will be assigned when the proposal is accepted.
+          example: premium-vcpm-display
+        execution:
+          type: string
+          description: How you would execute this proposal
+          example: Target premium inventory at $2.50 vCPM with 85% viewability
+        budgetCapacity:
+          type: number
+          description: Maximum budget you can effectively manage
+          example: 50000
+        pricing:
+          $ref: '#/components/schemas/TacticPricing'
+        sku:
+          type: string
+          description: Identifier for this tactic type
+          example: premium-vcpm
+        customFieldsRequired:
+          type: array
+          items:
+            $ref: '#/components/schemas/CustomField'
+          description: Custom fields needed to execute this proposal
+        additional_info:
+          type: object
+          description: Generic blob to store additional information about the proposal that will be passed back when accepted
+          example: { "property_list": ["prop1", "prop2"], "custom_data": "value" }
+
+    GetProposalsResponse:
+      type: object
+      properties:
+        proposals:
+          type: array
+          items:
+            $ref: '#/components/schemas/Proposal'
+          description: List of proposals you can provide (empty array if none)
+
+    CampaignContext:
+      type: object
+      properties:
+        budget:
+          type: number
+          description: Budget allocated
+          example: 50000
+        budgetCurrency:
+          type: string
+          description: Currency for budget (ISO 4217 code)
+          default: USD
+          example: USD
+        startDate:
+          type: string
+          format: date-time
+          description: Campaign start date in UTC (ISO 8601 format)
+          example: '2025-01-01T00:00:00Z'
+        endDate:
+          type: string
+          format: date-time
+          description: Campaign end date in UTC (ISO 8601 format)
+          example: '2025-01-31T23:59:59Z'
+        channel:
+          type: string
+          enum: [display, video, native, audio, connected_tv]
+          description: Advertising channel (from ADCP specification)
+          example: display
+        countries:
+          type: array
+          items:
+            type: string
+          description: Target countries
+          example: [US]
+        creatives:
+          type: array
+          items:
+            $ref: '#/components/schemas/Creative'
+          description: Creative assets to use (uses Creative from main schema)
+        brandStandards:
+          type: array
+          items:
+            $ref: '#/components/schemas/BrandStandard'
+          description: Brand safety and suitability requirements (uses BrandStandard from main schema)
+
+    AcceptProposalRequest:
+      type: object
+      required:
+        - tacticId
+        - campaignContext
+        - brandAgentId
+        - seatId
+      properties:
+        tacticId:
+          type: string
+          description: ID of the tactic from the strategy table (assigned when user accepts your proposal)
+          example: "12345"
+        proposalId:
+          type: string
+          description: ID of the proposal that was accepted (matches proposalId from GetProposalsResponse)
+          example: premium-vcpm-display
+        campaignContext:
+          $ref: '#/components/schemas/CampaignContext'
+        brandAgentId:
+          type: string
+          description: Brand agent (advertiser) for this campaign
+          example: ba_123
+        seatId:
+          type: string
+          description: Seat/account ID
+          example: seat_456
+        customFields:
+          type: object
+          description: Custom fields provided by advertiser
+          example: { targetVCPM: 2.5 }
+        additional_info:
+          type: object
+          description: The additional_info blob that was returned in the proposal response
+          example: { "property_list": ["prop1", "prop2"], "custom_data": "value" }
+
+    AcceptProposalResponse:
+      type: object
+      required:
+        - acknowledged
+      properties:
+        acknowledged:
+          type: boolean
+          description: true to accept assignment, false to decline
+          example: true
+        reason:
+          type: string
+          description: Optional reason if declining
+          example: Insufficient budget for effective optimization

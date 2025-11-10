@@ -23,26 +23,75 @@ npm install scope3
 
 ## Quick Start
 
+The SDK provides two separate clients for different use cases:
+
+### PlatformClient (for Brand Advertisers/Buyers)
+
+Use this client if you're a brand advertiser managing campaigns, creatives, and discovering media products.
+
+```typescript
+import { PlatformClient } from 'scope3';
+
+const platform = new PlatformClient({
+  apiKey: process.env.SCOPE3_API_KEY,
+  environment: 'production', // or 'staging'
+});
+
+// List brand agents
+const brandAgents = await platform.brandAgents.list();
+
+// Create a campaign
+const campaign = await platform.campaigns.create({
+  prompt: 'Create a video campaign targeting tech enthusiasts',
+  brandAgentId: '123',
+});
+
+// Discover media products
+const products = await platform.mediaProducts.discover({
+  channels: ['DIGITAL-DISPLAY'],
+  budget: { min: 10000, max: 50000 },
+});
+```
+
+### PartnerClient (for DSPs/Publishers/Sales Agents)
+
+Use this client if you're a media partner managing tactics, media buys, and products.
+
+```typescript
+import { PartnerClient } from 'scope3';
+
+const partner = new PartnerClient({
+  apiKey: process.env.SCOPE3_API_KEY,
+  environment: 'production', // or 'staging'
+});
+
+// Register a sales agent
+const agent = await partner.agents.register({
+  name: 'My DSP',
+  type: 'SALES',
+  endpointUrl: 'https://my-dsp.com/mcp',
+});
+
+// Create a media buy
+const mediaBuy = await partner.mediaBuys.create({
+  tacticId: 'tactic_123',
+  name: 'Q1 Campaign Buy',
+  budget: { amount: 100000, currency: 'USD' },
+});
+
+// Execute media buy
+await partner.mediaBuys.execute({ mediaBuyId: mediaBuy.id });
+```
+
+### Legacy Client (Backwards Compatibility)
+
+The original `Scope3AgenticClient` is still available for backwards compatibility and maps to the PlatformClient:
+
 ```typescript
 import { Scope3AgenticClient } from 'scope3';
 
 const client = new Scope3AgenticClient({
   apiKey: process.env.SCOPE3_API_KEY,
-  // Optional: specify environment (defaults to 'production')
-  environment: 'production', // or 'staging'
-});
-
-// List brand agents
-const brandAgents = await client.brandAgents.list();
-
-// Create a campaign
-const campaign = await client.campaigns.create({
-  prompt: 'Create a video campaign targeting tech enthusiasts',
-  budget: {
-    amount: 5000000, // $50,000 in cents
-    currency: 'USD',
-    pacing: 'even',
-  },
 });
 ```
 

@@ -24,8 +24,9 @@ describe('Scope3AgenticClient', () => {
     expect(client.creatives).toBeDefined();
     expect(client.tactics).toBeDefined();
     expect(client.mediaBuys).toBeDefined();
-    expect(client.notifications).toBeDefined();
-    expect(client.products).toBeDefined();
+    expect(client.mediaProducts).toBeDefined();
+    expect(client.agents).toBeDefined();
+    expect(client.targeting).toBeDefined();
   });
 
   it('should accept custom base URL', () => {

@@ -6,6 +6,7 @@
   "types": "dist/index.d.ts",
   "files": [
     "dist",
+    "scripts",
     "README.md",
     "LICENSE",
     ".env.example"
@@ -14,7 +15,6 @@
     "access": "public"
   },
   "bin": {
-    "simple-media-agent": "dist/simple-media-agent-server.js",
     "scope3": "dist/cli.js"
   },
   "scripts": {
@@ -27,7 +27,9 @@
     "generate-outcome-agent-types": "openapi-typescript outcome-agent-openapi.yaml -o src/types/outcome-agent-api.ts",
     "generate-partner-api-types": "openapi-typescript partner-api.yaml -o src/types/partner-api.ts",
     "generate-platform-api-types": "openapi-typescript platform-api.yaml -o src/types/platform-api.ts",
-    "update-schemas": "curl -f -o outcome-agent-openapi.yaml https://raw.githubusercontent.com/scope3data/agentic-api/main/mintlify/outcome-agent-openapi.yaml && curl -f -o partner-api.yaml https://raw.githubusercontent.com/scope3data/agentic-api/main/mintlify/partner-api.yaml && curl -f -o platform-api.yaml https://raw.githubusercontent.com/scope3data/agentic-api/main/mintlify/platform-api.yaml && npm run generate-outcome-agent-types && npm run generate-partner-api-types && npm run generate-platform-api-types",
+    "generate-sdk": "ts-node scripts/generate-sdk.ts",
+    "generate-all": "npm run generate-outcome-agent-types && npm run generate-partner-api-types && npm run generate-platform-api-types && npm run generate-sdk",
+    "update-schemas": "bash scripts/update-schemas.sh",
     "prepare": "husky",
     "prepublishOnly": "npm run build",
     "pretest": "npm run type-check",
@@ -67,16 +69,19 @@
     "@changesets/cli": "^2.29.7",
     "@types/express": "^4.17.0",
     "@types/jest": "^29.5.0",
+    "@types/js-yaml": "^4.0.9",
     "@types/node": "^20.0.0",
     "@typescript-eslint/eslint-plugin": "^6.0.0",
     "@typescript-eslint/parser": "^6.0.0",
     "eslint": "^8.0.0",
     "husky": "^9.0.0",
     "jest": "^29.5.0",
+    "js-yaml": "^4.1.0",
     "lint-staged": "^15.0.0",
     "openapi-typescript": "^6.7.0",
     "prettier": "^3.0.0",
     "ts-jest": "^29.1.0",
+    "ts-node": "^10.9.2",
     "typescript": "^5.3.0"
   },
   "lint-staged": {
