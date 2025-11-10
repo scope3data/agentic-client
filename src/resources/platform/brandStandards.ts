@@ -8,7 +8,11 @@ export class BrandStandardsResource {
    * Create brand standards
    * Create brand standards including guidelines, tone of voice, visual requirements, and content rules for a brand agent.
    */
-  async standardsCreate(params: operations['brand_standards_create']['requestBody']['content']['application/json']): Promise<operations['brand_standards_create']['responses'][200]['content']['application/json']> {
+  async standardsCreate(
+    params: operations['brand_standards_create']['requestBody']['content']['application/json']
+  ): Promise<
+    operations['brand_standards_create']['responses'][200]['content']['application/json']
+  > {
     return this.client['callTool']('brand_standards_create', params);
   }
 
@@ -16,7 +20,11 @@ export class BrandStandardsResource {
    * Delete brand standards
    * Delete brand standards for a brand agent.
    */
-  async standardsDelete(params: operations['brand_standards_delete']['requestBody']['content']['application/json']): Promise<operations['brand_standards_delete']['responses'][200]['content']['application/json']> {
+  async standardsDelete(
+    params: operations['brand_standards_delete']['requestBody']['content']['application/json']
+  ): Promise<
+    operations['brand_standards_delete']['responses'][200]['content']['application/json']
+  > {
     return this.client['callTool']('brand_standards_delete', params);
   }
 
@@ -24,8 +32,9 @@ export class BrandStandardsResource {
    * List brand standards
    * List all brand standards with optional filtering by brand agent.
    */
-  async standardsList(params: operations['brand_standards_list']['requestBody']['content']['application/json']): Promise<operations['brand_standards_list']['responses'][200]['content']['application/json']> {
+  async standardsList(
+    params: operations['brand_standards_list']['requestBody']['content']['application/json']
+  ): Promise<operations['brand_standards_list']['responses'][200]['content']['application/json']> {
     return this.client['callTool']('brand_standards_list', params);
   }
-
 }

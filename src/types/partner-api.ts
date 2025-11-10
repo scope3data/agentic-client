@@ -3,301 +3,300 @@
  * Do not make direct changes to the file.
  */
 
-
 export interface paths {
-  "/mcp-initialize": {
+  '/mcp-initialize': {
     /**
      * Initialize MCP session
      * @description Initialize a new MCP session. This must be called before using any tools. The session ID should be generated as a UUID and included in the mcp-session-id header for all subsequent requests.
      */
-    post: operations["mcp_initialize"];
+    post: operations['mcp_initialize'];
   };
-  "/channel-list": {
+  '/channel-list': {
     /**
      * List channels
      * @description List all available advertising channels and platforms.
      */
-    post: operations["channel_list"];
+    post: operations['channel_list'];
   };
-  "/country-list": {
+  '/country-list': {
     /**
      * List countries
      * @description Get all available countries for targeting. Use this to get valid country codes before creating brand agents.
      */
-    post: operations["country_list"];
+    post: operations['country_list'];
   };
-  "/language-list": {
+  '/language-list': {
     /**
      * List languages
      * @description Get all available languages for targeting. Use this to get valid language codes before creating brand stories.
      */
-    post: operations["language_list"];
+    post: operations['language_list'];
   };
-  "/creative-sync-sales-agents": {
+  '/creative-sync-sales-agents': {
     /**
      * Sync creatives to sales agents
      * @description Synchronize creatives to connected sales agents (DSPs, publisher platforms).
      */
-    post: operations["creative_sync_sales_agents"];
+    post: operations['creative_sync_sales_agents'];
   };
-  "/media-buy-create": {
+  '/media-buy-create': {
     /**
      * Create media buy
      * @description Create a new media buy with budget, targeting, and creative specifications.
      */
-    post: operations["media_buy_create"];
+    post: operations['media_buy_create'];
   };
-  "/media-buy-update": {
+  '/media-buy-update': {
     /**
      * Update media buy
      * @description Update an existing media buy with new budget, targeting, or creative assignments.
      */
-    post: operations["media_buy_update"];
+    post: operations['media_buy_update'];
   };
-  "/media-buy-delete": {
+  '/media-buy-delete': {
     /**
      * Delete media buy
      * @description Delete a media buy and cancel any active placements.
      */
-    post: operations["media_buy_delete"];
+    post: operations['media_buy_delete'];
   };
-  "/media-buy-execute": {
+  '/media-buy-execute': {
     /**
      * Execute media buy
      * @description Execute a media buy, sending it to the configured sales agents for placement.
      */
-    post: operations["media_buy_execute"];
+    post: operations['media_buy_execute'];
   };
-  "/media-buy-get": {
+  '/media-buy-get': {
     /**
      * Get media buy
      * @description Get detailed information about a specific media buy.
      */
-    post: operations["media_buy_get"];
+    post: operations['media_buy_get'];
   };
-  "/media-buy-list": {
+  '/media-buy-list': {
     /**
      * List media buys
      * @description List all media buys with optional filtering by brand agent, campaign, or status.
      */
-    post: operations["media_buy_list"];
+    post: operations['media_buy_list'];
   };
-  "/media-buy-validate-budget": {
+  '/media-buy-validate-budget': {
     /**
      * Validate media buy budget
      * @description Validate a media buy budget against campaign constraints and available funds.
      */
-    post: operations["media_buy_validate_budget"];
+    post: operations['media_buy_validate_budget'];
   };
-  "/notifications-list": {
+  '/notifications-list': {
     /**
      * List notifications
      * @description List notifications for the authenticated user with optional filtering by status.
      */
-    post: operations["notifications_list"];
+    post: operations['notifications_list'];
   };
-  "/notifications-mark-read": {
+  '/notifications-mark-read': {
     /**
      * Mark notification as read
      * @description Mark a specific notification as read.
      */
-    post: operations["notifications_mark_read"];
+    post: operations['notifications_mark_read'];
   };
-  "/notifications-mark-acknowledged": {
+  '/notifications-mark-acknowledged': {
     /**
      * Mark notification as acknowledged
      * @description Mark a specific notification as acknowledged.
      */
-    post: operations["notifications_mark_acknowledged"];
+    post: operations['notifications_mark_acknowledged'];
   };
-  "/notifications-mark-all-read": {
+  '/notifications-mark-all-read': {
     /**
      * Mark all notifications as read
      * @description Mark all notifications for the authenticated user as read.
      */
-    post: operations["notifications_mark_all_read"];
+    post: operations['notifications_mark_all_read'];
   };
-  "/media-product-discover": {
+  '/media-product-discover': {
     /**
      * Discover media products
      * @description Discover available media products from connected sales agents based on targeting criteria.
      */
-    post: operations["media_product_discover"];
+    post: operations['media_product_discover'];
   };
-  "/media-product-save": {
+  '/media-product-save': {
     /**
      * Save media product
      * @description Save a discovered media product for future use in media buys.
      */
-    post: operations["media_product_save"];
+    post: operations['media_product_save'];
   };
-  "/media-product-list": {
+  '/media-product-list': {
     /**
      * List media products
      * @description List saved media products with optional filtering.
      */
-    post: operations["media_product_list"];
+    post: operations['media_product_list'];
   };
-  "/media-product-sync": {
+  '/media-product-sync': {
     /**
      * Sync media products
      * @description Synchronize media product catalog from connected sales agents.
      */
-    post: operations["media_product_sync"];
+    post: operations['media_product_sync'];
   };
-  "/agent-get": {
+  '/agent-get': {
     /**
      * Get agent
      * @description Get detailed information about a specific agent (SALES or OUTCOME type). Type is automatically inferred from the agent ID.
      */
-    post: operations["agent_get"];
+    post: operations['agent_get'];
   };
-  "/agent-list": {
+  '/agent-list': {
     /**
      * List agents
      * @description List all registered agents with comprehensive filtering. Supports filtering by type (SALES/OUTCOME), status, organization, relationship (SELF/SCOPE3/MARKETPLACE), and name.
      */
-    post: operations["agent_list"];
+    post: operations['agent_list'];
   };
-  "/agent-register": {
+  '/agent-register': {
     /**
      * Register agent
      * @description Register a new agent for media buying (SALES type) or outcome optimization (OUTCOME type).
      */
-    post: operations["agent_register"];
+    post: operations['agent_register'];
   };
-  "/agent-unregister": {
+  '/agent-unregister': {
     /**
      * Unregister agent
      * @description Unregister an agent and disconnect it from the platform. Type is automatically inferred from the agent ID.
      */
-    post: operations["agent_unregister"];
+    post: operations['agent_unregister'];
   };
-  "/agent-update": {
+  '/agent-update': {
     /**
      * Update agent
      * @description Update agent configuration and credentials. Type is automatically inferred from the agent ID.
      */
-    post: operations["agent_update"];
+    post: operations['agent_update'];
   };
-  "/tactic-create": {
+  '/tactic-create': {
     /**
      * Create tactic
      * @description Create a new tactic defining how to achieve campaign objectives.
      */
-    post: operations["tactic_create"];
+    post: operations['tactic_create'];
   };
-  "/tactic-update": {
+  '/tactic-update': {
     /**
      * Update tactic
      * @description Update an existing tactic with new targeting, budget, or creative requirements.
      */
-    post: operations["tactic_update"];
+    post: operations['tactic_update'];
   };
-  "/tactic-delete": {
+  '/tactic-delete': {
     /**
      * Delete tactic
      * @description Delete a tactic and all associated media buys.
      */
-    post: operations["tactic_delete"];
+    post: operations['tactic_delete'];
   };
-  "/tactic-get": {
+  '/tactic-get': {
     /**
      * Get tactic
      * @description Get detailed information about a specific tactic.
      */
-    post: operations["tactic_get"];
+    post: operations['tactic_get'];
   };
-  "/tactic-list": {
+  '/tactic-list': {
     /**
      * List tactics
      * @description List all tactics with optional filtering by brand agent or campaign.
      */
-    post: operations["tactic_list"];
+    post: operations['tactic_list'];
   };
-  "/tactic-link-campaign": {
+  '/tactic-link-campaign': {
     /**
      * Link tactic to campaign
      * @description Link a tactic to a campaign.
      */
-    post: operations["tactic_link_campaign"];
+    post: operations['tactic_link_campaign'];
   };
-  "/tactic-unlink-campaign": {
+  '/tactic-unlink-campaign': {
     /**
      * Unlink tactic from campaign
      * @description Unlink a tactic from a campaign.
      */
-    post: operations["tactic_unlink_campaign"];
+    post: operations['tactic_unlink_campaign'];
   };
-  "/webhook-register": {
+  '/webhook-register': {
     /**
      * Register webhook
      * @description Register a webhook to receive real-time notifications about events.
      */
-    post: operations["webhook_register"];
+    post: operations['webhook_register'];
   };
-  "/webhook-list": {
+  '/webhook-list': {
     /**
      * List webhooks
      * @description List all registered webhooks.
      */
-    post: operations["webhook_list"];
+    post: operations['webhook_list'];
   };
-  "/webhook-delete": {
+  '/webhook-delete': {
     /**
      * Delete webhook
      * @description Delete a registered webhook.
      */
-    post: operations["webhook_delete"];
+    post: operations['webhook_delete'];
   };
-  "/service-token-create": {
+  '/service-token-create': {
     /**
      * Create service token
      * @description Create a new service token for API authentication. Returns the full token which should be stored securely as it cannot be retrieved later.
      */
-    post: operations["service_token_create"];
+    post: operations['service_token_create'];
   };
-  "/service-token-list": {
+  '/service-token-list': {
     /**
      * List service tokens
      * @description List all service tokens for the authenticated customer. Secrets are never returned, only metadata.
      */
-    post: operations["service_token_list"];
+    post: operations['service_token_list'];
   };
-  "/service-token-get": {
+  '/service-token-get': {
     /**
      * Get service token
      * @description Get detailed information about a specific service token. The secret is never returned.
      */
-    post: operations["service_token_get"];
+    post: operations['service_token_get'];
   };
-  "/service-token-update": {
+  '/service-token-update': {
     /**
      * Update service token
      * @description Update a service token. Only name, description, and expiration can be modified.
      */
-    post: operations["service_token_update"];
+    post: operations['service_token_update'];
   };
-  "/service-token-archive": {
+  '/service-token-archive': {
     /**
      * Archive service token
      * @description Archive (soft delete) a service token. This immediately invalidates the token for authentication.
      */
-    post: operations["service_token_archive"];
+    post: operations['service_token_archive'];
   };
-  "/customer-get": {
+  '/customer-get': {
     /**
      * Get customer info
      * @description Get detailed information about a customer from the core database.
      */
-    post: operations["customer_get"];
+    post: operations['customer_get'];
   };
-  "/customer-get-seats": {
+  '/customer-get-seats': {
     /**
      * Get customer seats
      * @description Get all seats associated with a customer from the core database.
      */
-    post: operations["customer_get_seats"];
+    post: operations['customer_get_seats'];
   };
 }
 
@@ -336,38 +335,22 @@ export interface components {
       /** @example string */
       description?: string;
       /** @example [] */
-      products: ({
-          mediaProductId: string;
-          budgetAmount: number;
-          budgetCurrency?: string;
-          pricingCpm?: number;
-          pricingSignalCost?: number;
-          displayOrder?: number;
-          creatives?: ({
-              creative_id: string;
-              name: string;
-              format_id: string | {
+      products: {
+        mediaProductId: string;
+        budgetAmount: number;
+        budgetCurrency?: string;
+        pricingCpm?: number;
+        pricingSignalCost?: number;
+        displayOrder?: number;
+        creatives?: {
+          creative_id: string;
+          name: string;
+          format_id:
+            | string
+            | {
                 agent_url: string;
                 id: string;
               };
-              assets?: {
-                [key: string]: {
-                  url: string;
-                  width?: number;
-                  height?: number;
-                };
-              };
-              click_url?: string;
-            })[];
-        })[];
-      /** @example [] */
-      creatives?: ({
-          creative_id: string;
-          name: string;
-          format_id: string | {
-            agent_url: string;
-            id: string;
-          };
           assets?: {
             [key: string]: {
               url: string;
@@ -376,7 +359,27 @@ export interface components {
             };
           };
           click_url?: string;
-        })[];
+        }[];
+      }[];
+      /** @example [] */
+      creatives?: {
+        creative_id: string;
+        name: string;
+        format_id:
+          | string
+          | {
+              agent_url: string;
+              id: string;
+            };
+        assets?: {
+          [key: string]: {
+            url: string;
+            width?: number;
+            height?: number;
+          };
+        };
+        click_url?: string;
+      }[];
     };
     UpdateMediaBuyInput: {
       /** @example example_id_123 */
@@ -389,14 +392,21 @@ export interface components {
        * @example DRAFT
        * @enum {string}
        */
-      status?: "DRAFT" | "PENDING_APPROVAL" | "ACTIVE" | "PAUSED" | "COMPLETED" | "FAILED" | "REJECTED";
+      status?:
+        | 'DRAFT'
+        | 'PENDING_APPROVAL'
+        | 'ACTIVE'
+        | 'PAUSED'
+        | 'COMPLETED'
+        | 'FAILED'
+        | 'REJECTED';
       /** @example [] */
       creativeIds?: string[];
       /** @example [] */
       packages?: {
-          packageId: string;
-          creativeIds: string[];
-        }[];
+        packageId: string;
+        creativeIds: string[];
+      }[];
     };
     DeleteMediaBuyInput: {
       /** @example example_id_123 */
@@ -419,7 +429,14 @@ export interface components {
        * @example DRAFT
        * @enum {string}
        */
-      status?: "DRAFT" | "PENDING_APPROVAL" | "ACTIVE" | "PAUSED" | "COMPLETED" | "FAILED" | "REJECTED";
+      status?:
+        | 'DRAFT'
+        | 'PENDING_APPROVAL'
+        | 'ACTIVE'
+        | 'PAUSED'
+        | 'COMPLETED'
+        | 'FAILED'
+        | 'REJECTED';
       /** @example 100 */
       take?: number;
       /** @example 100 */
@@ -473,11 +490,11 @@ export interface components {
       /** @description Structured filters for product discovery */
       filters?: {
         /** @enum {string} */
-        deliveryType?: "guaranteed" | "non_guaranteed";
+        deliveryType?: 'guaranteed' | 'non_guaranteed';
         /** @description Filter for fixed price vs auction products */
         isFixedPrice?: boolean;
         /** @description Filter by format types */
-        formatTypes?: ("video" | "display" | "audio")[];
+        formatTypes?: ('video' | 'display' | 'audio')[];
         /** @description Only return products accepting IAB standard formats */
         standardFormatsOnly?: boolean;
         /** @description Minimum exposures/impressions needed for measurement validity */
@@ -509,21 +526,23 @@ export interface components {
        * @example guaranteed
        * @enum {string}
        */
-      deliveryType: "guaranteed" | "non_guaranteed";
+      deliveryType: 'guaranteed' | 'non_guaranteed';
       /**
        * @example premium
        * @enum {string}
        */
-      inventoryType: "premium" | "run_of_site" | "targeted_package";
-      creativeFormats?: string[] | {
-          agent_url: string;
-          id: string;
-        }[];
+      inventoryType: 'premium' | 'run_of_site' | 'targeted_package';
+      creativeFormats?:
+        | string[]
+        | {
+            agent_url: string;
+            id: string;
+          }[];
       /**
        * @example auction
        * @enum {string}
        */
-      pricingModel: "auction" | "fixed_cpm";
+      pricingModel: 'auction' | 'fixed_cpm';
       /** @example 100 */
       fixedCpm?: number;
       /** @example 100 */
@@ -532,8 +551,8 @@ export interface components {
       targetCpm?: number;
       /** @example [] */
       pricingOptions?: {
-          [key: string]: unknown;
-        }[];
+        [key: string]: unknown;
+      }[];
       /** @example [] */
       supportedTargeting?: string[];
       /** @example example_id_123 */
@@ -562,13 +581,13 @@ export interface components {
        * @example SALES
        * @enum {string}
        */
-      type?: "SALES" | "OUTCOME";
+      type?: 'SALES' | 'OUTCOME';
       /**
        * @description Filter by status (PENDING, ACTIVE, DISABLED)
        * @example PENDING
        * @enum {string}
        */
-      status?: "PENDING" | "ACTIVE" | "DISABLED";
+      status?: 'PENDING' | 'ACTIVE' | 'DISABLED';
       /**
        * @description Filter by organization ID
        * @example example_id_123
@@ -579,7 +598,7 @@ export interface components {
        * @example SELF
        * @enum {string}
        */
-      relationship?: "SELF" | "SCOPE3" | "MARKETPLACE";
+      relationship?: 'SELF' | 'SCOPE3' | 'MARKETPLACE';
       /**
        * @description Filter by agent name (partial match)
        * @example Example Name
@@ -592,7 +611,7 @@ export interface components {
        * @example SALES
        * @enum {string}
        */
-      type: "SALES" | "OUTCOME";
+      type: 'SALES' | 'OUTCOME';
       /**
        * @description Agent name
        * @example Example Name
@@ -614,43 +633,47 @@ export interface components {
        * @example MCP
        * @enum {string}
        */
-      protocol: "MCP" | "A2A";
+      protocol: 'MCP' | 'A2A';
       /**
        * @description Authentication type
        * @example API_KEY
        * @enum {string}
        */
-      authenticationType?: "API_KEY" | "OAUTH" | "NO_AUTH" | "JWT";
+      authenticationType?: 'API_KEY' | 'OAUTH' | 'NO_AUTH' | 'JWT';
       /**
        * @description Organization ID
        * @example example_id_123
        */
       organizationId?: string;
       /** @description Authentication configuration object */
-      auth?: ({
-        /** @enum {string} */
-        type: "jwt";
-        privateKey: string;
-        issuer: string;
-        subject: string;
-        keyId: string;
-        scope: string;
-        /** Format: uri */
-        tokenEndpointUrl: string;
-        /** Format: uri */
-        audienceUrl: string;
-        /** @enum {string} */
-        algorithm?: "ES256" | "RS256";
-        environment?: string;
-      }) | ({
-        /** @enum {string} */
-        type: "bearer" | "apikey" | "api_key";
-        token: string;
-      }) | ({
-        /** @enum {string} */
-        type: "oauth" | "oauth2";
-        token: string;
-      }) | Record<string, never>;
+      auth?:
+        | {
+            /** @enum {string} */
+            type: 'jwt';
+            privateKey: string;
+            issuer: string;
+            subject: string;
+            keyId: string;
+            scope: string;
+            /** Format: uri */
+            tokenEndpointUrl: string;
+            /** Format: uri */
+            audienceUrl: string;
+            /** @enum {string} */
+            algorithm?: 'ES256' | 'RS256';
+            environment?: string;
+          }
+        | {
+            /** @enum {string} */
+            type: 'bearer' | 'apikey' | 'api_key';
+            token: string;
+          }
+        | {
+            /** @enum {string} */
+            type: 'oauth' | 'oauth2';
+            token: string;
+          }
+        | Record<string, never>;
     };
     UnregisterAgentInput: {
       /**
@@ -686,38 +709,42 @@ export interface components {
        * @example MCP
        * @enum {string}
        */
-      protocol?: "MCP" | "A2A";
+      protocol?: 'MCP' | 'A2A';
       /**
        * @description New authentication type
        * @example API_KEY
        * @enum {string}
        */
-      authenticationType?: "API_KEY" | "OAUTH" | "NO_AUTH" | "JWT";
+      authenticationType?: 'API_KEY' | 'OAUTH' | 'NO_AUTH' | 'JWT';
       /** @description New authentication configuration */
-      auth?: ({
-        /** @enum {string} */
-        type: "jwt";
-        privateKey: string;
-        issuer: string;
-        subject: string;
-        keyId: string;
-        scope: string;
-        /** Format: uri */
-        tokenEndpointUrl: string;
-        /** Format: uri */
-        audienceUrl: string;
-        /** @enum {string} */
-        algorithm?: "ES256" | "RS256";
-        environment?: string;
-      }) | ({
-        /** @enum {string} */
-        type: "bearer" | "apikey" | "api_key";
-        token: string;
-      }) | ({
-        /** @enum {string} */
-        type: "oauth" | "oauth2";
-        token: string;
-      }) | Record<string, never>;
+      auth?:
+        | {
+            /** @enum {string} */
+            type: 'jwt';
+            privateKey: string;
+            issuer: string;
+            subject: string;
+            keyId: string;
+            scope: string;
+            /** Format: uri */
+            tokenEndpointUrl: string;
+            /** Format: uri */
+            audienceUrl: string;
+            /** @enum {string} */
+            algorithm?: 'ES256' | 'RS256';
+            environment?: string;
+          }
+        | {
+            /** @enum {string} */
+            type: 'bearer' | 'apikey' | 'api_key';
+            token: string;
+          }
+        | {
+            /** @enum {string} */
+            type: 'oauth' | 'oauth2';
+            token: string;
+          }
+        | Record<string, never>;
     };
     CreateTacticInput: {
       /** @example example_id_123 */
@@ -727,7 +754,7 @@ export interface components {
       /** @example string */
       prompt?: string;
       /** @example [] */
-      channelCodes?: ("ctv" | "video" | "display" | "app" | "social")[];
+      channelCodes?: ('ctv' | 'video' | 'display' | 'app' | 'social')[];
       /** @example [] */
       countryCodes?: string[];
       /**
@@ -737,14 +764,14 @@ export interface components {
       languages?: string[];
       /** @example [] */
       availableBrandStandards?: {
-          id: number;
-          name: string;
-        }[];
+        id: number;
+        name: string;
+      }[];
       /** @example [] */
       availableBrandStory?: {
-          id: number;
-          name: string;
-        }[];
+        id: number;
+        name: string;
+      }[];
     };
     UpdateTacticInput: {
       /** @example 100 */
@@ -754,19 +781,19 @@ export interface components {
       /** @example string */
       prompt?: string;
       /** @example [] */
-      channelCodes?: ("ctv" | "video" | "display" | "app" | "social")[];
+      channelCodes?: ('ctv' | 'video' | 'display' | 'app' | 'social')[];
       /** @example [] */
       countryCodes?: string[];
       /** @example [] */
       availableBrandStandards?: {
-          id: number;
-          name: string;
-        }[];
+        id: number;
+        name: string;
+      }[];
       /** @example [] */
       availableBrandStory?: {
-          id: number;
-          name: string;
-        }[];
+        id: number;
+        name: string;
+      }[];
     };
     DeleteTacticInput: {
       /** @example 100 */
@@ -805,13 +832,13 @@ export interface components {
         /** Format: uri */
         url: string;
         /** @enum {string} */
-        method: "POST" | "PUT";
+        method: 'POST' | 'PUT';
         headers?: {
           [key: string]: string;
         };
         authentication?: {
           /** @enum {string} */
-          type: "bearer" | "basic" | "hmac";
+          type: 'bearer' | 'basic' | 'hmac';
           credentials: string;
         };
       };
@@ -824,7 +851,7 @@ export interface components {
         mediaBuys?: string[];
         metrics?: string[];
         /** @enum {string} */
-        minSeverity?: "info" | "warning" | "critical";
+        minSeverity?: 'info' | 'warning' | 'critical';
       };
       retryPolicy?: {
         maxRetries?: number;
@@ -863,7 +890,7 @@ export interface components {
        * @default CUSTOMER
        * @enum {string}
        */
-      scope?: "CUSTOMER" | "SEAT";
+      scope?: 'CUSTOMER' | 'SEAT';
       /**
        * @description Seat name (required when scope is SEAT). The seat will be looked up for the customer.
        * @example Example Name
@@ -946,56 +973,56 @@ export interface components {
       description?: string;
       /** @example [] */
       products?: {
-          mediaProductId: string;
-          salesAgentId: string;
-          salesAgentName?: string;
-          budgetAmount?: number;
-          budgetCurrency?: string;
-          pricingCpm?: number;
-          pricingSignalCost?: number;
-          displayOrder?: number;
-          creativeFormats?: {
-              agent_url: string;
-              id: string;
-            }[];
+        mediaProductId: string;
+        salesAgentId: string;
+        salesAgentName?: string;
+        budgetAmount?: number;
+        budgetCurrency?: string;
+        pricingCpm?: number;
+        pricingSignalCost?: number;
+        displayOrder?: number;
+        creativeFormats?: {
+          agent_url: string;
+          id: string;
         }[];
+      }[];
       /** @example [] */
       packages?: {
-          packageId: string;
-          productIds: string[];
-          impressions: number;
-          budget: number;
-          targetingOverlay: unknown;
-          creatives: {
-              creativeId: string;
-              name: string;
-              formatId: string;
-              mediaUrl: string;
-              status: string;
-            }[];
-          /** Format: date-time */
-          createdAt: string;
-          /** Format: date-time */
-          updatedAt: string;
-          salesAgentId?: string;
-          salesAgentName?: string;
-          pricingCpm?: number;
-          pricingSignalCost?: number;
-          bidPrice?: number;
-          pricingOptionId?: string;
-          creativeFormats?: {
-              agent_url: string;
-              id: string;
-            }[];
-        }[];
-      /** @example [] */
-      creatives?: {
+        packageId: string;
+        productIds: string[];
+        impressions: number;
+        budget: number;
+        targetingOverlay: unknown;
+        creatives: {
           creativeId: string;
           name: string;
           formatId: string;
           mediaUrl: string;
           status: string;
         }[];
+        /** Format: date-time */
+        createdAt: string;
+        /** Format: date-time */
+        updatedAt: string;
+        salesAgentId?: string;
+        salesAgentName?: string;
+        pricingCpm?: number;
+        pricingSignalCost?: number;
+        bidPrice?: number;
+        pricingOptionId?: string;
+        creativeFormats?: {
+          agent_url: string;
+          id: string;
+        }[];
+      }[];
+      /** @example [] */
+      creatives?: {
+        creativeId: string;
+        name: string;
+        formatId: string;
+        mediaUrl: string;
+        status: string;
+      }[];
       pricing: {
         cpm: number;
         signalCost?: number;
@@ -1067,7 +1094,7 @@ export interface components {
        * @example text
        * @enum {string}
        */
-      type: "text";
+      type: 'text';
       /** @example string */
       text: string;
     };
@@ -1097,9 +1124,9 @@ export interface components {
       total: number;
       /** @example [] */
       items: {
-          channel: string;
-          displayName: string;
-        }[];
+        channel: string;
+        displayName: string;
+      }[];
     };
     GetCustomerOutput: {
       /**
@@ -1140,15 +1167,15 @@ export interface components {
        * @example []
        */
       seats: {
-          /** @description Unique identifier for the seat */
-          id: string;
-          /** @description Seat display name */
-          name: string;
-          /** @description Customer ID that owns this seat */
-          customerId: number;
-          /** @description Whether the seat is currently active */
-          active: boolean;
-        }[];
+        /** @description Unique identifier for the seat */
+        id: string;
+        /** @description Seat display name */
+        name: string;
+        /** @description Customer ID that owns this seat */
+        customerId: number;
+        /** @description Whether the seat is currently active */
+        active: boolean;
+      }[];
       /**
        * @description Total number of seats returned
        * @example 100
@@ -1168,18 +1195,18 @@ export interface components {
       total: number;
       /** @example [] */
       items: {
-          key: string;
-          displayName: string;
-        }[];
+        key: string;
+        displayName: string;
+      }[];
     };
     LanguageList: {
       /** @example 100 */
       total: number;
       /** @example [] */
       items: {
-          key: string;
-          displayName: string;
-        }[];
+        key: string;
+        displayName: string;
+      }[];
     };
     MediaBuyDelete: {
       /** @example true */
@@ -1203,7 +1230,7 @@ export interface components {
       /** @example 100 */
       total: number;
       /** @example [] */
-      items: components["schemas"]["MediaBuyGetOutput"][];
+      items: components['schemas']['MediaBuyGetOutput'][];
     };
     MediaBuyValidateBudget: {
       /** @example true */
@@ -1218,16 +1245,16 @@ export interface components {
       hasMore: boolean;
       /** @example [] */
       items: {
-          id: string;
-          type: string;
-          data: {
-            [key: string]: unknown;
-          };
-          read: boolean;
-          acknowledged: boolean;
-          /** Format: date-time */
-          createdAt: string;
-        }[];
+        id: string;
+        type: string;
+        data: {
+          [key: string]: unknown;
+        };
+        read: boolean;
+        acknowledged: boolean;
+        /** Format: date-time */
+        createdAt: string;
+      }[];
     };
     NotificationsMarkRead: {
       /** @example true */
@@ -1259,24 +1286,26 @@ export interface components {
       /** @example 100 */
       failedAgents: number;
       /** @example [] */
-      products: ({
-          productId: string;
-          name: string;
-          publisherName: string;
-          salesAgentId?: string;
-          salesAgentName?: string;
-          /** @enum {string} */
-          deliveryType: "guaranteed" | "non_guaranteed";
-          /** @enum {string} */
-          inventoryType: "premium" | "run_of_site" | "targeted_package";
-          creativeFormats?: string[] | {
+      products: {
+        productId: string;
+        name: string;
+        publisherName: string;
+        salesAgentId?: string;
+        salesAgentName?: string;
+        /** @enum {string} */
+        deliveryType: 'guaranteed' | 'non_guaranteed';
+        /** @enum {string} */
+        inventoryType: 'premium' | 'run_of_site' | 'targeted_package';
+        creativeFormats?:
+          | string[]
+          | {
               agent_url: string;
               id: string;
             }[];
-          fixedCpm?: number;
-          floorCpm?: number;
-          targetCpm?: number;
-        })[];
+        fixedCpm?: number;
+        floorCpm?: number;
+        targetCpm?: number;
+      }[];
     };
     MediaProductSave: {
       /** @example example_id_123 */
@@ -1306,21 +1335,23 @@ export interface components {
       /** @example 100 */
       total: number;
       /** @example [] */
-      items: ({
-          id: string;
-          productId: string;
-          name: string;
-          salesAgent?: string;
-          salesAgentId?: string;
-          salesAgentName?: string;
-          /** @enum {string} */
-          deliveryType: "guaranteed" | "non_guaranteed";
-          format?: string;
-          creativeFormats?: string[] | {
+      items: {
+        id: string;
+        productId: string;
+        name: string;
+        salesAgent?: string;
+        salesAgentId?: string;
+        salesAgentName?: string;
+        /** @enum {string} */
+        deliveryType: 'guaranteed' | 'non_guaranteed';
+        format?: string;
+        creativeFormats?:
+          | string[]
+          | {
               agent_url: string;
               id: string;
             }[];
-        })[];
+      }[];
     };
     MediaProductSync: {
       /** @example true */
@@ -1328,66 +1359,71 @@ export interface components {
       /** @example 100 */
       productsSaved: number;
     };
-    AgentGet: ({
-      agentId: string;
-      name: string;
-      /** @enum {string} */
-      type: "SALES" | "OUTCOME";
-      status: string;
-      relationship: string;
-      endpointUrl: string;
-      protocol: string;
-      authenticationType: string;
-      description?: string;
-      organizationId?: string;
-      registeredBy?: string;
-      /** Format: date-time */
-      createdAt: string;
-      /** Format: date-time */
-      updatedAt: string;
-    }) | ({
-      agentId: string;
-      name: string;
-      /** @enum {string} */
-      type: "SALES" | "OUTCOME";
-      status: string;
-      relationship: string;
-      endpointUrl: string;
-      protocol: string;
-      authenticationType: string;
-      description?: string;
-      organizationId?: string;
-      registeredBy?: string;
-      /** Format: date-time */
-      createdAt: string;
-      /** Format: date-time */
-      updatedAt: string;
-      customerAccountCount: number;
-    });
+    AgentGet:
+      | {
+          agentId: string;
+          name: string;
+          /** @enum {string} */
+          type: 'SALES' | 'OUTCOME';
+          status: string;
+          relationship: string;
+          endpointUrl: string;
+          protocol: string;
+          authenticationType: string;
+          description?: string;
+          organizationId?: string;
+          registeredBy?: string;
+          /** Format: date-time */
+          createdAt: string;
+          /** Format: date-time */
+          updatedAt: string;
+        }
+      | {
+          agentId: string;
+          name: string;
+          /** @enum {string} */
+          type: 'SALES' | 'OUTCOME';
+          status: string;
+          relationship: string;
+          endpointUrl: string;
+          protocol: string;
+          authenticationType: string;
+          description?: string;
+          organizationId?: string;
+          registeredBy?: string;
+          /** Format: date-time */
+          createdAt: string;
+          /** Format: date-time */
+          updatedAt: string;
+          customerAccountCount: number;
+        };
     AgentList: {
       /** @example 100 */
       total: number;
       /** @example [] */
-      items: (({
-          agentId: string;
-          name: string;
-          /** @enum {string} */
-          type: "SALES" | "OUTCOME";
-          status: string;
-          relationship: string;
-          endpointUrl: string;
-          protocol: string;
-        }) | ({
-          agentId: string;
-          name: string;
-          /** @enum {string} */
-          type: "SALES" | "OUTCOME";
-          status: string;
-          relationship: string;
-          endpointUrl: string;
-          protocol: string;
-          customerAccountCount: number;
-        }))[];
+      items: (
+        | {
+            agentId: string;
+            name: string;
+            /** @enum {string} */
+            type: 'SALES' | 'OUTCOME';
+            status: string;
+            relationship: string;
+            endpointUrl: string;
+            protocol: string;
+          }
+        | {
+            agentId: string;
+            name: string;
+            /** @enum {string} */
+            type: 'SALES' | 'OUTCOME';
+            status: string;
+            relationship: string;
+            endpointUrl: string;
+            protocol: string;
+            customerAccountCount: number;
+          }
+      )[];
     };
     AgentRegister: {
       /** @example example_id_123 */
@@ -1398,7 +1434,7 @@ export interface components {
        * @example SALES
        * @enum {string}
        */
-      type: "SALES" | "OUTCOME";
+      type: 'SALES' | 'OUTCOME';
       /** @example string */
       status: string;
       /** @example https://example.com */
@@ -1413,7 +1449,7 @@ export interface components {
        * @example SALES
        * @enum {string}
        */
-      type: "SALES" | "OUTCOME";
+      type: 'SALES' | 'OUTCOME';
     };
     AgentUpdate: {
       /** @example example_id_123 */
@@ -1424,7 +1460,7 @@ export interface components {
        * @example SALES
        * @enum {string}
        */
-      type: "SALES" | "OUTCOME";
+      type: 'SALES' | 'OUTCOME';
       /** @example string */
       status: string;
     };
@@ -1457,7 +1493,7 @@ export interface components {
       /** @example 100 */
       total: number;
       /** @example [] */
-      items: components["schemas"]["TacticGetOutput"][];
+      items: components['schemas']['TacticGetOutput'][];
     };
     TacticLinkCampaign: {
       /** @example true */
@@ -1512,24 +1548,24 @@ export interface components {
       /** @example 100 */
       total: number;
       /** @example [] */
-      items: ({
-          id: string;
-          status: string;
-          endpoint: {
-            url: string;
-            method: string;
-            authenticationType?: string;
-          };
-          eventTypes: string[];
-          brandAgentId?: number;
-          failureCount: number;
-          /** Format: date-time */
-          lastSuccess?: string | null;
-          /** Format: date-time */
-          lastFailure?: string | null;
-          /** Format: date-time */
-          createdAt: string;
-        })[];
+      items: {
+        id: string;
+        status: string;
+        endpoint: {
+          url: string;
+          method: string;
+          authenticationType?: string;
+        };
+        eventTypes: string[];
+        brandAgentId?: number;
+        failureCount: number;
+        /** Format: date-time */
+        lastSuccess?: string | null;
+        /** Format: date-time */
+        lastFailure?: string | null;
+        /** Format: date-time */
+        createdAt: string;
+      }[];
     };
     WebhookDelete: {
       /** @example true */
@@ -1723,54 +1759,54 @@ export interface components {
        * @example []
        */
       tokens: {
-          /**
-           * Format: int64
-           * @description Unique identifier for the service token
-           */
-          id: number;
-          /** @description Customer ID that owns this token */
-          customerId: number;
-          /**
-           * Format: int64
-           * @description Seat ID if token is scoped to a specific seat
-           */
-          seatId?: number;
-          /** @description Seat name if token is scoped to a specific seat */
-          seatName?: string;
-          /**
-           * Format: int64
-           * @description User ID if token is scoped to a specific user
-           */
-          userId?: number;
-          /** @description Optional organization identifier for scoping the token */
-          organizationId?: string;
-          /** @description Human-readable name of the token */
-          name: string;
-          /** @description Description of the token purpose */
-          description?: string;
-          /** @description The public client ID portion of the token credentials (safe to log) */
-          accessClientId: string;
-          /**
-           * Format: date-time
-           * @description ISO 8601 timestamp when the token expires, if set
-           */
-          expiresAt?: string;
-          /**
-           * Format: date-time
-           * @description ISO 8601 timestamp when the token was created
-           */
-          createdAt: string;
-          /**
-           * Format: date-time
-           * @description ISO 8601 timestamp when the token was last updated
-           */
-          updatedAt: string;
-          /**
-           * Format: date-time
-           * @description ISO 8601 timestamp when the token was archived, if archived
-           */
-          archivedAt?: string;
-        }[];
+        /**
+         * Format: int64
+         * @description Unique identifier for the service token
+         */
+        id: number;
+        /** @description Customer ID that owns this token */
+        customerId: number;
+        /**
+         * Format: int64
+         * @description Seat ID if token is scoped to a specific seat
+         */
+        seatId?: number;
+        /** @description Seat name if token is scoped to a specific seat */
+        seatName?: string;
+        /**
+         * Format: int64
+         * @description User ID if token is scoped to a specific user
+         */
+        userId?: number;
+        /** @description Optional organization identifier for scoping the token */
+        organizationId?: string;
+        /** @description Human-readable name of the token */
+        name: string;
+        /** @description Description of the token purpose */
+        description?: string;
+        /** @description The public client ID portion of the token credentials (safe to log) */
+        accessClientId: string;
+        /**
+         * Format: date-time
+         * @description ISO 8601 timestamp when the token expires, if set
+         */
+        expiresAt?: string;
+        /**
+         * Format: date-time
+         * @description ISO 8601 timestamp when the token was created
+         */
+        createdAt: string;
+        /**
+         * Format: date-time
+         * @description ISO 8601 timestamp when the token was last updated
+         */
+        updatedAt: string;
+        /**
+         * Format: date-time
+         * @description ISO 8601 timestamp when the token was archived, if archived
+         */
+        archivedAt?: string;
+      }[];
       /**
        * @description Total number of tokens returned
        * @example 100
@@ -1790,56 +1826,56 @@ export interface components {
       description?: string;
       /** @example [] */
       products?: {
-          mediaProductId: string;
-          salesAgentId: string;
-          salesAgentName?: string;
-          budgetAmount?: number;
-          budgetCurrency?: string;
-          pricingCpm?: number;
-          pricingSignalCost?: number;
-          displayOrder?: number;
-          creativeFormats?: {
-              agent_url: string;
-              id: string;
-            }[];
+        mediaProductId: string;
+        salesAgentId: string;
+        salesAgentName?: string;
+        budgetAmount?: number;
+        budgetCurrency?: string;
+        pricingCpm?: number;
+        pricingSignalCost?: number;
+        displayOrder?: number;
+        creativeFormats?: {
+          agent_url: string;
+          id: string;
         }[];
+      }[];
       /** @example [] */
       packages?: {
-          packageId: string;
-          productIds: string[];
-          impressions: number;
-          budget: number;
-          targetingOverlay: unknown;
-          creatives: {
-              creativeId: string;
-              name: string;
-              formatId: string;
-              mediaUrl: string;
-              status: string;
-            }[];
-          /** Format: date-time */
-          createdAt: string;
-          /** Format: date-time */
-          updatedAt: string;
-          salesAgentId?: string;
-          salesAgentName?: string;
-          pricingCpm?: number;
-          pricingSignalCost?: number;
-          bidPrice?: number;
-          pricingOptionId?: string;
-          creativeFormats?: {
-              agent_url: string;
-              id: string;
-            }[];
-        }[];
-      /** @example [] */
-      creatives?: {
+        packageId: string;
+        productIds: string[];
+        impressions: number;
+        budget: number;
+        targetingOverlay: unknown;
+        creatives: {
           creativeId: string;
           name: string;
           formatId: string;
           mediaUrl: string;
           status: string;
         }[];
+        /** Format: date-time */
+        createdAt: string;
+        /** Format: date-time */
+        updatedAt: string;
+        salesAgentId?: string;
+        salesAgentName?: string;
+        pricingCpm?: number;
+        pricingSignalCost?: number;
+        bidPrice?: number;
+        pricingOptionId?: string;
+        creativeFormats?: {
+          agent_url: string;
+          id: string;
+        }[];
+      }[];
+      /** @example [] */
+      creatives?: {
+        creativeId: string;
+        name: string;
+        formatId: string;
+        mediaUrl: string;
+        status: string;
+      }[];
       pricing: {
         cpm: number;
         signalCost?: number;
@@ -1919,56 +1955,56 @@ export interface components {
       description?: string;
       /** @example [] */
       products?: {
-          mediaProductId: string;
-          salesAgentId: string;
-          salesAgentName?: string;
-          budgetAmount?: number;
-          budgetCurrency?: string;
-          pricingCpm?: number;
-          pricingSignalCost?: number;
-          displayOrder?: number;
-          creativeFormats?: {
-              agent_url: string;
-              id: string;
-            }[];
+        mediaProductId: string;
+        salesAgentId: string;
+        salesAgentName?: string;
+        budgetAmount?: number;
+        budgetCurrency?: string;
+        pricingCpm?: number;
+        pricingSignalCost?: number;
+        displayOrder?: number;
+        creativeFormats?: {
+          agent_url: string;
+          id: string;
         }[];
+      }[];
       /** @example [] */
       packages?: {
-          packageId: string;
-          productIds: string[];
-          impressions: number;
-          budget: number;
-          targetingOverlay: unknown;
-          creatives: {
-              creativeId: string;
-              name: string;
-              formatId: string;
-              mediaUrl: string;
-              status: string;
-            }[];
-          /** Format: date-time */
-          createdAt: string;
-          /** Format: date-time */
-          updatedAt: string;
-          salesAgentId?: string;
-          salesAgentName?: string;
-          pricingCpm?: number;
-          pricingSignalCost?: number;
-          bidPrice?: number;
-          pricingOptionId?: string;
-          creativeFormats?: {
-              agent_url: string;
-              id: string;
-            }[];
-        }[];
-      /** @example [] */
-      creatives?: {
+        packageId: string;
+        productIds: string[];
+        impressions: number;
+        budget: number;
+        targetingOverlay: unknown;
+        creatives: {
           creativeId: string;
           name: string;
           formatId: string;
           mediaUrl: string;
           status: string;
         }[];
+        /** Format: date-time */
+        createdAt: string;
+        /** Format: date-time */
+        updatedAt: string;
+        salesAgentId?: string;
+        salesAgentName?: string;
+        pricingCpm?: number;
+        pricingSignalCost?: number;
+        bidPrice?: number;
+        pricingOptionId?: string;
+        creativeFormats?: {
+          agent_url: string;
+          id: string;
+        }[];
+      }[];
+      /** @example [] */
+      creatives?: {
+        creativeId: string;
+        name: string;
+        formatId: string;
+        mediaUrl: string;
+        status: string;
+      }[];
       pricing: {
         cpm: number;
         signalCost?: number;
@@ -2017,56 +2053,56 @@ export interface components {
       description?: string;
       /** @example [] */
       products?: {
-          mediaProductId: string;
-          salesAgentId: string;
-          salesAgentName?: string;
-          budgetAmount?: number;
-          budgetCurrency?: string;
-          pricingCpm?: number;
-          pricingSignalCost?: number;
-          displayOrder?: number;
-          creativeFormats?: {
-              agent_url: string;
-              id: string;
-            }[];
+        mediaProductId: string;
+        salesAgentId: string;
+        salesAgentName?: string;
+        budgetAmount?: number;
+        budgetCurrency?: string;
+        pricingCpm?: number;
+        pricingSignalCost?: number;
+        displayOrder?: number;
+        creativeFormats?: {
+          agent_url: string;
+          id: string;
         }[];
+      }[];
       /** @example [] */
       packages?: {
-          packageId: string;
-          productIds: string[];
-          impressions: number;
-          budget: number;
-          targetingOverlay: unknown;
-          creatives: {
-              creativeId: string;
-              name: string;
-              formatId: string;
-              mediaUrl: string;
-              status: string;
-            }[];
-          /** Format: date-time */
-          createdAt: string;
-          /** Format: date-time */
-          updatedAt: string;
-          salesAgentId?: string;
-          salesAgentName?: string;
-          pricingCpm?: number;
-          pricingSignalCost?: number;
-          bidPrice?: number;
-          pricingOptionId?: string;
-          creativeFormats?: {
-              agent_url: string;
-              id: string;
-            }[];
-        }[];
-      /** @example [] */
-      creatives?: {
+        packageId: string;
+        productIds: string[];
+        impressions: number;
+        budget: number;
+        targetingOverlay: unknown;
+        creatives: {
           creativeId: string;
           name: string;
           formatId: string;
           mediaUrl: string;
           status: string;
         }[];
+        /** Format: date-time */
+        createdAt: string;
+        /** Format: date-time */
+        updatedAt: string;
+        salesAgentId?: string;
+        salesAgentName?: string;
+        pricingCpm?: number;
+        pricingSignalCost?: number;
+        bidPrice?: number;
+        pricingOptionId?: string;
+        creativeFormats?: {
+          agent_url: string;
+          id: string;
+        }[];
+      }[];
+      /** @example [] */
+      creatives?: {
+        creativeId: string;
+        name: string;
+        formatId: string;
+        mediaUrl: string;
+        status: string;
+      }[];
       pricing: {
         cpm: number;
         signalCost?: number;
@@ -2146,7 +2182,6 @@ export type $defs = Record<string, never>;
 export type external = Record<string, never>;
 
 export interface operations {
-
   /**
    * Initialize MCP session
    * @description Initialize a new MCP session. This must be called before using any tools. The session ID should be generated as a UUID and included in the mcp-session-id header for all subsequent requests.
@@ -2155,17 +2190,17 @@ export interface operations {
     parameters: {
       header: {
         /** @description MCP session identifier (UUID). Generate a new UUID for session initialization. */
-        "mcp-session-id": string;
+        'mcp-session-id': string;
       };
     };
     requestBody: {
       content: {
-        "application/json": {
+        'application/json': {
           /** @enum {string} */
-          jsonrpc: "2.0";
+          jsonrpc: '2.0';
           id: string | number;
           /** @enum {string} */
-          method: "initialize";
+          method: 'initialize';
           params: {
             /** @example 2024-11-05 */
             protocolVersion: string;
@@ -2182,9 +2217,9 @@ export interface operations {
       /** @description Session initialized successfully */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             /** @enum {string} */
-            jsonrpc?: "2.0";
+            jsonrpc?: '2.0';
             id?: string | number;
             result?: {
               protocolVersion?: string;
@@ -2200,7 +2235,7 @@ export interface operations {
       /** @description Unauthorized */
       401: {
         content: {
-          "application/json": components["schemas"]["Unauthorized"];
+          'application/json': components['schemas']['Unauthorized'];
         };
       };
     };
@@ -2213,7 +2248,7 @@ export interface operations {
     parameters: {
       header: {
         /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
-        "mcp-session-id": string;
+        'mcp-session-id': string;
       };
     };
     /** @description Request body for channel_list */
@@ -2225,10 +2260,10 @@ export interface operations {
          *   "arguments": {}
          * }
          */
-        "application/json": {
+        'application/json': {
           /** @enum {string} */
-          tool: "channel_list";
-          arguments: components["schemas"]["ListChannelsInput"];
+          tool: 'channel_list';
+          arguments: components['schemas']['ListChannelsInput'];
         };
       };
     };
@@ -2236,28 +2271,28 @@ export interface operations {
       /** @description Successful response */
       200: {
         content: {
-          "application/json": {
-            content: components["schemas"]["MCPContent"][];
-            structuredContent: components["schemas"]["ChannelList"];
+          'application/json': {
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['ChannelList'];
           };
         };
       };
       /** @description Bad request */
       400: {
         content: {
-          "application/json": components["schemas"]["BadRequest"];
+          'application/json': components['schemas']['BadRequest'];
         };
       };
       /** @description Unauthorized */
       401: {
         content: {
-          "application/json": components["schemas"]["Unauthorized"];
+          'application/json': components['schemas']['Unauthorized'];
         };
       };
       /** @description Internal server error */
       500: {
         content: {
-          "application/json": components["schemas"]["InternalError"];
+          'application/json': components['schemas']['InternalError'];
         };
       };
     };
@@ -2270,7 +2305,7 @@ export interface operations {
     parameters: {
       header: {
         /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
-        "mcp-session-id": string;
+        'mcp-session-id': string;
       };
     };
     /** @description Request body for country_list */
@@ -2282,10 +2317,10 @@ export interface operations {
          *   "arguments": {}
          * }
          */
-        "application/json": {
+        'application/json': {
           /** @enum {string} */
-          tool: "country_list";
-          arguments: components["schemas"]["ListCountriesInput"];
+          tool: 'country_list';
+          arguments: components['schemas']['ListCountriesInput'];
         };
       };
     };
@@ -2293,28 +2328,28 @@ export interface operations {
       /** @description Successful response */
       200: {
         content: {
-          "application/json": {
-            content: components["schemas"]["MCPContent"][];
-            structuredContent: components["schemas"]["CountryList"];
+          'application/json': {
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['CountryList'];
           };
         };
       };
       /** @description Bad request */
       400: {
         content: {
-          "application/json": components["schemas"]["BadRequest"];
+          'application/json': components['schemas']['BadRequest'];
         };
       };
       /** @description Unauthorized */
       401: {
         content: {
-          "application/json": components["schemas"]["Unauthorized"];
+          'application/json': components['schemas']['Unauthorized'];
         };
       };
       /** @description Internal server error */
       500: {
         content: {
-          "application/json": components["schemas"]["InternalError"];
+          'application/json': components['schemas']['InternalError'];
         };
       };
     };
@@ -2327,7 +2362,7 @@ export interface operations {
     parameters: {
       header: {
         /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
-        "mcp-session-id": string;
+        'mcp-session-id': string;
       };
     };
     /** @description Request body for language_list */
@@ -2339,10 +2374,10 @@ export interface operations {
          *   "arguments": {}
          * }
          */
-        "application/json": {
+        'application/json': {
           /** @enum {string} */
-          tool: "language_list";
-          arguments: components["schemas"]["ListLanguagesInput"];
+          tool: 'language_list';
+          arguments: components['schemas']['ListLanguagesInput'];
         };
       };
     };
@@ -2350,28 +2385,28 @@ export interface operations {
       /** @description Successful response */
       200: {
         content: {
-          "application/json": {
-            content: components["schemas"]["MCPContent"][];
-            structuredContent: components["schemas"]["LanguageList"];
+          'application/json': {
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['LanguageList'];
           };
         };
       };
       /** @description Bad request */
       400: {
         content: {
-          "application/json": components["schemas"]["BadRequest"];
+          'application/json': components['schemas']['BadRequest'];
         };
       };
       /** @description Unauthorized */
       401: {
         content: {
-          "application/json": components["schemas"]["Unauthorized"];
+          'application/json': components['schemas']['Unauthorized'];
         };
       };
       /** @description Internal server error */
       500: {
         content: {
-          "application/json": components["schemas"]["InternalError"];
+          'application/json': components['schemas']['InternalError'];
         };
       };
     };
@@ -2384,7 +2419,7 @@ export interface operations {
     parameters: {
       header: {
         /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
-        "mcp-session-id": string;
+        'mcp-session-id': string;
       };
     };
     /** @description Request body for creative_sync_sales_agents */
@@ -2398,10 +2433,10 @@ export interface operations {
          *   }
          * }
          */
-        "application/json": {
+        'application/json': {
           /** @enum {string} */
-          tool: "creative_sync_sales_agents";
-          arguments: components["schemas"]["SyncSalesAgentsInput"];
+          tool: 'creative_sync_sales_agents';
+          arguments: components['schemas']['SyncSalesAgentsInput'];
         };
       };
     };
@@ -2409,28 +2444,28 @@ export interface operations {
       /** @description Successful response */
       200: {
         content: {
-          "application/json": {
-            content: components["schemas"]["MCPContent"][];
-            structuredContent: components["schemas"]["CreativeSyncSalesAgents"];
+          'application/json': {
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['CreativeSyncSalesAgents'];
           };
         };
       };
       /** @description Bad request */
       400: {
         content: {
-          "application/json": components["schemas"]["BadRequest"];
+          'application/json': components['schemas']['BadRequest'];
         };
       };
       /** @description Unauthorized */
       401: {
         content: {
-          "application/json": components["schemas"]["Unauthorized"];
+          'application/json': components['schemas']['Unauthorized'];
         };
       };
       /** @description Internal server error */
       500: {
         content: {
-          "application/json": components["schemas"]["InternalError"];
+          'application/json': components['schemas']['InternalError'];
         };
       };
     };
@@ -2443,7 +2478,7 @@ export interface operations {
     parameters: {
       header: {
         /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
-        "mcp-session-id": string;
+        'mcp-session-id': string;
       };
     };
     /** @description Request body for media_buy_create */
@@ -2460,10 +2495,10 @@ export interface operations {
          *   }
          * }
          */
-        "application/json": {
+        'application/json': {
           /** @enum {string} */
-          tool: "media_buy_create";
-          arguments: components["schemas"]["CreateMediaBuyInput"];
+          tool: 'media_buy_create';
+          arguments: components['schemas']['CreateMediaBuyInput'];
         };
       };
     };
@@ -2471,28 +2506,28 @@ export interface operations {
       /** @description Successful response */
       200: {
         content: {
-          "application/json": {
-            content: components["schemas"]["MCPContent"][];
-            structuredContent: components["schemas"]["MediaBuyGetOutput"];
+          'application/json': {
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['MediaBuyGetOutput'];
           };
         };
       };
       /** @description Bad request */
       400: {
         content: {
-          "application/json": components["schemas"]["BadRequest"];
+          'application/json': components['schemas']['BadRequest'];
         };
       };
       /** @description Unauthorized */
       401: {
         content: {
-          "application/json": components["schemas"]["Unauthorized"];
+          'application/json': components['schemas']['Unauthorized'];
         };
       };
       /** @description Internal server error */
       500: {
         content: {
-          "application/json": components["schemas"]["InternalError"];
+          'application/json': components['schemas']['InternalError'];
         };
       };
     };
@@ -2505,7 +2540,7 @@ export interface operations {
     parameters: {
       header: {
         /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
-        "mcp-session-id": string;
+        'mcp-session-id': string;
       };
     };
     /** @description Request body for media_buy_update */
@@ -2519,10 +2554,10 @@ export interface operations {
          *   }
          * }
          */
-        "application/json": {
+        'application/json': {
           /** @enum {string} */
-          tool: "media_buy_update";
-          arguments: components["schemas"]["UpdateMediaBuyInput"];
+          tool: 'media_buy_update';
+          arguments: components['schemas']['UpdateMediaBuyInput'];
         };
       };
     };
@@ -2530,28 +2565,28 @@ export interface operations {
       /** @description Successful response */
       200: {
         content: {
-          "application/json": {
-            content: components["schemas"]["MCPContent"][];
-            structuredContent: components["schemas"]["MediaBuyGetOutput"];
+          'application/json': {
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['MediaBuyGetOutput'];
           };
         };
       };
       /** @description Bad request */
       400: {
         content: {
-          "application/json": components["schemas"]["BadRequest"];
+          'application/json': components['schemas']['BadRequest'];
         };
       };
       /** @description Unauthorized */
       401: {
         content: {
-          "application/json": components["schemas"]["Unauthorized"];
+          'application/json': components['schemas']['Unauthorized'];
         };
       };
       /** @description Internal server error */
       500: {
         content: {
-          "application/json": components["schemas"]["InternalError"];
+          'application/json': components['schemas']['InternalError'];
         };
       };
     };
@@ -2564,7 +2599,7 @@ export interface operations {
     parameters: {
       header: {
         /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
-        "mcp-session-id": string;
+        'mcp-session-id': string;
       };
     };
     /** @description Request body for media_buy_delete */
@@ -2579,10 +2614,10 @@ export interface operations {
          *   }
          * }
          */
-        "application/json": {
+        'application/json': {
           /** @enum {string} */
-          tool: "media_buy_delete";
-          arguments: components["schemas"]["DeleteMediaBuyInput"];
+          tool: 'media_buy_delete';
+          arguments: components['schemas']['DeleteMediaBuyInput'];
         };
       };
     };
@@ -2590,28 +2625,28 @@ export interface operations {
       /** @description Successful response */
       200: {
         content: {
-          "application/json": {
-            content: components["schemas"]["MCPContent"][];
-            structuredContent: components["schemas"]["MediaBuyDelete"];
+          'application/json': {
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['MediaBuyDelete'];
           };
         };
       };
       /** @description Bad request */
       400: {
         content: {
-          "application/json": components["schemas"]["BadRequest"];
+          'application/json': components['schemas']['BadRequest'];
         };
       };
       /** @description Unauthorized */
       401: {
         content: {
-          "application/json": components["schemas"]["Unauthorized"];
+          'application/json': components['schemas']['Unauthorized'];
         };
       };
       /** @description Internal server error */
       500: {
         content: {
-          "application/json": components["schemas"]["InternalError"];
+          'application/json': components['schemas']['InternalError'];
         };
       };
     };
@@ -2624,7 +2659,7 @@ export interface operations {
     parameters: {
       header: {
         /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
-        "mcp-session-id": string;
+        'mcp-session-id': string;
       };
     };
     /** @description Request body for media_buy_execute */
@@ -2638,10 +2673,10 @@ export interface operations {
          *   }
          * }
          */
-        "application/json": {
+        'application/json': {
           /** @enum {string} */
-          tool: "media_buy_execute";
-          arguments: components["schemas"]["ExecuteMediaBuyInput"];
+          tool: 'media_buy_execute';
+          arguments: components['schemas']['ExecuteMediaBuyInput'];
         };
       };
     };
@@ -2649,28 +2684,28 @@ export interface operations {
       /** @description Successful response */
       200: {
         content: {
-          "application/json": {
-            content: components["schemas"]["MCPContent"][];
-            structuredContent: components["schemas"]["MediaBuyExecute"];
+          'application/json': {
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['MediaBuyExecute'];
           };
         };
       };
       /** @description Bad request */
       400: {
         content: {
-          "application/json": components["schemas"]["BadRequest"];
+          'application/json': components['schemas']['BadRequest'];
         };
       };
       /** @description Unauthorized */
       401: {
         content: {
-          "application/json": components["schemas"]["Unauthorized"];
+          'application/json': components['schemas']['Unauthorized'];
         };
       };
       /** @description Internal server error */
       500: {
         content: {
-          "application/json": components["schemas"]["InternalError"];
+          'application/json': components['schemas']['InternalError'];
         };
       };
     };
@@ -2683,7 +2718,7 @@ export interface operations {
     parameters: {
       header: {
         /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
-        "mcp-session-id": string;
+        'mcp-session-id': string;
       };
     };
     /** @description Request body for media_buy_get */
@@ -2697,10 +2732,10 @@ export interface operations {
          *   }
          * }
          */
-        "application/json": {
+        'application/json': {
           /** @enum {string} */
-          tool: "media_buy_get";
-          arguments: components["schemas"]["GetMediaBuyInput"];
+          tool: 'media_buy_get';
+          arguments: components['schemas']['GetMediaBuyInput'];
         };
       };
     };
@@ -2708,28 +2743,28 @@ export interface operations {
       /** @description Successful response */
       200: {
         content: {
-          "application/json": {
-            content: components["schemas"]["MCPContent"][];
-            structuredContent: components["schemas"]["MediaBuyGetOutput"];
+          'application/json': {
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['MediaBuyGetOutput'];
           };
         };
       };
       /** @description Bad request */
       400: {
         content: {
-          "application/json": components["schemas"]["BadRequest"];
+          'application/json': components['schemas']['BadRequest'];
         };
       };
       /** @description Unauthorized */
       401: {
         content: {
-          "application/json": components["schemas"]["Unauthorized"];
+          'application/json': components['schemas']['Unauthorized'];
         };
       };
       /** @description Internal server error */
       500: {
         content: {
-          "application/json": components["schemas"]["InternalError"];
+          'application/json': components['schemas']['InternalError'];
         };
       };
     };
@@ -2742,7 +2777,7 @@ export interface operations {
     parameters: {
       header: {
         /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
-        "mcp-session-id": string;
+        'mcp-session-id': string;
       };
     };
     /** @description Request body for media_buy_list */
@@ -2754,10 +2789,10 @@ export interface operations {
          *   "arguments": {}
          * }
          */
-        "application/json": {
+        'application/json': {
           /** @enum {string} */
-          tool: "media_buy_list";
-          arguments: components["schemas"]["ListMediaBuysInput"];
+          tool: 'media_buy_list';
+          arguments: components['schemas']['ListMediaBuysInput'];
         };
       };
     };
@@ -2765,28 +2800,28 @@ export interface operations {
       /** @description Successful response */
       200: {
         content: {
-          "application/json": {
-            content: components["schemas"]["MCPContent"][];
-            structuredContent: components["schemas"]["MediaBuyList"];
+          'application/json': {
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['MediaBuyList'];
           };
         };
       };
       /** @description Bad request */
       400: {
         content: {
-          "application/json": components["schemas"]["BadRequest"];
+          'application/json': components['schemas']['BadRequest'];
         };
       };
       /** @description Unauthorized */
       401: {
         content: {
-          "application/json": components["schemas"]["Unauthorized"];
+          'application/json': components['schemas']['Unauthorized'];
         };
       };
       /** @description Internal server error */
       500: {
         content: {
-          "application/json": components["schemas"]["InternalError"];
+          'application/json': components['schemas']['InternalError'];
         };
       };
     };
@@ -2799,7 +2834,7 @@ export interface operations {
     parameters: {
       header: {
         /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
-        "mcp-session-id": string;
+        'mcp-session-id': string;
       };
     };
     /** @description Request body for media_buy_validate_budget */
@@ -2814,10 +2849,10 @@ export interface operations {
          *   }
          * }
          */
-        "application/json": {
+        'application/json': {
           /** @enum {string} */
-          tool: "media_buy_validate_budget";
-          arguments: components["schemas"]["ValidateMediaBuyBudgetInput"];
+          tool: 'media_buy_validate_budget';
+          arguments: components['schemas']['ValidateMediaBuyBudgetInput'];
         };
       };
     };
@@ -2825,28 +2860,28 @@ export interface operations {
       /** @description Successful response */
       200: {
         content: {
-          "application/json": {
-            content: components["schemas"]["MCPContent"][];
-            structuredContent: components["schemas"]["MediaBuyValidateBudget"];
+          'application/json': {
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['MediaBuyValidateBudget'];
           };
         };
       };
       /** @description Bad request */
       400: {
         content: {
-          "application/json": components["schemas"]["BadRequest"];
+          'application/json': components['schemas']['BadRequest'];
         };
       };
       /** @description Unauthorized */
       401: {
         content: {
-          "application/json": components["schemas"]["Unauthorized"];
+          'application/json': components['schemas']['Unauthorized'];
         };
       };
       /** @description Internal server error */
       500: {
         content: {
-          "application/json": components["schemas"]["InternalError"];
+          'application/json': components['schemas']['InternalError'];
         };
       };
     };
@@ -2859,7 +2894,7 @@ export interface operations {
     parameters: {
       header: {
         /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
-        "mcp-session-id": string;
+        'mcp-session-id': string;
       };
     };
     /** @description Request body for notifications_list */
@@ -2871,10 +2906,10 @@ export interface operations {
          *   "arguments": {}
          * }
          */
-        "application/json": {
+        'application/json': {
           /** @enum {string} */
-          tool: "notifications_list";
-          arguments: components["schemas"]["ListNotificationsInput"];
+          tool: 'notifications_list';
+          arguments: components['schemas']['ListNotificationsInput'];
         };
       };
     };
@@ -2882,28 +2917,28 @@ export interface operations {
       /** @description Successful response */
       200: {
         content: {
-          "application/json": {
-            content: components["schemas"]["MCPContent"][];
-            structuredContent: components["schemas"]["NotificationsList"];
+          'application/json': {
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['NotificationsList'];
           };
         };
       };
       /** @description Bad request */
       400: {
         content: {
-          "application/json": components["schemas"]["BadRequest"];
+          'application/json': components['schemas']['BadRequest'];
         };
       };
       /** @description Unauthorized */
       401: {
         content: {
-          "application/json": components["schemas"]["Unauthorized"];
+          'application/json': components['schemas']['Unauthorized'];
         };
       };
       /** @description Internal server error */
       500: {
         content: {
-          "application/json": components["schemas"]["InternalError"];
+          'application/json': components['schemas']['InternalError'];
         };
       };
     };
@@ -2916,7 +2951,7 @@ export interface operations {
     parameters: {
       header: {
         /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
-        "mcp-session-id": string;
+        'mcp-session-id': string;
       };
     };
     /** @description Request body for notifications_mark_read */
@@ -2930,10 +2965,10 @@ export interface operations {
          *   }
          * }
          */
-        "application/json": {
+        'application/json': {
           /** @enum {string} */
-          tool: "notifications_mark_read";
-          arguments: components["schemas"]["MarkNotificationReadInput"];
+          tool: 'notifications_mark_read';
+          arguments: components['schemas']['MarkNotificationReadInput'];
         };
       };
     };
@@ -2941,28 +2976,28 @@ export interface operations {
       /** @description Successful response */
       200: {
         content: {
-          "application/json": {
-            content: components["schemas"]["MCPContent"][];
-            structuredContent: components["schemas"]["NotificationsMarkRead"];
+          'application/json': {
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['NotificationsMarkRead'];
           };
         };
       };
       /** @description Bad request */
       400: {
         content: {
-          "application/json": components["schemas"]["BadRequest"];
+          'application/json': components['schemas']['BadRequest'];
         };
       };
       /** @description Unauthorized */
       401: {
         content: {
-          "application/json": components["schemas"]["Unauthorized"];
+          'application/json': components['schemas']['Unauthorized'];
         };
       };
       /** @description Internal server error */
       500: {
         content: {
-          "application/json": components["schemas"]["InternalError"];
+          'application/json': components['schemas']['InternalError'];
         };
       };
     };
@@ -2975,7 +3010,7 @@ export interface operations {
     parameters: {
       header: {
         /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
-        "mcp-session-id": string;
+        'mcp-session-id': string;
       };
     };
     /** @description Request body for notifications_mark_acknowledged */
@@ -2989,10 +3024,10 @@ export interface operations {
          *   }
          * }
          */
-        "application/json": {
+        'application/json': {
           /** @enum {string} */
-          tool: "notifications_mark_acknowledged";
-          arguments: components["schemas"]["MarkNotificationAcknowledgedInput"];
+          tool: 'notifications_mark_acknowledged';
+          arguments: components['schemas']['MarkNotificationAcknowledgedInput'];
         };
       };
     };
@@ -3000,28 +3035,28 @@ export interface operations {
       /** @description Successful response */
       200: {
         content: {
-          "application/json": {
-            content: components["schemas"]["MCPContent"][];
-            structuredContent: components["schemas"]["NotificationsMarkAcknowledged"];
+          'application/json': {
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['NotificationsMarkAcknowledged'];
           };
         };
       };
       /** @description Bad request */
       400: {
         content: {
-          "application/json": components["schemas"]["BadRequest"];
+          'application/json': components['schemas']['BadRequest'];
         };
       };
       /** @description Unauthorized */
       401: {
         content: {
-          "application/json": components["schemas"]["Unauthorized"];
+          'application/json': components['schemas']['Unauthorized'];
         };
       };
       /** @description Internal server error */
       500: {
         content: {
-          "application/json": components["schemas"]["InternalError"];
+          'application/json': components['schemas']['InternalError'];
         };
       };
     };
@@ -3034,7 +3069,7 @@ export interface operations {
     parameters: {
       header: {
         /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
-        "mcp-session-id": string;
+        'mcp-session-id': string;
       };
     };
     /** @description Request body for notifications_mark_all_read */
@@ -3046,10 +3081,10 @@ export interface operations {
          *   "arguments": {}
          * }
          */
-        "application/json": {
+        'application/json': {
           /** @enum {string} */
-          tool: "notifications_mark_all_read";
-          arguments: components["schemas"]["MarkAllNotificationsReadInput"];
+          tool: 'notifications_mark_all_read';
+          arguments: components['schemas']['MarkAllNotificationsReadInput'];
         };
       };
     };
@@ -3057,28 +3092,28 @@ export interface operations {
       /** @description Successful response */
       200: {
         content: {
-          "application/json": {
-            content: components["schemas"]["MCPContent"][];
-            structuredContent: components["schemas"]["NotificationsMarkAllRead"];
+          'application/json': {
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['NotificationsMarkAllRead'];
           };
         };
       };
       /** @description Bad request */
       400: {
         content: {
-          "application/json": components["schemas"]["BadRequest"];
+          'application/json': components['schemas']['BadRequest'];
         };
       };
       /** @description Unauthorized */
       401: {
         content: {
-          "application/json": components["schemas"]["Unauthorized"];
+          'application/json': components['schemas']['Unauthorized'];
         };
       };
       /** @description Internal server error */
       500: {
         content: {
-          "application/json": components["schemas"]["InternalError"];
+          'application/json': components['schemas']['InternalError'];
         };
       };
     };
@@ -3091,7 +3126,7 @@ export interface operations {
     parameters: {
       header: {
         /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
-        "mcp-session-id": string;
+        'mcp-session-id': string;
       };
     };
     /** @description Request body for media_product_discover */
@@ -3106,10 +3141,10 @@ export interface operations {
          *   }
          * }
          */
-        "application/json": {
+        'application/json': {
           /** @enum {string} */
-          tool: "media_product_discover";
-          arguments: components["schemas"]["DiscoverProductsInput"];
+          tool: 'media_product_discover';
+          arguments: components['schemas']['DiscoverProductsInput'];
         };
       };
     };
@@ -3117,28 +3152,28 @@ export interface operations {
       /** @description Successful response */
       200: {
         content: {
-          "application/json": {
-            content: components["schemas"]["MCPContent"][];
-            structuredContent: components["schemas"]["MediaProductDiscover"];
+          'application/json': {
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['MediaProductDiscover'];
           };
         };
       };
       /** @description Bad request */
       400: {
         content: {
-          "application/json": components["schemas"]["BadRequest"];
+          'application/json': components['schemas']['BadRequest'];
         };
       };
       /** @description Unauthorized */
       401: {
         content: {
-          "application/json": components["schemas"]["Unauthorized"];
+          'application/json': components['schemas']['Unauthorized'];
         };
       };
       /** @description Internal server error */
       500: {
         content: {
-          "application/json": components["schemas"]["InternalError"];
+          'application/json': components['schemas']['InternalError'];
         };
       };
     };
@@ -3151,7 +3186,7 @@ export interface operations {
     parameters: {
       header: {
         /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
-        "mcp-session-id": string;
+        'mcp-session-id': string;
       };
     };
     /** @description Request body for media_product_save */
@@ -3172,10 +3207,10 @@ export interface operations {
          *   }
          * }
          */
-        "application/json": {
+        'application/json': {
           /** @enum {string} */
-          tool: "media_product_save";
-          arguments: components["schemas"]["SaveProductInput"];
+          tool: 'media_product_save';
+          arguments: components['schemas']['SaveProductInput'];
         };
       };
     };
@@ -3183,28 +3218,28 @@ export interface operations {
       /** @description Successful response */
       200: {
         content: {
-          "application/json": {
-            content: components["schemas"]["MCPContent"][];
-            structuredContent: components["schemas"]["MediaProductSave"];
+          'application/json': {
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['MediaProductSave'];
           };
         };
       };
       /** @description Bad request */
       400: {
         content: {
-          "application/json": components["schemas"]["BadRequest"];
+          'application/json': components['schemas']['BadRequest'];
         };
       };
       /** @description Unauthorized */
       401: {
         content: {
-          "application/json": components["schemas"]["Unauthorized"];
+          'application/json': components['schemas']['Unauthorized'];
         };
       };
       /** @description Internal server error */
       500: {
         content: {
-          "application/json": components["schemas"]["InternalError"];
+          'application/json': components['schemas']['InternalError'];
         };
       };
     };
@@ -3217,7 +3252,7 @@ export interface operations {
     parameters: {
       header: {
         /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
-        "mcp-session-id": string;
+        'mcp-session-id': string;
       };
     };
     /** @description Request body for media_product_list */
@@ -3229,10 +3264,10 @@ export interface operations {
          *   "arguments": {}
          * }
          */
-        "application/json": {
+        'application/json': {
           /** @enum {string} */
-          tool: "media_product_list";
-          arguments: components["schemas"]["ListProductsInput"];
+          tool: 'media_product_list';
+          arguments: components['schemas']['ListProductsInput'];
         };
       };
     };
@@ -3240,28 +3275,28 @@ export interface operations {
       /** @description Successful response */
       200: {
         content: {
-          "application/json": {
-            content: components["schemas"]["MCPContent"][];
-            structuredContent: components["schemas"]["MediaProductList"];
+          'application/json': {
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['MediaProductList'];
           };
         };
       };
       /** @description Bad request */
       400: {
         content: {
-          "application/json": components["schemas"]["BadRequest"];
+          'application/json': components['schemas']['BadRequest'];
         };
       };
       /** @description Unauthorized */
       401: {
         content: {
-          "application/json": components["schemas"]["Unauthorized"];
+          'application/json': components['schemas']['Unauthorized'];
         };
       };
       /** @description Internal server error */
       500: {
         content: {
-          "application/json": components["schemas"]["InternalError"];
+          'application/json': components['schemas']['InternalError'];
         };
       };
     };
@@ -3274,7 +3309,7 @@ export interface operations {
     parameters: {
       header: {
         /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
-        "mcp-session-id": string;
+        'mcp-session-id': string;
       };
     };
     /** @description Request body for media_product_sync */
@@ -3288,10 +3323,10 @@ export interface operations {
          *   }
          * }
          */
-        "application/json": {
+        'application/json': {
           /** @enum {string} */
-          tool: "media_product_sync";
-          arguments: components["schemas"]["SyncProductsInput"];
+          tool: 'media_product_sync';
+          arguments: components['schemas']['SyncProductsInput'];
         };
       };
     };
@@ -3299,28 +3334,28 @@ export interface operations {
       /** @description Successful response */
       200: {
         content: {
-          "application/json": {
-            content: components["schemas"]["MCPContent"][];
-            structuredContent: components["schemas"]["MediaProductSync"];
+          'application/json': {
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['MediaProductSync'];
           };
         };
       };
       /** @description Bad request */
       400: {
         content: {
-          "application/json": components["schemas"]["BadRequest"];
+          'application/json': components['schemas']['BadRequest'];
         };
       };
       /** @description Unauthorized */
       401: {
         content: {
-          "application/json": components["schemas"]["Unauthorized"];
+          'application/json': components['schemas']['Unauthorized'];
         };
       };
       /** @description Internal server error */
       500: {
         content: {
-          "application/json": components["schemas"]["InternalError"];
+          'application/json': components['schemas']['InternalError'];
         };
       };
     };
@@ -3333,7 +3368,7 @@ export interface operations {
     parameters: {
       header: {
         /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
-        "mcp-session-id": string;
+        'mcp-session-id': string;
       };
     };
     /** @description Request body for agent_get */
@@ -3347,10 +3382,10 @@ export interface operations {
          *   }
          * }
          */
-        "application/json": {
+        'application/json': {
           /** @enum {string} */
-          tool: "agent_get";
-          arguments: components["schemas"]["GetAgentInput"];
+          tool: 'agent_get';
+          arguments: components['schemas']['GetAgentInput'];
         };
       };
     };
@@ -3358,28 +3393,28 @@ export interface operations {
       /** @description Successful response */
       200: {
         content: {
-          "application/json": {
-            content: components["schemas"]["MCPContent"][];
-            structuredContent: components["schemas"]["AgentGet"];
+          'application/json': {
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['AgentGet'];
           };
         };
       };
       /** @description Bad request */
       400: {
         content: {
-          "application/json": components["schemas"]["BadRequest"];
+          'application/json': components['schemas']['BadRequest'];
         };
       };
       /** @description Unauthorized */
       401: {
         content: {
-          "application/json": components["schemas"]["Unauthorized"];
+          'application/json': components['schemas']['Unauthorized'];
         };
       };
       /** @description Internal server error */
       500: {
         content: {
-          "application/json": components["schemas"]["InternalError"];
+          'application/json': components['schemas']['InternalError'];
         };
       };
     };
@@ -3392,7 +3427,7 @@ export interface operations {
     parameters: {
       header: {
         /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
-        "mcp-session-id": string;
+        'mcp-session-id': string;
       };
     };
     /** @description Request body for agent_list */
@@ -3404,10 +3439,10 @@ export interface operations {
          *   "arguments": {}
          * }
          */
-        "application/json": {
+        'application/json': {
           /** @enum {string} */
-          tool: "agent_list";
-          arguments: components["schemas"]["ListAgentsInput"];
+          tool: 'agent_list';
+          arguments: components['schemas']['ListAgentsInput'];
         };
       };
     };
@@ -3415,28 +3450,28 @@ export interface operations {
       /** @description Successful response */
       200: {
         content: {
-          "application/json": {
-            content: components["schemas"]["MCPContent"][];
-            structuredContent: components["schemas"]["AgentList"];
+          'application/json': {
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['AgentList'];
           };
         };
       };
       /** @description Bad request */
       400: {
         content: {
-          "application/json": components["schemas"]["BadRequest"];
+          'application/json': components['schemas']['BadRequest'];
         };
       };
       /** @description Unauthorized */
       401: {
         content: {
-          "application/json": components["schemas"]["Unauthorized"];
+          'application/json': components['schemas']['Unauthorized'];
         };
       };
       /** @description Internal server error */
       500: {
         content: {
-          "application/json": components["schemas"]["InternalError"];
+          'application/json': components['schemas']['InternalError'];
         };
       };
     };
@@ -3449,7 +3484,7 @@ export interface operations {
     parameters: {
       header: {
         /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
-        "mcp-session-id": string;
+        'mcp-session-id': string;
       };
     };
     /** @description Request body for agent_register */
@@ -3466,10 +3501,10 @@ export interface operations {
          *   }
          * }
          */
-        "application/json": {
+        'application/json': {
           /** @enum {string} */
-          tool: "agent_register";
-          arguments: components["schemas"]["RegisterAgentInput"];
+          tool: 'agent_register';
+          arguments: components['schemas']['RegisterAgentInput'];
         };
       };
     };
@@ -3477,28 +3512,28 @@ export interface operations {
       /** @description Successful response */
       200: {
         content: {
-          "application/json": {
-            content: components["schemas"]["MCPContent"][];
-            structuredContent: components["schemas"]["AgentRegister"];
+          'application/json': {
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['AgentRegister'];
           };
         };
       };
       /** @description Bad request */
       400: {
         content: {
-          "application/json": components["schemas"]["BadRequest"];
+          'application/json': components['schemas']['BadRequest'];
         };
       };
       /** @description Unauthorized */
       401: {
         content: {
-          "application/json": components["schemas"]["Unauthorized"];
+          'application/json': components['schemas']['Unauthorized'];
         };
       };
       /** @description Internal server error */
       500: {
         content: {
-          "application/json": components["schemas"]["InternalError"];
+          'application/json': components['schemas']['InternalError'];
         };
       };
     };
@@ -3511,7 +3546,7 @@ export interface operations {
     parameters: {
       header: {
         /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
-        "mcp-session-id": string;
+        'mcp-session-id': string;
       };
     };
     /** @description Request body for agent_unregister */
@@ -3525,10 +3560,10 @@ export interface operations {
          *   }
          * }
          */
-        "application/json": {
+        'application/json': {
           /** @enum {string} */
-          tool: "agent_unregister";
-          arguments: components["schemas"]["UnregisterAgentInput"];
+          tool: 'agent_unregister';
+          arguments: components['schemas']['UnregisterAgentInput'];
         };
       };
     };
@@ -3536,28 +3571,28 @@ export interface operations {
       /** @description Successful response */
       200: {
         content: {
-          "application/json": {
-            content: components["schemas"]["MCPContent"][];
-            structuredContent: components["schemas"]["AgentUnregister"];
+          'application/json': {
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['AgentUnregister'];
           };
         };
       };
       /** @description Bad request */
       400: {
         content: {
-          "application/json": components["schemas"]["BadRequest"];
+          'application/json': components['schemas']['BadRequest'];
         };
       };
       /** @description Unauthorized */
       401: {
         content: {
-          "application/json": components["schemas"]["Unauthorized"];
+          'application/json': components['schemas']['Unauthorized'];
         };
       };
       /** @description Internal server error */
       500: {
         content: {
-          "application/json": components["schemas"]["InternalError"];
+          'application/json': components['schemas']['InternalError'];
         };
       };
     };
@@ -3570,7 +3605,7 @@ export interface operations {
     parameters: {
       header: {
         /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
-        "mcp-session-id": string;
+        'mcp-session-id': string;
       };
     };
     /** @description Request body for agent_update */
@@ -3584,10 +3619,10 @@ export interface operations {
          *   }
          * }
          */
-        "application/json": {
+        'application/json': {
           /** @enum {string} */
-          tool: "agent_update";
-          arguments: components["schemas"]["UpdateAgentInput"];
+          tool: 'agent_update';
+          arguments: components['schemas']['UpdateAgentInput'];
         };
       };
     };
@@ -3595,28 +3630,28 @@ export interface operations {
       /** @description Successful response */
       200: {
         content: {
-          "application/json": {
-            content: components["schemas"]["MCPContent"][];
-            structuredContent: components["schemas"]["AgentUpdate"];
+          'application/json': {
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['AgentUpdate'];
           };
         };
       };
       /** @description Bad request */
       400: {
         content: {
-          "application/json": components["schemas"]["BadRequest"];
+          'application/json': components['schemas']['BadRequest'];
         };
       };
       /** @description Unauthorized */
       401: {
         content: {
-          "application/json": components["schemas"]["Unauthorized"];
+          'application/json': components['schemas']['Unauthorized'];
         };
       };
       /** @description Internal server error */
       500: {
         content: {
-          "application/json": components["schemas"]["InternalError"];
+          'application/json': components['schemas']['InternalError'];
         };
       };
     };
@@ -3629,7 +3664,7 @@ export interface operations {
     parameters: {
       header: {
         /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
-        "mcp-session-id": string;
+        'mcp-session-id': string;
       };
     };
     /** @description Request body for tactic_create */
@@ -3644,10 +3679,10 @@ export interface operations {
          *   }
          * }
          */
-        "application/json": {
+        'application/json': {
           /** @enum {string} */
-          tool: "tactic_create";
-          arguments: components["schemas"]["CreateTacticInput"];
+          tool: 'tactic_create';
+          arguments: components['schemas']['CreateTacticInput'];
         };
       };
     };
@@ -3655,28 +3690,28 @@ export interface operations {
       /** @description Successful response */
       200: {
         content: {
-          "application/json": {
-            content: components["schemas"]["MCPContent"][];
-            structuredContent: components["schemas"]["TacticCreate"];
+          'application/json': {
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['TacticCreate'];
           };
         };
       };
       /** @description Bad request */
       400: {
         content: {
-          "application/json": components["schemas"]["BadRequest"];
+          'application/json': components['schemas']['BadRequest'];
         };
       };
       /** @description Unauthorized */
       401: {
         content: {
-          "application/json": components["schemas"]["Unauthorized"];
+          'application/json': components['schemas']['Unauthorized'];
         };
       };
       /** @description Internal server error */
       500: {
         content: {
-          "application/json": components["schemas"]["InternalError"];
+          'application/json': components['schemas']['InternalError'];
         };
       };
     };
@@ -3689,7 +3724,7 @@ export interface operations {
     parameters: {
       header: {
         /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
-        "mcp-session-id": string;
+        'mcp-session-id': string;
       };
     };
     /** @description Request body for tactic_update */
@@ -3703,10 +3738,10 @@ export interface operations {
          *   }
          * }
          */
-        "application/json": {
+        'application/json': {
           /** @enum {string} */
-          tool: "tactic_update";
-          arguments: components["schemas"]["UpdateTacticInput"];
+          tool: 'tactic_update';
+          arguments: components['schemas']['UpdateTacticInput'];
         };
       };
     };
@@ -3714,28 +3749,28 @@ export interface operations {
       /** @description Successful response */
       200: {
         content: {
-          "application/json": {
-            content: components["schemas"]["MCPContent"][];
-            structuredContent: components["schemas"]["TacticGetOutput"];
+          'application/json': {
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['TacticGetOutput'];
           };
         };
       };
       /** @description Bad request */
       400: {
         content: {
-          "application/json": components["schemas"]["BadRequest"];
+          'application/json': components['schemas']['BadRequest'];
         };
       };
       /** @description Unauthorized */
       401: {
         content: {
-          "application/json": components["schemas"]["Unauthorized"];
+          'application/json': components['schemas']['Unauthorized'];
         };
       };
       /** @description Internal server error */
       500: {
         content: {
-          "application/json": components["schemas"]["InternalError"];
+          'application/json': components['schemas']['InternalError'];
         };
       };
     };
@@ -3748,7 +3783,7 @@ export interface operations {
     parameters: {
       header: {
         /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
-        "mcp-session-id": string;
+        'mcp-session-id': string;
       };
     };
     /** @description Request body for tactic_delete */
@@ -3763,10 +3798,10 @@ export interface operations {
          *   }
          * }
          */
-        "application/json": {
+        'application/json': {
           /** @enum {string} */
-          tool: "tactic_delete";
-          arguments: components["schemas"]["DeleteTacticInput"];
+          tool: 'tactic_delete';
+          arguments: components['schemas']['DeleteTacticInput'];
         };
       };
     };
@@ -3774,28 +3809,28 @@ export interface operations {
       /** @description Successful response */
       200: {
         content: {
-          "application/json": {
-            content: components["schemas"]["MCPContent"][];
-            structuredContent: components["schemas"]["TacticDelete"];
+          'application/json': {
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['TacticDelete'];
           };
         };
       };
       /** @description Bad request */
       400: {
         content: {
-          "application/json": components["schemas"]["BadRequest"];
+          'application/json': components['schemas']['BadRequest'];
         };
       };
       /** @description Unauthorized */
       401: {
         content: {
-          "application/json": components["schemas"]["Unauthorized"];
+          'application/json': components['schemas']['Unauthorized'];
         };
       };
       /** @description Internal server error */
       500: {
         content: {
-          "application/json": components["schemas"]["InternalError"];
+          'application/json': components['schemas']['InternalError'];
         };
       };
     };
@@ -3808,7 +3843,7 @@ export interface operations {
     parameters: {
       header: {
         /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
-        "mcp-session-id": string;
+        'mcp-session-id': string;
       };
     };
     /** @description Request body for tactic_get */
@@ -3822,10 +3857,10 @@ export interface operations {
          *   }
          * }
          */
-        "application/json": {
+        'application/json': {
           /** @enum {string} */
-          tool: "tactic_get";
-          arguments: components["schemas"]["GetTacticInput"];
+          tool: 'tactic_get';
+          arguments: components['schemas']['GetTacticInput'];
         };
       };
     };
@@ -3833,28 +3868,28 @@ export interface operations {
       /** @description Successful response */
       200: {
         content: {
-          "application/json": {
-            content: components["schemas"]["MCPContent"][];
-            structuredContent: components["schemas"]["TacticGetOutput"];
+          'application/json': {
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['TacticGetOutput'];
           };
         };
       };
       /** @description Bad request */
       400: {
         content: {
-          "application/json": components["schemas"]["BadRequest"];
+          'application/json': components['schemas']['BadRequest'];
         };
       };
       /** @description Unauthorized */
       401: {
         content: {
-          "application/json": components["schemas"]["Unauthorized"];
+          'application/json': components['schemas']['Unauthorized'];
         };
       };
       /** @description Internal server error */
       500: {
         content: {
-          "application/json": components["schemas"]["InternalError"];
+          'application/json': components['schemas']['InternalError'];
         };
       };
     };
@@ -3867,7 +3902,7 @@ export interface operations {
     parameters: {
       header: {
         /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
-        "mcp-session-id": string;
+        'mcp-session-id': string;
       };
     };
     /** @description Request body for tactic_list */
@@ -3879,10 +3914,10 @@ export interface operations {
          *   "arguments": {}
          * }
          */
-        "application/json": {
+        'application/json': {
           /** @enum {string} */
-          tool: "tactic_list";
-          arguments: components["schemas"]["ListTacticsInput"];
+          tool: 'tactic_list';
+          arguments: components['schemas']['ListTacticsInput'];
         };
       };
     };
@@ -3890,28 +3925,28 @@ export interface operations {
       /** @description Successful response */
       200: {
         content: {
-          "application/json": {
-            content: components["schemas"]["MCPContent"][];
-            structuredContent: components["schemas"]["TacticList"];
+          'application/json': {
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['TacticList'];
           };
         };
       };
       /** @description Bad request */
       400: {
         content: {
-          "application/json": components["schemas"]["BadRequest"];
+          'application/json': components['schemas']['BadRequest'];
         };
       };
       /** @description Unauthorized */
       401: {
         content: {
-          "application/json": components["schemas"]["Unauthorized"];
+          'application/json': components['schemas']['Unauthorized'];
         };
       };
       /** @description Internal server error */
       500: {
         content: {
-          "application/json": components["schemas"]["InternalError"];
+          'application/json': components['schemas']['InternalError'];
         };
       };
     };
@@ -3924,7 +3959,7 @@ export interface operations {
     parameters: {
       header: {
         /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
-        "mcp-session-id": string;
+        'mcp-session-id': string;
       };
     };
     /** @description Request body for tactic_link_campaign */
@@ -3939,10 +3974,10 @@ export interface operations {
          *   }
          * }
          */
-        "application/json": {
+        'application/json': {
           /** @enum {string} */
-          tool: "tactic_link_campaign";
-          arguments: components["schemas"]["LinkCampaignToTacticInput"];
+          tool: 'tactic_link_campaign';
+          arguments: components['schemas']['LinkCampaignToTacticInput'];
         };
       };
     };
@@ -3950,28 +3985,28 @@ export interface operations {
       /** @description Successful response */
       200: {
         content: {
-          "application/json": {
-            content: components["schemas"]["MCPContent"][];
-            structuredContent: components["schemas"]["TacticLinkCampaign"];
+          'application/json': {
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['TacticLinkCampaign'];
           };
         };
       };
       /** @description Bad request */
       400: {
         content: {
-          "application/json": components["schemas"]["BadRequest"];
+          'application/json': components['schemas']['BadRequest'];
         };
       };
       /** @description Unauthorized */
       401: {
         content: {
-          "application/json": components["schemas"]["Unauthorized"];
+          'application/json': components['schemas']['Unauthorized'];
         };
       };
       /** @description Internal server error */
       500: {
         content: {
-          "application/json": components["schemas"]["InternalError"];
+          'application/json': components['schemas']['InternalError'];
         };
       };
     };
@@ -3984,7 +4019,7 @@ export interface operations {
     parameters: {
       header: {
         /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
-        "mcp-session-id": string;
+        'mcp-session-id': string;
       };
     };
     /** @description Request body for tactic_unlink_campaign */
@@ -3999,10 +4034,10 @@ export interface operations {
          *   }
          * }
          */
-        "application/json": {
+        'application/json': {
           /** @enum {string} */
-          tool: "tactic_unlink_campaign";
-          arguments: components["schemas"]["UnlinkCampaignFromTacticInput"];
+          tool: 'tactic_unlink_campaign';
+          arguments: components['schemas']['UnlinkCampaignFromTacticInput'];
         };
       };
     };
@@ -4010,28 +4045,28 @@ export interface operations {
       /** @description Successful response */
       200: {
         content: {
-          "application/json": {
-            content: components["schemas"]["MCPContent"][];
-            structuredContent: components["schemas"]["TacticUnlinkCampaign"];
+          'application/json': {
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['TacticUnlinkCampaign'];
           };
         };
       };
       /** @description Bad request */
       400: {
         content: {
-          "application/json": components["schemas"]["BadRequest"];
+          'application/json': components['schemas']['BadRequest'];
         };
       };
       /** @description Unauthorized */
       401: {
         content: {
-          "application/json": components["schemas"]["Unauthorized"];
+          'application/json': components['schemas']['Unauthorized'];
         };
       };
       /** @description Internal server error */
       500: {
         content: {
-          "application/json": components["schemas"]["InternalError"];
+          'application/json': components['schemas']['InternalError'];
         };
       };
     };
@@ -4044,7 +4079,7 @@ export interface operations {
     parameters: {
       header: {
         /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
-        "mcp-session-id": string;
+        'mcp-session-id': string;
       };
     };
     /** @description Request body for webhook_register */
@@ -4062,10 +4097,10 @@ export interface operations {
          *   }
          * }
          */
-        "application/json": {
+        'application/json': {
           /** @enum {string} */
-          tool: "webhook_register";
-          arguments: components["schemas"]["RegisterWebhookInput"];
+          tool: 'webhook_register';
+          arguments: components['schemas']['RegisterWebhookInput'];
         };
       };
     };
@@ -4073,28 +4108,28 @@ export interface operations {
       /** @description Successful response */
       200: {
         content: {
-          "application/json": {
-            content: components["schemas"]["MCPContent"][];
-            structuredContent: components["schemas"]["WebhookRegister"];
+          'application/json': {
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['WebhookRegister'];
           };
         };
       };
       /** @description Bad request */
       400: {
         content: {
-          "application/json": components["schemas"]["BadRequest"];
+          'application/json': components['schemas']['BadRequest'];
         };
       };
       /** @description Unauthorized */
       401: {
         content: {
-          "application/json": components["schemas"]["Unauthorized"];
+          'application/json': components['schemas']['Unauthorized'];
         };
       };
       /** @description Internal server error */
       500: {
         content: {
-          "application/json": components["schemas"]["InternalError"];
+          'application/json': components['schemas']['InternalError'];
         };
       };
     };
@@ -4107,7 +4142,7 @@ export interface operations {
     parameters: {
       header: {
         /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
-        "mcp-session-id": string;
+        'mcp-session-id': string;
       };
     };
     /** @description Request body for webhook_list */
@@ -4119,10 +4154,10 @@ export interface operations {
          *   "arguments": {}
          * }
          */
-        "application/json": {
+        'application/json': {
           /** @enum {string} */
-          tool: "webhook_list";
-          arguments: components["schemas"]["ListWebhooksInput"];
+          tool: 'webhook_list';
+          arguments: components['schemas']['ListWebhooksInput'];
         };
       };
     };
@@ -4130,28 +4165,28 @@ export interface operations {
       /** @description Successful response */
       200: {
         content: {
-          "application/json": {
-            content: components["schemas"]["MCPContent"][];
-            structuredContent: components["schemas"]["WebhookList"];
+          'application/json': {
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['WebhookList'];
           };
         };
       };
       /** @description Bad request */
       400: {
         content: {
-          "application/json": components["schemas"]["BadRequest"];
+          'application/json': components['schemas']['BadRequest'];
         };
       };
       /** @description Unauthorized */
       401: {
         content: {
-          "application/json": components["schemas"]["Unauthorized"];
+          'application/json': components['schemas']['Unauthorized'];
         };
       };
       /** @description Internal server error */
       500: {
         content: {
-          "application/json": components["schemas"]["InternalError"];
+          'application/json': components['schemas']['InternalError'];
         };
       };
     };
@@ -4164,7 +4199,7 @@ export interface operations {
     parameters: {
       header: {
         /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
-        "mcp-session-id": string;
+        'mcp-session-id': string;
       };
     };
     /** @description Request body for webhook_delete */
@@ -4178,10 +4213,10 @@ export interface operations {
          *   }
          * }
          */
-        "application/json": {
+        'application/json': {
           /** @enum {string} */
-          tool: "webhook_delete";
-          arguments: components["schemas"]["DeleteWebhookInput"];
+          tool: 'webhook_delete';
+          arguments: components['schemas']['DeleteWebhookInput'];
         };
       };
     };
@@ -4189,28 +4224,28 @@ export interface operations {
       /** @description Successful response */
       200: {
         content: {
-          "application/json": {
-            content: components["schemas"]["MCPContent"][];
-            structuredContent: components["schemas"]["WebhookDelete"];
+          'application/json': {
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['WebhookDelete'];
           };
         };
       };
       /** @description Bad request */
       400: {
         content: {
-          "application/json": components["schemas"]["BadRequest"];
+          'application/json': components['schemas']['BadRequest'];
         };
       };
       /** @description Unauthorized */
       401: {
         content: {
-          "application/json": components["schemas"]["Unauthorized"];
+          'application/json': components['schemas']['Unauthorized'];
         };
       };
       /** @description Internal server error */
       500: {
         content: {
-          "application/json": components["schemas"]["InternalError"];
+          'application/json': components['schemas']['InternalError'];
         };
       };
     };
@@ -4223,7 +4258,7 @@ export interface operations {
     parameters: {
       header: {
         /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
-        "mcp-session-id": string;
+        'mcp-session-id': string;
       };
     };
     /** @description Request body for service_token_create */
@@ -4237,10 +4272,10 @@ export interface operations {
          *   }
          * }
          */
-        "application/json": {
+        'application/json': {
           /** @enum {string} */
-          tool: "service_token_create";
-          arguments: components["schemas"]["CreateServiceTokenInput"];
+          tool: 'service_token_create';
+          arguments: components['schemas']['CreateServiceTokenInput'];
         };
       };
     };
@@ -4248,28 +4283,28 @@ export interface operations {
       /** @description Successful response */
       200: {
         content: {
-          "application/json": {
-            content: components["schemas"]["MCPContent"][];
-            structuredContent: components["schemas"]["CreateServiceTokenOutput"];
+          'application/json': {
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['CreateServiceTokenOutput'];
           };
         };
       };
       /** @description Bad request */
       400: {
         content: {
-          "application/json": components["schemas"]["BadRequest"];
+          'application/json': components['schemas']['BadRequest'];
         };
       };
       /** @description Unauthorized */
       401: {
         content: {
-          "application/json": components["schemas"]["Unauthorized"];
+          'application/json': components['schemas']['Unauthorized'];
         };
       };
       /** @description Internal server error */
       500: {
         content: {
-          "application/json": components["schemas"]["InternalError"];
+          'application/json': components['schemas']['InternalError'];
         };
       };
     };
@@ -4282,7 +4317,7 @@ export interface operations {
     parameters: {
       header: {
         /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
-        "mcp-session-id": string;
+        'mcp-session-id': string;
       };
     };
     /** @description Request body for service_token_list */
@@ -4294,10 +4329,10 @@ export interface operations {
          *   "arguments": {}
          * }
          */
-        "application/json": {
+        'application/json': {
           /** @enum {string} */
-          tool: "service_token_list";
-          arguments: components["schemas"]["ListServiceTokensInput"];
+          tool: 'service_token_list';
+          arguments: components['schemas']['ListServiceTokensInput'];
         };
       };
     };
@@ -4305,28 +4340,28 @@ export interface operations {
       /** @description Successful response */
       200: {
         content: {
-          "application/json": {
-            content: components["schemas"]["MCPContent"][];
-            structuredContent: components["schemas"]["ListServiceTokensOutput"];
+          'application/json': {
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['ListServiceTokensOutput'];
           };
         };
       };
       /** @description Bad request */
       400: {
         content: {
-          "application/json": components["schemas"]["BadRequest"];
+          'application/json': components['schemas']['BadRequest'];
         };
       };
       /** @description Unauthorized */
       401: {
         content: {
-          "application/json": components["schemas"]["Unauthorized"];
+          'application/json': components['schemas']['Unauthorized'];
         };
       };
       /** @description Internal server error */
       500: {
         content: {
-          "application/json": components["schemas"]["InternalError"];
+          'application/json': components['schemas']['InternalError'];
         };
       };
     };
@@ -4339,7 +4374,7 @@ export interface operations {
     parameters: {
       header: {
         /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
-        "mcp-session-id": string;
+        'mcp-session-id': string;
       };
     };
     /** @description Request body for service_token_get */
@@ -4353,10 +4388,10 @@ export interface operations {
          *   }
          * }
          */
-        "application/json": {
+        'application/json': {
           /** @enum {string} */
-          tool: "service_token_get";
-          arguments: components["schemas"]["GetServiceTokenInput"];
+          tool: 'service_token_get';
+          arguments: components['schemas']['GetServiceTokenInput'];
         };
       };
     };
@@ -4364,28 +4399,28 @@ export interface operations {
       /** @description Successful response */
       200: {
         content: {
-          "application/json": {
-            content: components["schemas"]["MCPContent"][];
-            structuredContent: components["schemas"]["GetServiceTokenOutput"];
+          'application/json': {
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['GetServiceTokenOutput'];
           };
         };
       };
       /** @description Bad request */
       400: {
         content: {
-          "application/json": components["schemas"]["BadRequest"];
+          'application/json': components['schemas']['BadRequest'];
         };
       };
       /** @description Unauthorized */
       401: {
         content: {
-          "application/json": components["schemas"]["Unauthorized"];
+          'application/json': components['schemas']['Unauthorized'];
         };
       };
       /** @description Internal server error */
       500: {
         content: {
-          "application/json": components["schemas"]["InternalError"];
+          'application/json': components['schemas']['InternalError'];
         };
       };
     };
@@ -4398,7 +4433,7 @@ export interface operations {
     parameters: {
       header: {
         /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
-        "mcp-session-id": string;
+        'mcp-session-id': string;
       };
     };
     /** @description Request body for service_token_update */
@@ -4412,10 +4447,10 @@ export interface operations {
          *   }
          * }
          */
-        "application/json": {
+        'application/json': {
           /** @enum {string} */
-          tool: "service_token_update";
-          arguments: components["schemas"]["UpdateServiceTokenInput"];
+          tool: 'service_token_update';
+          arguments: components['schemas']['UpdateServiceTokenInput'];
         };
       };
     };
@@ -4423,28 +4458,28 @@ export interface operations {
       /** @description Successful response */
       200: {
         content: {
-          "application/json": {
-            content: components["schemas"]["MCPContent"][];
-            structuredContent: components["schemas"]["UpdateServiceTokenOutput"];
+          'application/json': {
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['UpdateServiceTokenOutput'];
           };
         };
       };
       /** @description Bad request */
       400: {
         content: {
-          "application/json": components["schemas"]["BadRequest"];
+          'application/json': components['schemas']['BadRequest'];
         };
       };
       /** @description Unauthorized */
       401: {
         content: {
-          "application/json": components["schemas"]["Unauthorized"];
+          'application/json': components['schemas']['Unauthorized'];
         };
       };
       /** @description Internal server error */
       500: {
         content: {
-          "application/json": components["schemas"]["InternalError"];
+          'application/json': components['schemas']['InternalError'];
         };
       };
     };
@@ -4457,7 +4492,7 @@ export interface operations {
     parameters: {
       header: {
         /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
-        "mcp-session-id": string;
+        'mcp-session-id': string;
       };
     };
     /** @description Request body for service_token_archive */
@@ -4471,10 +4506,10 @@ export interface operations {
          *   }
          * }
          */
-        "application/json": {
+        'application/json': {
           /** @enum {string} */
-          tool: "service_token_archive";
-          arguments: components["schemas"]["ArchiveServiceTokenInput"];
+          tool: 'service_token_archive';
+          arguments: components['schemas']['ArchiveServiceTokenInput'];
         };
       };
     };
@@ -4482,28 +4517,28 @@ export interface operations {
       /** @description Successful response */
       200: {
         content: {
-          "application/json": {
-            content: components["schemas"]["MCPContent"][];
-            structuredContent: components["schemas"]["ArchiveServiceTokenOutput"];
+          'application/json': {
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['ArchiveServiceTokenOutput'];
           };
         };
       };
       /** @description Bad request */
       400: {
         content: {
-          "application/json": components["schemas"]["BadRequest"];
+          'application/json': components['schemas']['BadRequest'];
         };
       };
       /** @description Unauthorized */
       401: {
         content: {
-          "application/json": components["schemas"]["Unauthorized"];
+          'application/json': components['schemas']['Unauthorized'];
         };
       };
       /** @description Internal server error */
       500: {
         content: {
-          "application/json": components["schemas"]["InternalError"];
+          'application/json': components['schemas']['InternalError'];
         };
       };
     };
@@ -4516,7 +4551,7 @@ export interface operations {
     parameters: {
       header: {
         /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
-        "mcp-session-id": string;
+        'mcp-session-id': string;
       };
     };
     /** @description Request body for customer_get */
@@ -4528,10 +4563,10 @@ export interface operations {
          *   "arguments": {}
          * }
          */
-        "application/json": {
+        'application/json': {
           /** @enum {string} */
-          tool: "customer_get";
-          arguments: components["schemas"]["GetCustomerInput"];
+          tool: 'customer_get';
+          arguments: components['schemas']['GetCustomerInput'];
         };
       };
     };
@@ -4539,28 +4574,28 @@ export interface operations {
       /** @description Successful response */
       200: {
         content: {
-          "application/json": {
-            content: components["schemas"]["MCPContent"][];
-            structuredContent: components["schemas"]["GetCustomerOutput"];
+          'application/json': {
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['GetCustomerOutput'];
           };
         };
       };
       /** @description Bad request */
       400: {
         content: {
-          "application/json": components["schemas"]["BadRequest"];
+          'application/json': components['schemas']['BadRequest'];
         };
       };
       /** @description Unauthorized */
       401: {
         content: {
-          "application/json": components["schemas"]["Unauthorized"];
+          'application/json': components['schemas']['Unauthorized'];
         };
       };
       /** @description Internal server error */
       500: {
         content: {
-          "application/json": components["schemas"]["InternalError"];
+          'application/json': components['schemas']['InternalError'];
         };
       };
     };
@@ -4573,7 +4608,7 @@ export interface operations {
     parameters: {
       header: {
         /** @description MCP session identifier (UUID). Initialize your session using the /mcp-initialize endpoint first to obtain a session ID, then reuse it for all subsequent tool requests in the same session. */
-        "mcp-session-id": string;
+        'mcp-session-id': string;
       };
     };
     /** @description Request body for customer_get_seats */
@@ -4585,10 +4620,10 @@ export interface operations {
          *   "arguments": {}
          * }
          */
-        "application/json": {
+        'application/json': {
           /** @enum {string} */
-          tool: "customer_get_seats";
-          arguments: components["schemas"]["GetCustomerSeatsInput"];
+          tool: 'customer_get_seats';
+          arguments: components['schemas']['GetCustomerSeatsInput'];
         };
       };
     };
@@ -4596,28 +4631,28 @@ export interface operations {
       /** @description Successful response */
       200: {
         content: {
-          "application/json": {
-            content: components["schemas"]["MCPContent"][];
-            structuredContent: components["schemas"]["GetCustomerSeatsOutput"];
+          'application/json': {
+            content: components['schemas']['MCPContent'][];
+            structuredContent: components['schemas']['GetCustomerSeatsOutput'];
           };
         };
       };
       /** @description Bad request */
       400: {
         content: {
-          "application/json": components["schemas"]["BadRequest"];
+          'application/json': components['schemas']['BadRequest'];
         };
       };
       /** @description Unauthorized */
       401: {
         content: {
-          "application/json": components["schemas"]["Unauthorized"];
+          'application/json': components['schemas']['Unauthorized'];
         };
       };
       /** @description Internal server error */
       500: {
         content: {
-          "application/json": components["schemas"]["InternalError"];
+          'application/json': components['schemas']['InternalError'];
         };
       };
     };

@@ -8,7 +8,9 @@ export class MediaBuysResource {
    * Create media buy
    * Create a new media buy with budget, targeting, and creative specifications.
    */
-  async create(params: operations['media_buy_create']['requestBody']['content']['application/json']): Promise<operations['media_buy_create']['responses'][200]['content']['application/json']> {
+  async create(
+    params: operations['media_buy_create']['requestBody']['content']['application/json']
+  ): Promise<operations['media_buy_create']['responses'][200]['content']['application/json']> {
     return this.client['callTool']('media_buy_create', params);
   }
 
@@ -16,7 +18,9 @@ export class MediaBuysResource {
    * Update media buy
    * Update an existing media buy with new budget, targeting, or creative assignments.
    */
-  async update(params: operations['media_buy_update']['requestBody']['content']['application/json']): Promise<operations['media_buy_update']['responses'][200]['content']['application/json']> {
+  async update(
+    params: operations['media_buy_update']['requestBody']['content']['application/json']
+  ): Promise<operations['media_buy_update']['responses'][200]['content']['application/json']> {
     return this.client['callTool']('media_buy_update', params);
   }
 
@@ -24,7 +28,9 @@ export class MediaBuysResource {
    * Delete media buy
    * Delete a media buy and cancel any active placements.
    */
-  async delete(params: operations['media_buy_delete']['requestBody']['content']['application/json']): Promise<operations['media_buy_delete']['responses'][200]['content']['application/json']> {
+  async delete(
+    params: operations['media_buy_delete']['requestBody']['content']['application/json']
+  ): Promise<operations['media_buy_delete']['responses'][200]['content']['application/json']> {
     return this.client['callTool']('media_buy_delete', params);
   }
 
@@ -32,7 +38,9 @@ export class MediaBuysResource {
    * Execute media buy
    * Execute a media buy, sending it to the configured sales agents for placement.
    */
-  async execute(params: operations['media_buy_execute']['requestBody']['content']['application/json']): Promise<operations['media_buy_execute']['responses'][200]['content']['application/json']> {
+  async execute(
+    params: operations['media_buy_execute']['requestBody']['content']['application/json']
+  ): Promise<operations['media_buy_execute']['responses'][200]['content']['application/json']> {
     return this.client['callTool']('media_buy_execute', params);
   }
 
@@ -40,7 +48,9 @@ export class MediaBuysResource {
    * Get media buy
    * Get detailed information about a specific media buy.
    */
-  async get(params: operations['media_buy_get']['requestBody']['content']['application/json']): Promise<operations['media_buy_get']['responses'][200]['content']['application/json']> {
+  async get(
+    params: operations['media_buy_get']['requestBody']['content']['application/json']
+  ): Promise<operations['media_buy_get']['responses'][200]['content']['application/json']> {
     return this.client['callTool']('media_buy_get', params);
   }
 
@@ -48,7 +58,9 @@ export class MediaBuysResource {
    * List media buys
    * List all media buys with optional filtering by brand agent, campaign, or status.
    */
-  async list(params: operations['media_buy_list']['requestBody']['content']['application/json']): Promise<operations['media_buy_list']['responses'][200]['content']['application/json']> {
+  async list(
+    params: operations['media_buy_list']['requestBody']['content']['application/json']
+  ): Promise<operations['media_buy_list']['responses'][200]['content']['application/json']> {
     return this.client['callTool']('media_buy_list', params);
   }
 
@@ -56,8 +68,11 @@ export class MediaBuysResource {
    * Validate media buy budget
    * Validate a media buy budget against campaign constraints and available funds.
    */
-  async validateBudget(params: operations['media_buy_validate_budget']['requestBody']['content']['application/json']): Promise<operations['media_buy_validate_budget']['responses'][200]['content']['application/json']> {
+  async validateBudget(
+    params: operations['media_buy_validate_budget']['requestBody']['content']['application/json']
+  ): Promise<
+    operations['media_buy_validate_budget']['responses'][200]['content']['application/json']
+  > {
     return this.client['callTool']('media_buy_validate_budget', params);
   }
-
 }

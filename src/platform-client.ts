@@ -18,9 +18,9 @@ import { CustomersResource } from './resources/platform/customers';
 
 /**
  * Scope3 Platform API
- * 
+ *
  * API for brand advertisers to manage brand agents, campaigns, creatives, and discover marketplace offerings.
- * 
+ *
  * This API provides buyers with tools to:
  * - Manage brand agents and campaign briefs
  * - Create and manage creatives

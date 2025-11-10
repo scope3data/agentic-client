@@ -8,8 +8,9 @@ export class MediaProductsResource {
    * List media products
    * List saved media products with optional filtering.
    */
-  async list(params: operations['media_product_list']['requestBody']['content']['application/json']): Promise<operations['media_product_list']['responses'][200]['content']['application/json']> {
+  async list(
+    params: operations['media_product_list']['requestBody']['content']['application/json']
+  ): Promise<operations['media_product_list']['responses'][200]['content']['application/json']> {
     return this.client['callTool']('media_product_list', params);
   }
-
 }

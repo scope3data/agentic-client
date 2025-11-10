@@ -8,7 +8,9 @@ export class TacticsResource {
    * Get tactic
    * Get detailed information about a specific tactic.
    */
-  async get(params: operations['tactic_get']['requestBody']['content']['application/json']): Promise<operations['tactic_get']['responses'][200]['content']['application/json']> {
+  async get(
+    params: operations['tactic_get']['requestBody']['content']['application/json']
+  ): Promise<operations['tactic_get']['responses'][200]['content']['application/json']> {
     return this.client['callTool']('tactic_get', params);
   }
 
@@ -16,8 +18,9 @@ export class TacticsResource {
    * List tactics
    * List all tactics with optional filtering by brand agent or campaign.
    */
-  async list(params: operations['tactic_list']['requestBody']['content']['application/json']): Promise<operations['tactic_list']['responses'][200]['content']['application/json']> {
+  async list(
+    params: operations['tactic_list']['requestBody']['content']['application/json']
+  ): Promise<operations['tactic_list']['responses'][200]['content']['application/json']> {
     return this.client['callTool']('tactic_list', params);
   }
-
 }

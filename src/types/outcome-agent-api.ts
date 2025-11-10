@@ -3,9 +3,8 @@
  * Do not make direct changes to the file.
  */
 
-
 export interface paths {
-  "/get-proposals": {
+  '/get-proposals': {
     /**
      * Get proposals from your agent
      * @description Scope3 calls this endpoint when setting up a campaign to ask for proposals
@@ -14,9 +13,9 @@ export interface paths {
      * Analyze the campaign and respond with proposals, budget capacity,
      * and your pricing model.
      */
-    post: operations["get_proposed_tactics"];
+    post: operations['get_proposed_tactics'];
   };
-  "/accept-proposal": {
+  '/accept-proposal': {
     /**
      * Accept or decline proposal assignment
      * @description Scope3 calls this when your proposal is accepted and you are assigned to manage a tactic.
@@ -25,7 +24,7 @@ export interface paths {
      * The campaign context contains everything you need: budget, schedule,
      * targeting constraints, creatives, and any custom fields.
      */
-    post: operations["accept_proposal"];
+    post: operations['accept_proposal'];
   };
 }
 
@@ -58,7 +57,7 @@ export interface components {
        * @example revshare
        * @enum {string}
        */
-      method: "revshare" | "cost_per_unit";
+      method: 'revshare' | 'cost_per_unit';
       /**
        * @description Rate for the pricing method (e.g., 0.15 for 15% revshare, 2.50 for $2.50 CPM)
        * @example 0.15
@@ -69,7 +68,7 @@ export interface components {
        * @example cpm
        * @enum {string}
        */
-      unit?: "cpm" | "cpc" | "cpa" | "cpv" | "cpcv";
+      unit?: 'cpm' | 'cpc' | 'cpa' | 'cpv' | 'cpcv';
       /**
        * @description Currency for pricing (ISO 4217 code)
        * @default USD
@@ -88,7 +87,7 @@ export interface components {
        * @example number
        * @enum {string}
        */
-      fieldType?: "string" | "number" | "boolean" | "array" | "object";
+      fieldType?: 'string' | 'number' | 'boolean' | 'array' | 'object';
       /**
        * @description Help text explaining what this field does
        * @example Target vCPM in USD
@@ -119,7 +118,7 @@ export interface components {
        * @example camp_123
        */
       campaignId: string;
-      budgetRange?: components["schemas"]["BudgetRange"];
+      budgetRange?: components['schemas']['BudgetRange'];
       /**
        * Format: date-time
        * @description Campaign start date in UTC (ISO 8601 format)
@@ -139,7 +138,7 @@ export interface components {
        *   "video"
        * ]
        */
-      channels?: ("display" | "video" | "native" | "audio" | "connected_tv")[];
+      channels?: ('display' | 'video' | 'native' | 'audio' | 'connected_tv')[];
       /**
        * @description ISO 3166-1 alpha-2 country codes
        * @example [
@@ -154,7 +153,7 @@ export interface components {
        */
       brief?: string;
       /** @description Optional product objects to include in proposals (full product details, not just IDs) */
-      products?: components["schemas"]["Product"][];
+      products?: components['schemas']['Product'][];
       /**
        * @description Optional property list IDs for targeting (references Scope3 property lists)
        * @example [
@@ -185,14 +184,14 @@ export interface components {
        * @example 50000
        */
       budgetCapacity: number;
-      pricing: components["schemas"]["TacticPricing"];
+      pricing: components['schemas']['TacticPricing'];
       /**
        * @description Identifier for this tactic type
        * @example premium-vcpm
        */
       sku?: string;
       /** @description Custom fields needed to execute this proposal */
-      customFieldsRequired?: components["schemas"]["CustomField"][];
+      customFieldsRequired?: components['schemas']['CustomField'][];
       /**
        * @description Generic blob to store additional information about the proposal that will be passed back when accepted
        * @example {
@@ -207,7 +206,7 @@ export interface components {
     };
     GetProposalsResponse: {
       /** @description List of proposals you can provide (empty array if none) */
-      proposals?: components["schemas"]["Proposal"][];
+      proposals?: components['schemas']['Proposal'][];
     };
     CampaignContext: {
       /**
@@ -238,7 +237,7 @@ export interface components {
        * @example display
        * @enum {string}
        */
-      channel?: "display" | "video" | "native" | "audio" | "connected_tv";
+      channel?: 'display' | 'video' | 'native' | 'audio' | 'connected_tv';
       /**
        * @description Target countries
        * @example [
@@ -247,9 +246,9 @@ export interface components {
        */
       countries?: string[];
       /** @description Creative assets to use (uses Creative from main schema) */
-      creatives?: components["schemas"]["Creative"][];
+      creatives?: components['schemas']['Creative'][];
       /** @description Brand safety and suitability requirements (uses BrandStandard from main schema) */
-      brandStandards?: components["schemas"]["BrandStandard"][];
+      brandStandards?: components['schemas']['BrandStandard'][];
     };
     AcceptProposalRequest: {
       /**
@@ -262,7 +261,7 @@ export interface components {
        * @example premium-vcpm-display
        */
       proposalId?: string;
-      campaignContext: components["schemas"]["CampaignContext"];
+      campaignContext: components['schemas']['CampaignContext'];
       /**
        * @description Brand agent (advertiser) for this campaign
        * @example ba_123
@@ -317,7 +316,6 @@ export type $defs = Record<string, never>;
 export type external = Record<string, never>;
 
 export interface operations {
-
   /**
    * Get proposals from your agent
    * @description Scope3 calls this endpoint when setting up a campaign to ask for proposals
@@ -329,14 +327,14 @@ export interface operations {
   get_proposed_tactics: {
     requestBody: {
       content: {
-        "application/json": components["schemas"]["GetProposalsRequest"];
+        'application/json': components['schemas']['GetProposalsRequest'];
       };
     };
     responses: {
       /** @description Proposals from your agent */
       200: {
         content: {
-          "application/json": components["schemas"]["GetProposalsResponse"];
+          'application/json': components['schemas']['GetProposalsResponse'];
         };
       };
       /** @description Invalid request */
@@ -360,14 +358,14 @@ export interface operations {
   accept_proposal: {
     requestBody: {
       content: {
-        "application/json": components["schemas"]["AcceptProposalRequest"];
+        'application/json': components['schemas']['AcceptProposalRequest'];
       };
     };
     responses: {
       /** @description Acknowledgment of tactic assignment */
       200: {
         content: {
-          "application/json": components["schemas"]["AcceptProposalResponse"];
+          'application/json': components['schemas']['AcceptProposalResponse'];
         };
       };
       /** @description Invalid request */

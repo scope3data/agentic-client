@@ -8,8 +8,9 @@ export class ChannelsResource {
    * List channels
    * List all available advertising channels and platforms.
    */
-  async list(params: operations['channel_list']['requestBody']['content']['application/json']): Promise<operations['channel_list']['responses'][200]['content']['application/json']> {
+  async list(
+    params: operations['channel_list']['requestBody']['content']['application/json']
+  ): Promise<operations['channel_list']['responses'][200]['content']['application/json']> {
     return this.client['callTool']('channel_list', params);
   }
-
 }

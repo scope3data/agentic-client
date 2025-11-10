@@ -14,9 +14,9 @@ import { CustomersResource } from './resources/partner/customers';
 
 /**
  * Scope3 Partner API
- * 
+ *
  * API for partners to register agents, manage tactics and media buys, and configure webhooks.
- * 
+ *
  * This API provides partners with tools to:
  * - Register and manage sales agents (DSPs, publisher platforms)
  * - Full CRUD operations for tactics and media buys
