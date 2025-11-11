@@ -138,10 +138,7 @@ function saveToolsCache(tools: McpTool[]): void {
 }
 
 // Fetch available tools from MCP server
-async function fetchAvailableTools(
-  client: PlatformClient,
-  useCache = true
-): Promise<McpTool[]> {
+async function fetchAvailableTools(client: PlatformClient, useCache = true): Promise<McpTool[]> {
   // Try cache first
   if (useCache) {
     const cache = loadToolsCache();
