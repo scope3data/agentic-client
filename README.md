@@ -83,18 +83,6 @@ const mediaBuy = await partner.mediaBuys.create({
 await partner.mediaBuys.execute({ mediaBuyId: mediaBuy.id });
 ```
 
-### Legacy Client (Backwards Compatibility)
-
-The original `Scope3AgenticClient` is still available for backwards compatibility and maps to the PlatformClient:
-
-```typescript
-import { Scope3AgenticClient } from 'scope3';
-
-const client = new Scope3AgenticClient({
-  apiKey: process.env.SCOPE3_API_KEY,
-});
-```
-
 ## CLI Usage
 
 The CLI dynamically discovers available commands from the API server, ensuring it's always up-to-date.
@@ -139,8 +127,10 @@ scope3 --environment staging campaign list
 
 ## SDK Configuration
 
+Both `PlatformClient` and `PartnerClient` accept the same configuration options:
+
 ```typescript
-const client = new Scope3AgenticClient({
+const client = new PlatformClient({
   apiKey: 'your-api-key',
 
   // Option 1: Use environment (recommended)
@@ -151,6 +141,7 @@ const client = new Scope3AgenticClient({
 
   // Optional settings
   timeout: 30000, // request timeout in ms
+  debug: false, // enable debug logging
 });
 ```
 
@@ -161,94 +152,77 @@ const client = new Scope3AgenticClient({
 
 ## API Resources
 
-The client provides access to all Scope3 API resources:
+### PlatformClient Resources
 
-### Assets
 ```typescript
-await client.assets.upload({ brandAgentId, assets: [...] });
-await client.assets.list({ brandAgentId });
+// Assets
+await platform.assets.upload({ brandAgentId, assets: [...] });
+await platform.assets.list({ brandAgentId });
+
+// Brand Agents
+await platform.brandAgents.list();
+await platform.brandAgents.create({ name: 'My Brand' });
+await platform.brandAgents.get({ brandAgentId });
+await platform.brandAgents.update({ brandAgentId, name: 'Updated Name' });
+await platform.brandAgents.delete({ brandAgentId });
+
+// Campaigns
+await platform.campaigns.list({ status: 'ACTIVE' });
+await platform.campaigns.create({ prompt: '...', budget: {...} });
+await platform.campaigns.update({ campaignId, status: 'PAUSED' });
+await platform.campaigns.getSummary({ campaignId });
+await platform.campaigns.listTactics({ campaignId });
+await platform.campaigns.delete({ campaignId });
+
+// Creatives
+await platform.creatives.list({ brandAgentId });
+await platform.creatives.create({ brandAgentId, name: '...' });
+await platform.creatives.assign({ creativeId, campaignId });
+
+// Tactics
+await platform.tactics.list({ campaignId });
+await platform.tactics.create({ name: '...', campaignId });
+await platform.tactics.update({ tacticId, channelCodes: ['DIGITAL-AUDIO'] });
+
+// Other Resources
+// - platform.brandStandards - Brand safety standards
+// - platform.brandStories - AI-powered audience definitions
+// - platform.channels - Advertising channels
+// - platform.mediaProducts - Media product discovery
+// - platform.targeting - Geographic and demographic targeting
 ```
 
-### Brand Agents
-```typescript
-await client.brandAgents.list();
-await client.brandAgents.create({ name: 'My Brand' });
-await client.brandAgents.get({ brandAgentId });
-await client.brandAgents.update({ brandAgentId, name: 'Updated Name' });
-await client.brandAgents.delete({ brandAgentId });
-```
+### PartnerClient Resources
 
-### Campaigns
 ```typescript
-await client.campaigns.list({ status: 'ACTIVE' });
-await client.campaigns.create({ prompt: '...', budget: {...} });
-await client.campaigns.update({ campaignId, status: 'PAUSED' });
-await client.campaigns.getSummary({ campaignId });
-await client.campaigns.listTactics({ campaignId });
-await client.campaigns.delete({ campaignId });
-```
-
-### Creatives
-```typescript
-await client.creatives.list({ brandAgentId });
-await client.creatives.create({ brandAgentId, name: '...' });
-await client.creatives.assign({ creativeId, campaignId });
-```
-
-### Tactics
-```typescript
-await client.tactics.list({ campaignId });
-await client.tactics.create({ name: '...', campaignId });
-await client.tactics.update({ tacticId, channelCodes: ['DIGITAL-AUDIO'] });
-```
-
-### Media Buys
-```typescript
-await client.mediaBuys.list({ tacticId });
-await client.mediaBuys.create({
+// Media Buys
+await partner.mediaBuys.list({ tacticId });
+await partner.mediaBuys.create({
   tacticId,
   name: '...',
   products: [{ mediaProductId, salesAgentId }],
   budget: { amount: 1000000 },
 });
-await client.mediaBuys.execute({ mediaBuyId });
-```
+await partner.mediaBuys.execute({ mediaBuyId });
 
-### Agents
-```typescript
-// List all agents (sales and outcome)
-await client.agents.list();
-await client.agents.list({ type: 'SALES' });
-await client.agents.list({ type: 'OUTCOME' });
-
-// Register a new agent
-await client.agents.register({
+// Agents (Sales & Outcome)
+await partner.agents.list();
+await partner.agents.list({ type: 'SALES' });
+await partner.agents.register({
   type: 'SALES',
   name: '...',
   endpointUrl: '...',
   protocol: 'MCP',
   authenticationType: 'API_KEY',
 });
+await partner.agents.get({ agentId: '...' });
+await partner.agents.update({ agentId: '...', name: 'Updated Name' });
+await partner.agents.unregister({ agentId: '...' });
 
-// Get agent details
-await client.agents.get({ agentId: '...' });
-
-// Update agent
-await client.agents.update({
-  agentId: '...',
-  name: 'Updated Name',
-});
-
-// Unregister agent
-await client.agents.unregister({ agentId: '...' });
+// Other Resources
+// - partner.products - Media product management
+// - partner.webhooks - Webhook configuration
 ```
-
-### Other Resources
-- `client.brandStandards` - Brand safety standards
-- `client.brandStories` - AI-powered audience definitions
-- `client.channels` - Advertising channels
-- `client.notifications` - System notifications
-- `client.products` - Media product management
 
 ## Webhook Server
 

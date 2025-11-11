@@ -1,7 +1,7 @@
-import { Scope3AgenticClient } from '../src';
+import { PlatformClient } from '../src';
 
 async function main() {
-  const client = new Scope3AgenticClient({
+  const client = new PlatformClient({
     apiKey: process.env.SCOPE3_API_KEY || 'your-api-key',
   });
 
