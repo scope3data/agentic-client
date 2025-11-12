@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { Command } from 'commander';
-import { Scope3AgenticClient } from './sdk';
+import { PlatformClient } from './platform-client';
 import Table from 'cli-table3';
 import chalk from 'chalk';
 import * as fs from 'fs';
@@ -138,10 +138,7 @@ function saveToolsCache(tools: McpTool[]): void {
 }
 
 // Fetch available tools from MCP server
-async function fetchAvailableTools(
-  client: Scope3AgenticClient,
-  useCache = true
-): Promise<McpTool[]> {
+async function fetchAvailableTools(client: PlatformClient, useCache = true): Promise<McpTool[]> {
   // Try cache first
   if (useCache) {
     const cache = loadToolsCache();
@@ -383,7 +380,7 @@ function createClient(
   environment?: 'production' | 'staging',
   baseUrl?: string,
   debug?: boolean
-): Scope3AgenticClient {
+): PlatformClient {
   const config = loadConfig();
 
   // Determine final environment
@@ -416,7 +413,7 @@ function createClient(
     process.exit(1);
   }
 
-  return new Scope3AgenticClient({
+  return new PlatformClient({
     apiKey: finalApiKey,
     environment: finalEnvironment,
     baseUrl: baseUrl || config.baseUrl,

@@ -1,10 +1,10 @@
-import { Scope3AgenticClient } from '../sdk';
+import { PlatformClient } from '../platform-client';
 
-describe('Scope3AgenticClient', () => {
-  let client: Scope3AgenticClient;
+describe('PlatformClient', () => {
+  let client: PlatformClient;
 
   beforeEach(() => {
-    client = new Scope3AgenticClient({
+    client = new PlatformClient({
       apiKey: 'test-api-key',
     });
   });
@@ -24,12 +24,13 @@ describe('Scope3AgenticClient', () => {
     expect(client.creatives).toBeDefined();
     expect(client.tactics).toBeDefined();
     expect(client.mediaBuys).toBeDefined();
-    expect(client.notifications).toBeDefined();
-    expect(client.products).toBeDefined();
+    expect(client.mediaProducts).toBeDefined();
+    expect(client.agents).toBeDefined();
+    expect(client.targeting).toBeDefined();
   });
 
   it('should accept custom base URL', () => {
-    const customClient = new Scope3AgenticClient({
+    const customClient = new PlatformClient({
       apiKey: 'test-api-key',
       baseUrl: 'https://custom.api.com',
     });
@@ -37,7 +38,7 @@ describe('Scope3AgenticClient', () => {
   });
 
   it('should accept custom timeout', () => {
-    const customClient = new Scope3AgenticClient({
+    const customClient = new PlatformClient({
       apiKey: 'test-api-key',
       timeout: 60000,
     });

@@ -8,7 +8,7 @@
  *   SCOPE3_API_KEY=your_key npx ts-node test-media-agent.ts
  */
 
-import { Scope3AgenticClient } from './src/sdk';
+import { PlatformClient } from './src/platform-client';
 import { getProposedTactics } from './src/simple-media-agent/get-proposed-tactics';
 import { manageTactic } from './src/simple-media-agent/manage-tactic';
 
@@ -20,7 +20,7 @@ async function testMediaAgent() {
     process.exit(1);
   }
 
-  const scope3 = new Scope3AgenticClient({
+  const scope3 = new PlatformClient({
     apiKey,
     baseUrl: 'https://api.agentic.scope3.com',
   });

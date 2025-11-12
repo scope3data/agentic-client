@@ -30,6 +30,8 @@ jobs:
 
       - name: Fetch latest OpenAPI schemas
         run: npm run update-schemas
+        env:
+          GITHUB_TOKEN: ${{ secrets.AGENTIC_API_TOKEN || secrets.PAT_TOKEN || secrets.GITHUB_TOKEN }}
 
       - name: Check for changes
         id: git-check
