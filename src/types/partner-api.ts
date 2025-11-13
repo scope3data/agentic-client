@@ -339,8 +339,10 @@ export interface components {
         mediaProductId: string;
         budgetAmount: number;
         budgetCurrency?: string;
-        pricingCpm?: number;
-        pricingSignalCost?: number;
+        /** @enum {string} */
+        budgetPacing?: 'asap' | 'even' | 'front_loaded';
+        bidPrice?: number;
+        pricingOptionId: string;
         displayOrder?: number;
         creatives?: {
           creative_id: string;
@@ -403,9 +405,21 @@ export interface components {
       /** @example [] */
       creativeIds?: string[];
       /** @example [] */
+      products?: {
+        productId: string;
+        budgetAmount?: number;
+        /** @enum {string} */
+        budgetPacing?: 'even' | 'asap';
+        bidPrice?: number | null;
+      }[];
+      /** @example [] */
       packages?: {
         packageId: string;
-        creativeIds: string[];
+        creativeIds?: string[];
+        budgetAmount?: number;
+        /** @enum {string} */
+        pacing?: 'even' | 'asap';
+        bidPrice?: number | null;
       }[];
     };
     DeleteMediaBuyInput: {
@@ -577,11 +591,11 @@ export interface components {
     };
     ListAgentsInput: {
       /**
-       * @description Filter by agent type (SALES or OUTCOME)
+       * @description Filter by agent type (SALES, OUTCOME, or SIGNAL)
        * @example SALES
        * @enum {string}
        */
-      type?: 'SALES' | 'OUTCOME';
+      type?: 'SALES' | 'OUTCOME' | 'SIGNAL';
       /**
        * @description Filter by status (PENDING, ACTIVE, DISABLED)
        * @example PENDING
@@ -611,7 +625,7 @@ export interface components {
        * @example SALES
        * @enum {string}
        */
-      type: 'SALES' | 'OUTCOME';
+      type: 'SALES' | 'OUTCOME' | 'SIGNAL';
       /**
        * @description Agent name
        * @example Example Name
@@ -978,8 +992,6 @@ export interface components {
         salesAgentName?: string;
         budgetAmount?: number;
         budgetCurrency?: string;
-        pricingCpm?: number;
-        pricingSignalCost?: number;
         displayOrder?: number;
         creativeFormats?: {
           agent_url: string;
@@ -1006,8 +1018,6 @@ export interface components {
         updatedAt: string;
         salesAgentId?: string;
         salesAgentName?: string;
-        pricingCpm?: number;
-        pricingSignalCost?: number;
         bidPrice?: number;
         pricingOptionId?: string;
         creativeFormats?: {
@@ -1023,11 +1033,6 @@ export interface components {
         mediaUrl: string;
         status: string;
       }[];
-      pricing: {
-        cpm: number;
-        signalCost?: number;
-        totalCpm: number;
-      };
       /** @example string */
       status: string;
       adcp?: {
@@ -1302,9 +1307,114 @@ export interface components {
               agent_url: string;
               id: string;
             }[];
-        fixedCpm?: number;
-        floorCpm?: number;
-        targetCpm?: number;
+        pricingOptions?: (
+          | {
+              pricing_option_id: string;
+              /** @enum {string} */
+              pricing_model: 'cpm';
+              rate: number;
+              currency: string;
+              min_spend_per_package?: number;
+            }
+          | {
+              pricing_option_id: string;
+              /** @enum {string} */
+              pricing_model: 'cpm';
+              currency: string;
+              price_guidance: {
+                floor: number;
+                p25?: number;
+                p50?: number;
+                p75?: number;
+                p90?: number;
+              };
+              min_spend_per_package?: number;
+            }
+          | {
+              pricing_option_id: string;
+              /** @enum {string} */
+              pricing_model: 'vcpm';
+              rate: number;
+              currency: string;
+              min_spend_per_package?: number;
+            }
+          | {
+              pricing_option_id: string;
+              /** @enum {string} */
+              pricing_model: 'vcpm';
+              currency: string;
+              price_guidance: {
+                floor: number;
+                p25?: number;
+                p50?: number;
+                p75?: number;
+                p90?: number;
+              };
+              min_spend_per_package?: number;
+            }
+          | {
+              pricing_option_id: string;
+              /** @enum {string} */
+              pricing_model: 'cpc';
+              rate: number;
+              currency: string;
+              min_spend_per_package?: number;
+            }
+          | {
+              pricing_option_id: string;
+              /** @enum {string} */
+              pricing_model: 'cpcv';
+              rate: number;
+              currency: string;
+              min_spend_per_package?: number;
+            }
+          | {
+              pricing_option_id: string;
+              /** @enum {string} */
+              pricing_model: 'cpv';
+              rate: number;
+              currency: string;
+              parameters: {
+                view_threshold:
+                  | number
+                  | {
+                      duration_seconds: number;
+                    };
+              };
+              min_spend_per_package?: number;
+            }
+          | {
+              pricing_option_id: string;
+              /** @enum {string} */
+              pricing_model: 'cpp';
+              rate: number;
+              currency: string;
+              parameters: {
+                demographic: string;
+                min_points?: number;
+              };
+              min_spend_per_package?: number;
+            }
+          | {
+              pricing_option_id: string;
+              /** @enum {string} */
+              pricing_model: 'flat_rate';
+              rate: number;
+              currency: string;
+              /** @enum {boolean} */
+              is_fixed: true;
+              parameters?: {
+                duration_hours?: number;
+                sov_percentage?: number;
+                loop_duration_seconds?: number;
+                min_plays_per_hour?: number;
+                venue_package?: string;
+                estimated_impressions?: number;
+                daypart?: string;
+              };
+              min_spend_per_package?: number;
+            }
+        )[];
       }[];
     };
     MediaProductSave: {
@@ -1351,6 +1461,114 @@ export interface components {
               agent_url: string;
               id: string;
             }[];
+        pricingOptions?: (
+          | {
+              pricing_option_id: string;
+              /** @enum {string} */
+              pricing_model: 'cpm';
+              rate: number;
+              currency: string;
+              min_spend_per_package?: number;
+            }
+          | {
+              pricing_option_id: string;
+              /** @enum {string} */
+              pricing_model: 'cpm';
+              currency: string;
+              price_guidance: {
+                floor: number;
+                p25?: number;
+                p50?: number;
+                p75?: number;
+                p90?: number;
+              };
+              min_spend_per_package?: number;
+            }
+          | {
+              pricing_option_id: string;
+              /** @enum {string} */
+              pricing_model: 'vcpm';
+              rate: number;
+              currency: string;
+              min_spend_per_package?: number;
+            }
+          | {
+              pricing_option_id: string;
+              /** @enum {string} */
+              pricing_model: 'vcpm';
+              currency: string;
+              price_guidance: {
+                floor: number;
+                p25?: number;
+                p50?: number;
+                p75?: number;
+                p90?: number;
+              };
+              min_spend_per_package?: number;
+            }
+          | {
+              pricing_option_id: string;
+              /** @enum {string} */
+              pricing_model: 'cpc';
+              rate: number;
+              currency: string;
+              min_spend_per_package?: number;
+            }
+          | {
+              pricing_option_id: string;
+              /** @enum {string} */
+              pricing_model: 'cpcv';
+              rate: number;
+              currency: string;
+              min_spend_per_package?: number;
+            }
+          | {
+              pricing_option_id: string;
+              /** @enum {string} */
+              pricing_model: 'cpv';
+              rate: number;
+              currency: string;
+              parameters: {
+                view_threshold:
+                  | number
+                  | {
+                      duration_seconds: number;
+                    };
+              };
+              min_spend_per_package?: number;
+            }
+          | {
+              pricing_option_id: string;
+              /** @enum {string} */
+              pricing_model: 'cpp';
+              rate: number;
+              currency: string;
+              parameters: {
+                demographic: string;
+                min_points?: number;
+              };
+              min_spend_per_package?: number;
+            }
+          | {
+              pricing_option_id: string;
+              /** @enum {string} */
+              pricing_model: 'flat_rate';
+              rate: number;
+              currency: string;
+              /** @enum {boolean} */
+              is_fixed: true;
+              parameters?: {
+                duration_hours?: number;
+                sov_percentage?: number;
+                loop_duration_seconds?: number;
+                min_plays_per_hour?: number;
+                venue_package?: string;
+                estimated_impressions?: number;
+                daypart?: string;
+              };
+              min_spend_per_package?: number;
+            }
+        )[];
       }[];
     };
     MediaProductSync: {
@@ -1364,7 +1582,7 @@ export interface components {
           agentId: string;
           name: string;
           /** @enum {string} */
-          type: 'SALES' | 'OUTCOME';
+          type: 'SALES' | 'OUTCOME' | 'SIGNAL';
           status: string;
           relationship: string;
           endpointUrl: string;
@@ -1382,7 +1600,7 @@ export interface components {
           agentId: string;
           name: string;
           /** @enum {string} */
-          type: 'SALES' | 'OUTCOME';
+          type: 'SALES' | 'OUTCOME' | 'SIGNAL';
           status: string;
           relationship: string;
           endpointUrl: string;
@@ -1406,7 +1624,7 @@ export interface components {
             agentId: string;
             name: string;
             /** @enum {string} */
-            type: 'SALES' | 'OUTCOME';
+            type: 'SALES' | 'OUTCOME' | 'SIGNAL';
             status: string;
             relationship: string;
             endpointUrl: string;
@@ -1416,7 +1634,7 @@ export interface components {
             agentId: string;
             name: string;
             /** @enum {string} */
-            type: 'SALES' | 'OUTCOME';
+            type: 'SALES' | 'OUTCOME' | 'SIGNAL';
             status: string;
             relationship: string;
             endpointUrl: string;
@@ -1434,7 +1652,7 @@ export interface components {
        * @example SALES
        * @enum {string}
        */
-      type: 'SALES' | 'OUTCOME';
+      type: 'SALES' | 'OUTCOME' | 'SIGNAL';
       /** @example string */
       status: string;
       /** @example https://example.com */
@@ -1449,7 +1667,7 @@ export interface components {
        * @example SALES
        * @enum {string}
        */
-      type: 'SALES' | 'OUTCOME';
+      type: 'SALES' | 'OUTCOME' | 'SIGNAL';
     };
     AgentUpdate: {
       /** @example example_id_123 */
@@ -1460,7 +1678,7 @@ export interface components {
        * @example SALES
        * @enum {string}
        */
-      type: 'SALES' | 'OUTCOME';
+      type: 'SALES' | 'OUTCOME' | 'SIGNAL';
       /** @example string */
       status: string;
     };
@@ -1831,8 +2049,6 @@ export interface components {
         salesAgentName?: string;
         budgetAmount?: number;
         budgetCurrency?: string;
-        pricingCpm?: number;
-        pricingSignalCost?: number;
         displayOrder?: number;
         creativeFormats?: {
           agent_url: string;
@@ -1859,8 +2075,6 @@ export interface components {
         updatedAt: string;
         salesAgentId?: string;
         salesAgentName?: string;
-        pricingCpm?: number;
-        pricingSignalCost?: number;
         bidPrice?: number;
         pricingOptionId?: string;
         creativeFormats?: {
@@ -1876,11 +2090,6 @@ export interface components {
         mediaUrl: string;
         status: string;
       }[];
-      pricing: {
-        cpm: number;
-        signalCost?: number;
-        totalCpm: number;
-      };
       /** @example string */
       status: string;
       adcp?: {
@@ -1960,8 +2169,6 @@ export interface components {
         salesAgentName?: string;
         budgetAmount?: number;
         budgetCurrency?: string;
-        pricingCpm?: number;
-        pricingSignalCost?: number;
         displayOrder?: number;
         creativeFormats?: {
           agent_url: string;
@@ -1988,8 +2195,6 @@ export interface components {
         updatedAt: string;
         salesAgentId?: string;
         salesAgentName?: string;
-        pricingCpm?: number;
-        pricingSignalCost?: number;
         bidPrice?: number;
         pricingOptionId?: string;
         creativeFormats?: {
@@ -2005,11 +2210,6 @@ export interface components {
         mediaUrl: string;
         status: string;
       }[];
-      pricing: {
-        cpm: number;
-        signalCost?: number;
-        totalCpm: number;
-      };
       /** @example string */
       status: string;
       adcp?: {
@@ -2058,8 +2258,6 @@ export interface components {
         salesAgentName?: string;
         budgetAmount?: number;
         budgetCurrency?: string;
-        pricingCpm?: number;
-        pricingSignalCost?: number;
         displayOrder?: number;
         creativeFormats?: {
           agent_url: string;
@@ -2086,8 +2284,6 @@ export interface components {
         updatedAt: string;
         salesAgentId?: string;
         salesAgentName?: string;
-        pricingCpm?: number;
-        pricingSignalCost?: number;
         bidPrice?: number;
         pricingOptionId?: string;
         creativeFormats?: {
@@ -2103,11 +2299,6 @@ export interface components {
         mediaUrl: string;
         status: string;
       }[];
-      pricing: {
-        cpm: number;
-        signalCost?: number;
-        totalCpm: number;
-      };
       /** @example string */
       status: string;
       adcp?: {
