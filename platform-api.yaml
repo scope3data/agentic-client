@@ -4730,11 +4730,12 @@ components:
       type: object
       properties:
         type:
-          description: Filter by agent type (SALES or OUTCOME)
+          description: Filter by agent type (SALES, OUTCOME, or SIGNAL)
           type: string
           enum:
             - SALES
             - OUTCOME
+            - SIGNAL
           example: SALES
         status:
           description: Filter by status (PENDING, ACTIVE, DISABLED)
@@ -5101,10 +5102,6 @@ components:
                 type: number
               budgetCurrency:
                 type: string
-              pricingCpm:
-                type: number
-              pricingSignalCost:
-                type: number
               displayOrder:
                 type: number
               creativeFormats:
@@ -5174,10 +5171,6 @@ components:
                 type: string
               salesAgentName:
                 type: string
-              pricingCpm:
-                type: number
-              pricingSignalCost:
-                type: number
               bidPrice:
                 type: number
               pricingOptionId:
@@ -5226,18 +5219,6 @@ components:
               - mediaUrl
               - status
           example: []
-        pricing:
-          type: object
-          properties:
-            cpm:
-              type: number
-            signalCost:
-              type: number
-            totalCpm:
-              type: number
-          required:
-            - cpm
-            - totalCpm
         status:
           type: string
           example: string
@@ -5291,7 +5272,6 @@ components:
         - tacticId
         - customerId
         - name
-        - pricing
         - status
         - createdAt
         - updatedAt
@@ -6241,6 +6221,269 @@ components:
                         - agent_url
                         - id
                       additionalProperties: false
+              pricingOptions:
+                type: array
+                items:
+                  anyOf:
+                    - type: object
+                      properties:
+                        pricing_option_id:
+                          type: string
+                        pricing_model:
+                          type: string
+                          enum:
+                            - cpm
+                        rate:
+                          type: number
+                        currency:
+                          type: string
+                        min_spend_per_package:
+                          type: number
+                      required:
+                        - pricing_option_id
+                        - pricing_model
+                        - rate
+                        - currency
+                      additionalProperties: false
+                    - type: object
+                      properties:
+                        pricing_option_id:
+                          type: string
+                        pricing_model:
+                          type: string
+                          enum:
+                            - cpm
+                        currency:
+                          type: string
+                        price_guidance:
+                          type: object
+                          properties:
+                            floor:
+                              type: number
+                            p25:
+                              type: number
+                            p50:
+                              type: number
+                            p75:
+                              type: number
+                            p90:
+                              type: number
+                          required:
+                            - floor
+                          additionalProperties: false
+                        min_spend_per_package:
+                          type: number
+                      required:
+                        - pricing_option_id
+                        - pricing_model
+                        - currency
+                        - price_guidance
+                      additionalProperties: false
+                    - type: object
+                      properties:
+                        pricing_option_id:
+                          type: string
+                        pricing_model:
+                          type: string
+                          enum:
+                            - vcpm
+                        rate:
+                          type: number
+                        currency:
+                          type: string
+                        min_spend_per_package:
+                          type: number
+                      required:
+                        - pricing_option_id
+                        - pricing_model
+                        - rate
+                        - currency
+                      additionalProperties: false
+                    - type: object
+                      properties:
+                        pricing_option_id:
+                          type: string
+                        pricing_model:
+                          type: string
+                          enum:
+                            - vcpm
+                        currency:
+                          type: string
+                        price_guidance:
+                          type: object
+                          properties:
+                            floor:
+                              type: number
+                            p25:
+                              type: number
+                            p50:
+                              type: number
+                            p75:
+                              type: number
+                            p90:
+                              type: number
+                          required:
+                            - floor
+                          additionalProperties: false
+                        min_spend_per_package:
+                          type: number
+                      required:
+                        - pricing_option_id
+                        - pricing_model
+                        - currency
+                        - price_guidance
+                      additionalProperties: false
+                    - type: object
+                      properties:
+                        pricing_option_id:
+                          type: string
+                        pricing_model:
+                          type: string
+                          enum:
+                            - cpc
+                        rate:
+                          type: number
+                        currency:
+                          type: string
+                        min_spend_per_package:
+                          type: number
+                      required:
+                        - pricing_option_id
+                        - pricing_model
+                        - rate
+                        - currency
+                      additionalProperties: false
+                    - type: object
+                      properties:
+                        pricing_option_id:
+                          type: string
+                        pricing_model:
+                          type: string
+                          enum:
+                            - cpcv
+                        rate:
+                          type: number
+                        currency:
+                          type: string
+                        min_spend_per_package:
+                          type: number
+                      required:
+                        - pricing_option_id
+                        - pricing_model
+                        - rate
+                        - currency
+                      additionalProperties: false
+                    - type: object
+                      properties:
+                        pricing_option_id:
+                          type: string
+                        pricing_model:
+                          type: string
+                          enum:
+                            - cpv
+                        rate:
+                          type: number
+                        currency:
+                          type: string
+                        parameters:
+                          type: object
+                          properties:
+                            view_threshold:
+                              anyOf:
+                                - type: number
+                                - type: object
+                                  properties:
+                                    duration_seconds:
+                                      type: number
+                                  required:
+                                    - duration_seconds
+                                  additionalProperties: false
+                          required:
+                            - view_threshold
+                          additionalProperties: false
+                        min_spend_per_package:
+                          type: number
+                      required:
+                        - pricing_option_id
+                        - pricing_model
+                        - rate
+                        - currency
+                        - parameters
+                      additionalProperties: false
+                    - type: object
+                      properties:
+                        pricing_option_id:
+                          type: string
+                        pricing_model:
+                          type: string
+                          enum:
+                            - cpp
+                        rate:
+                          type: number
+                        currency:
+                          type: string
+                        parameters:
+                          type: object
+                          properties:
+                            demographic:
+                              type: string
+                            min_points:
+                              type: number
+                          required:
+                            - demographic
+                          additionalProperties: false
+                        min_spend_per_package:
+                          type: number
+                      required:
+                        - pricing_option_id
+                        - pricing_model
+                        - rate
+                        - currency
+                        - parameters
+                      additionalProperties: false
+                    - type: object
+                      properties:
+                        pricing_option_id:
+                          type: string
+                        pricing_model:
+                          type: string
+                          enum:
+                            - flat_rate
+                        rate:
+                          type: number
+                        currency:
+                          type: string
+                        is_fixed:
+                          type: boolean
+                          enum:
+                            - true
+                        parameters:
+                          type: object
+                          properties:
+                            duration_hours:
+                              type: number
+                            sov_percentage:
+                              type: number
+                            loop_duration_seconds:
+                              type: number
+                            min_plays_per_hour:
+                              type: number
+                            venue_package:
+                              type: string
+                            estimated_impressions:
+                              type: number
+                            daypart:
+                              type: string
+                          additionalProperties: false
+                        min_spend_per_package:
+                          type: number
+                      required:
+                        - pricing_option_id
+                        - pricing_model
+                        - rate
+                        - currency
+                        - is_fixed
+                      additionalProperties: false
             required:
               - id
               - productId
@@ -6265,6 +6508,7 @@ components:
               enum:
                 - SALES
                 - OUTCOME
+                - SIGNAL
             status:
               type: string
             relationship:
@@ -6314,6 +6558,7 @@ components:
               enum:
                 - SALES
                 - OUTCOME
+                - SIGNAL
             status:
               type: string
             relationship:
@@ -6380,6 +6625,7 @@ components:
                     enum:
                       - SALES
                       - OUTCOME
+                      - SIGNAL
                   status:
                     type: string
                   relationship:
@@ -6408,6 +6654,7 @@ components:
                     enum:
                       - SALES
                       - OUTCOME
+                      - SIGNAL
                   status:
                     type: string
                   relationship:
@@ -7033,10 +7280,6 @@ components:
                 type: number
               budgetCurrency:
                 type: string
-              pricingCpm:
-                type: number
-              pricingSignalCost:
-                type: number
               displayOrder:
                 type: number
               creativeFormats:
@@ -7109,10 +7352,6 @@ components:
                 type: string
               salesAgentName:
                 type: string
-              pricingCpm:
-                type: number
-              pricingSignalCost:
-                type: number
               bidPrice:
                 type: number
               pricingOptionId:
@@ -7164,19 +7403,6 @@ components:
               - status
             additionalProperties: false
           example: []
-        pricing:
-          type: object
-          properties:
-            cpm:
-              type: number
-            signalCost:
-              type: number
-            totalCpm:
-              type: number
-          required:
-            - cpm
-            - totalCpm
-          additionalProperties: false
         status:
           type: string
           example: string
@@ -7232,7 +7458,6 @@ components:
         - tacticId
         - customerId
         - name
-        - pricing
         - status
         - createdAt
         - updatedAt
