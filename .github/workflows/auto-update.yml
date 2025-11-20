@@ -38,6 +38,17 @@ jobs:
         run: |
           git diff --exit-code src/types/ outcome-agent-openapi.yaml partner-api.yaml platform-api.yaml || echo "changed=true" >> $GITHUB_OUTPUT
 
+      - name: Close existing auto-update PRs
+        if: steps.git-check.outputs.changed == 'true'
+        run: |
+          # Find and close all existing auto-update PRs
+          gh pr list --state open --json number,headRefName --jq '.[] | select(.headRefName | startswith("auto-update-openapi-")) | .number' | while read pr_number; do
+            echo "Closing PR #$pr_number"
+            gh pr close $pr_number --comment "Closing this PR as a new auto-update is available." --delete-branch
+          done
+        env:
+          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN || secrets.GITHUB_TOKEN }}
+
       - name: Create Pull Request
         if: steps.git-check.outputs.changed == 'true'
         run: |
