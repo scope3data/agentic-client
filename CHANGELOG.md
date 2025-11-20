@@ -1,5 +1,65 @@
 # @scope3/agentic-client
 
+## 2.0.0
+
+### Major Changes
+
+- [#27](https://github.com/scope3data/agentic-client/pull/27) [`3ccaa7d`](https://github.com/scope3data/agentic-client/commit/3ccaa7d6799ff84034188851adb357ad3bb022ca) Thanks [@nastassiafulconis](https://github.com/nastassiafulconis)! - Generate SDK from OpenAPI specifications
+
+  Major refactor to automatically generate TypeScript SDK from OpenAPI specs:
+
+  **New Features:**
+  - Separate `PlatformClient` and `PartnerClient` for different user types
+  - Full code generation from OpenAPI YAML files (platform-api, partner-api, outcome-agent)
+  - Automated schema updates from agentic-api repository with GitHub Actions
+  - Custom SDK generator script that creates MCP-compatible resource classes
+
+  **Breaking Changes:**
+  - Removed manual resource files (now auto-generated)
+  - Removed SimpleMediaAgent (not in use)
+  - `Scope3AgenticClient` now extends `PlatformClient` (backwards compatible)
+
+  **Infrastructure:**
+  - Added `scripts/generate-sdk.ts` for SDK generation
+  - Added `scripts/update-schemas.sh` for automated OpenAPI spec updates
+  - GitHub workflow for daily automated type updates and PR creation
+  - Updated build process to use generated types
+
+  **Testing:**
+  - All 84 tests passing
+  - Verified with real API calls to production environment
+  - Both PlatformClient and PartnerClient confirmed working
+
+- [#27](https://github.com/scope3data/agentic-client/pull/27) [`3ccaa7d`](https://github.com/scope3data/agentic-client/commit/3ccaa7d6799ff84034188851adb357ad3bb022ca) Thanks [@nastassiafulconis](https://github.com/nastassiafulconis)! - BREAKING CHANGE: Remove legacy Scope3AgenticClient
+
+  The legacy `Scope3AgenticClient` class has been completely removed. Users must now explicitly choose between:
+  - `PlatformClient` - for brand advertisers/buyers managing campaigns and creatives
+  - `PartnerClient` - for DSPs/publishers/partners managing media buys and products
+
+  **Migration Guide:**
+
+  ```typescript
+  // Before:
+  import { Scope3AgenticClient } from 'scope3';
+  const client = new Scope3AgenticClient({ apiKey: '...' });
+
+  // After (for brand advertisers):
+  import { PlatformClient } from 'scope3';
+  const client = new PlatformClient({ apiKey: '...' });
+
+  // After (for media partners):
+  import { PartnerClient } from 'scope3';
+  const client = new PartnerClient({ apiKey: '...' });
+  ```
+
+  Both clients have the same configuration options and provide access to the appropriate API resources for their use case.
+
+### Patch Changes
+
+- [#25](https://github.com/scope3data/agentic-client/pull/25) [`976ca4a`](https://github.com/scope3data/agentic-client/commit/976ca4a16161fd037aa6c547fd8d36cd065b7630) Thanks [@nastassiafulconis](https://github.com/nastassiafulconis)! - Fix npm Trusted Publisher authentication by removing conflicting NPM_TOKEN
+
+  The release workflow was failing because it had both OIDC Trusted Publishing configured (id-token: write) and the legacy NPM_TOKEN environment variable. This caused npm authentication to fail. Removed NPM_TOKEN to use only Trusted Publishing for secure, token-free npm publishing.
+
 ## 1.1.0
 
 ### Minor Changes
