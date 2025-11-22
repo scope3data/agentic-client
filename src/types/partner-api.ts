@@ -321,69 +321,715 @@ export interface components {
     };
     SyncSalesAgentsInput: {
       /** @example example_id_123 */
-      creativeId: string;
+      creative_id: string;
     };
     ListCountriesInput: Record<string, never>;
     ListLanguagesInput: Record<string, never>;
-    CreateMediaBuyInput: {
-      /** @example 100 */
-      tacticId: number;
-      /** @example example_id_123 */
-      agentId: string;
-      /** @example Example Name */
-      name: string;
+    MediaBuyCreateInput: {
+      brand_manifest:
+        | {
+            url?: string;
+            name: string;
+            logos?: {
+              url: string;
+              tags?: string[];
+              width?: number;
+              height?: number;
+            }[];
+            colors?: {
+              primary?: string;
+              secondary?: string;
+              accent?: string;
+              background?: string;
+              text?: string;
+            };
+            fonts?: {
+              primary?: string;
+              secondary?: string;
+              font_urls?: string[];
+            };
+            tone?: string;
+            tagline?: string;
+            assets?: {
+              asset_id: string;
+              asset_type:
+                | 'image'
+                | 'video'
+                | 'audio'
+                | 'text'
+                | 'markdown'
+                | 'html'
+                | 'css'
+                | 'javascript'
+                | 'vast'
+                | 'daast'
+                | 'promoted_offerings'
+                | 'url'
+                | 'webhook';
+              url: string;
+              tags?: string[];
+              name?: string;
+              description?: string;
+              width?: number;
+              height?: number;
+              duration_seconds?: number;
+              file_size_bytes?: number;
+              format?: string;
+              metadata?: {
+                [key: string]: unknown;
+              };
+            }[];
+            product_catalog?: {
+              feed_url: string;
+              feed_format?: 'google_merchant_center' | 'facebook_catalog' | 'custom';
+              categories?: string[];
+              last_updated?: string;
+              update_frequency?: 'realtime' | 'hourly' | 'daily' | 'weekly';
+            };
+            disclaimers?: {
+              text: string;
+              context?: string;
+              required?: boolean;
+            }[];
+            industry?: string;
+            target_audience?: string;
+            contact?: {
+              email?: string;
+              phone?: string;
+            };
+            metadata?: {
+              created_date?: string;
+              updated_date?: string;
+              version?: string;
+            };
+          }
+        | string;
       /** @example string */
+      po_number?: string;
+      start_time: 'asap' | string;
+      /** @example string */
+      end_time: string;
+      reporting_webhook?: {
+        url: string;
+        token?: string;
+        authentication: {
+          schemes: ('Bearer' | 'HMAC-SHA256')[];
+          credentials: string;
+        };
+      } & {
+        reporting_frequency: 'hourly' | 'daily' | 'monthly';
+        requested_metrics?: (
+          | 'impressions'
+          | 'spend'
+          | 'clicks'
+          | 'ctr'
+          | 'video_completions'
+          | 'completion_rate'
+          | 'conversions'
+          | 'viewability'
+          | 'engagement_rate'
+        )[];
+      };
+      context?: {
+        [key: string]: unknown;
+      };
+      /**
+       * @description Internal tactic ID
+       * @example 100
+       */
+      tactic_id: number;
+      /**
+       * @description Agent creating this media buy
+       * @example example_id_123
+       */
+      agent_id: string;
+      /**
+       * @description Media buy name
+       * @example Example Name
+       */
+      name: string;
+      /**
+       * @description Media buy description
+       * @example string
+       */
       description?: string;
-      /** @example [] */
+      /**
+       * @description Products to include (converted to packages on execution)
+       * @example []
+       */
       products: {
-        mediaProductId: string;
-        budgetAmount: number;
-        budgetCurrency?: string;
-        pricingCpm?: number;
-        pricingSignalCost?: number;
-        displayOrder?: number;
+        product_id: string;
+        format_ids?: {
+          agent_url: string;
+          id: string;
+        }[];
+        budget: number;
+        pacing?: 'even' | 'asap' | 'front_loaded';
+        pricing_option_id: string;
+        bid_price?: number;
+        targeting_overlay?: {
+          geo_country_any_of?: string[];
+          geo_region_any_of?: string[];
+          geo_metro_any_of?: string[];
+          geo_postal_code_any_of?: string[];
+          axe_include_segment?: string;
+          axe_exclude_segment?: string;
+          frequency_cap?: {
+            suppress_minutes: number;
+          };
+        };
+        creative_ids?: string[];
         creatives?: {
           creative_id: string;
           name: string;
-          format_id:
-            | string
-            | {
-                agent_url: string;
-                id: string;
-              };
-          assets?: {
-            [key: string]: {
-              url: string;
-              width?: number;
-              height?: number;
-            };
+          format_id: {
+            agent_url: string;
+            id: string;
           };
-          click_url?: string;
+          assets: {
+            [key: string]:
+              | {
+                  url: string;
+                  width?: number;
+                  height?: number;
+                  format?: string;
+                  alt_text?: string;
+                }
+              | {
+                  url: string;
+                  width?: number;
+                  height?: number;
+                  duration_ms?: number;
+                  format?: string;
+                  bitrate_kbps?: number;
+                }
+              | {
+                  url: string;
+                  duration_ms?: number;
+                  format?: string;
+                  bitrate_kbps?: number;
+                }
+              | {
+                  content: string;
+                  language?: string;
+                }
+              | {
+                  content: string;
+                  version?: string;
+                }
+              | {
+                  content: string;
+                  media?: string;
+                }
+              | {
+                  content: string;
+                  module_type?: 'esm' | 'commonjs' | 'script';
+                }
+              | (
+                  | {
+                      /** @enum {string} */
+                      delivery_type: 'url';
+                      url: string;
+                      vast_version?: '2.0' | '3.0' | '4.0' | '4.1' | '4.2';
+                      vpaid_enabled?: boolean;
+                      duration_ms?: number;
+                      tracking_events?: (
+                        | 'start'
+                        | 'firstQuartile'
+                        | 'midpoint'
+                        | 'thirdQuartile'
+                        | 'complete'
+                        | 'impression'
+                        | 'click'
+                        | 'pause'
+                        | 'resume'
+                        | 'skip'
+                        | 'mute'
+                        | 'unmute'
+                        | 'fullscreen'
+                        | 'exitFullscreen'
+                        | 'playerExpand'
+                        | 'playerCollapse'
+                      )[];
+                    }
+                  | {
+                      /** @enum {string} */
+                      delivery_type: 'inline';
+                      content: string;
+                      vast_version?: '2.0' | '3.0' | '4.0' | '4.1' | '4.2';
+                      vpaid_enabled?: boolean;
+                      duration_ms?: number;
+                      tracking_events?: (
+                        | 'start'
+                        | 'firstQuartile'
+                        | 'midpoint'
+                        | 'thirdQuartile'
+                        | 'complete'
+                        | 'impression'
+                        | 'click'
+                        | 'pause'
+                        | 'resume'
+                        | 'skip'
+                        | 'mute'
+                        | 'unmute'
+                        | 'fullscreen'
+                        | 'exitFullscreen'
+                        | 'playerExpand'
+                        | 'playerCollapse'
+                      )[];
+                    }
+                )
+              | (
+                  | {
+                      /** @enum {string} */
+                      delivery_type: 'url';
+                      url: string;
+                      daast_version?: '1.0' | '1.1';
+                      duration_ms?: number;
+                      tracking_events?: (
+                        | 'start'
+                        | 'firstQuartile'
+                        | 'midpoint'
+                        | 'thirdQuartile'
+                        | 'complete'
+                        | 'impression'
+                        | 'pause'
+                        | 'resume'
+                        | 'skip'
+                        | 'mute'
+                        | 'unmute'
+                      )[];
+                      companion_ads?: boolean;
+                    }
+                  | {
+                      /** @enum {string} */
+                      delivery_type: 'inline';
+                      content: string;
+                      daast_version?: '1.0' | '1.1';
+                      duration_ms?: number;
+                      tracking_events?: (
+                        | 'start'
+                        | 'firstQuartile'
+                        | 'midpoint'
+                        | 'thirdQuartile'
+                        | 'complete'
+                        | 'impression'
+                        | 'pause'
+                        | 'resume'
+                        | 'skip'
+                        | 'mute'
+                        | 'unmute'
+                      )[];
+                      companion_ads?: boolean;
+                    }
+                )
+              | {
+                  brand_manifest:
+                    | {
+                        url?: string;
+                        name: string;
+                        logos?: {
+                          url: string;
+                          tags?: string[];
+                          width?: number;
+                          height?: number;
+                        }[];
+                        colors?: {
+                          primary?: string;
+                          secondary?: string;
+                          accent?: string;
+                          background?: string;
+                          text?: string;
+                        };
+                        fonts?: {
+                          primary?: string;
+                          secondary?: string;
+                          font_urls?: string[];
+                        };
+                        tone?: string;
+                        tagline?: string;
+                        assets?: {
+                          asset_id: string;
+                          asset_type:
+                            | 'image'
+                            | 'video'
+                            | 'audio'
+                            | 'text'
+                            | 'markdown'
+                            | 'html'
+                            | 'css'
+                            | 'javascript'
+                            | 'vast'
+                            | 'daast'
+                            | 'promoted_offerings'
+                            | 'url'
+                            | 'webhook';
+                          url: string;
+                          tags?: string[];
+                          name?: string;
+                          description?: string;
+                          width?: number;
+                          height?: number;
+                          duration_seconds?: number;
+                          file_size_bytes?: number;
+                          format?: string;
+                          metadata?: {
+                            [key: string]: unknown;
+                          };
+                        }[];
+                        product_catalog?: {
+                          feed_url: string;
+                          feed_format?: 'google_merchant_center' | 'facebook_catalog' | 'custom';
+                          categories?: string[];
+                          last_updated?: string;
+                          update_frequency?: 'realtime' | 'hourly' | 'daily' | 'weekly';
+                        };
+                        disclaimers?: {
+                          text: string;
+                          context?: string;
+                          required?: boolean;
+                        }[];
+                        industry?: string;
+                        target_audience?: string;
+                        contact?: {
+                          email?: string;
+                          phone?: string;
+                        };
+                        metadata?: {
+                          created_date?: string;
+                          updated_date?: string;
+                          version?: string;
+                        };
+                      }
+                    | string;
+                  product_selectors?: {
+                    manifest_skus?: string[];
+                    manifest_tags?: string[];
+                    manifest_category?: string;
+                    manifest_query?: string;
+                  };
+                  offerings?: {
+                    name: string;
+                    description?: string;
+                    assets?: {
+                      [key: string]: unknown;
+                    }[];
+                  }[];
+                  asset_selectors?: {
+                    tags?: string[];
+                    asset_types?: (
+                      | 'image'
+                      | 'video'
+                      | 'audio'
+                      | 'vast'
+                      | 'daast'
+                      | 'text'
+                      | 'url'
+                      | 'html'
+                      | 'css'
+                      | 'javascript'
+                      | 'webhook'
+                    )[];
+                    exclude_tags?: string[];
+                  };
+                }
+              | {
+                  url: string;
+                  url_type?: 'clickthrough' | 'tracker_pixel' | 'tracker_script';
+                  description?: string;
+                };
+          };
+          inputs?: {
+            name: string;
+            macros?: {
+              [key: string]: string;
+            };
+            context_description?: string;
+          }[];
+          tags?: string[];
+          approved?: boolean;
         }[];
+        /** @description Display order in UI (internal only) */
+        display_order?: number;
       }[];
-      /** @example [] */
+      /**
+       * @description Optional inline creatives
+       * @example []
+       */
       creatives?: {
         creative_id: string;
         name: string;
-        format_id:
-          | string
-          | {
-              agent_url: string;
-              id: string;
-            };
-        assets?: {
-          [key: string]: {
-            url: string;
-            width?: number;
-            height?: number;
-          };
+        format_id: {
+          agent_url: string;
+          id: string;
         };
-        click_url?: string;
+        assets: {
+          [key: string]:
+            | {
+                url: string;
+                width?: number;
+                height?: number;
+                format?: string;
+                alt_text?: string;
+              }
+            | {
+                url: string;
+                width?: number;
+                height?: number;
+                duration_ms?: number;
+                format?: string;
+                bitrate_kbps?: number;
+              }
+            | {
+                url: string;
+                duration_ms?: number;
+                format?: string;
+                bitrate_kbps?: number;
+              }
+            | {
+                content: string;
+                language?: string;
+              }
+            | {
+                content: string;
+                version?: string;
+              }
+            | {
+                content: string;
+                media?: string;
+              }
+            | {
+                content: string;
+                module_type?: 'esm' | 'commonjs' | 'script';
+              }
+            | (
+                | {
+                    /** @enum {string} */
+                    delivery_type: 'url';
+                    url: string;
+                    vast_version?: '2.0' | '3.0' | '4.0' | '4.1' | '4.2';
+                    vpaid_enabled?: boolean;
+                    duration_ms?: number;
+                    tracking_events?: (
+                      | 'start'
+                      | 'firstQuartile'
+                      | 'midpoint'
+                      | 'thirdQuartile'
+                      | 'complete'
+                      | 'impression'
+                      | 'click'
+                      | 'pause'
+                      | 'resume'
+                      | 'skip'
+                      | 'mute'
+                      | 'unmute'
+                      | 'fullscreen'
+                      | 'exitFullscreen'
+                      | 'playerExpand'
+                      | 'playerCollapse'
+                    )[];
+                  }
+                | {
+                    /** @enum {string} */
+                    delivery_type: 'inline';
+                    content: string;
+                    vast_version?: '2.0' | '3.0' | '4.0' | '4.1' | '4.2';
+                    vpaid_enabled?: boolean;
+                    duration_ms?: number;
+                    tracking_events?: (
+                      | 'start'
+                      | 'firstQuartile'
+                      | 'midpoint'
+                      | 'thirdQuartile'
+                      | 'complete'
+                      | 'impression'
+                      | 'click'
+                      | 'pause'
+                      | 'resume'
+                      | 'skip'
+                      | 'mute'
+                      | 'unmute'
+                      | 'fullscreen'
+                      | 'exitFullscreen'
+                      | 'playerExpand'
+                      | 'playerCollapse'
+                    )[];
+                  }
+              )
+            | (
+                | {
+                    /** @enum {string} */
+                    delivery_type: 'url';
+                    url: string;
+                    daast_version?: '1.0' | '1.1';
+                    duration_ms?: number;
+                    tracking_events?: (
+                      | 'start'
+                      | 'firstQuartile'
+                      | 'midpoint'
+                      | 'thirdQuartile'
+                      | 'complete'
+                      | 'impression'
+                      | 'pause'
+                      | 'resume'
+                      | 'skip'
+                      | 'mute'
+                      | 'unmute'
+                    )[];
+                    companion_ads?: boolean;
+                  }
+                | {
+                    /** @enum {string} */
+                    delivery_type: 'inline';
+                    content: string;
+                    daast_version?: '1.0' | '1.1';
+                    duration_ms?: number;
+                    tracking_events?: (
+                      | 'start'
+                      | 'firstQuartile'
+                      | 'midpoint'
+                      | 'thirdQuartile'
+                      | 'complete'
+                      | 'impression'
+                      | 'pause'
+                      | 'resume'
+                      | 'skip'
+                      | 'mute'
+                      | 'unmute'
+                    )[];
+                    companion_ads?: boolean;
+                  }
+              )
+            | {
+                brand_manifest:
+                  | {
+                      url?: string;
+                      name: string;
+                      logos?: {
+                        url: string;
+                        tags?: string[];
+                        width?: number;
+                        height?: number;
+                      }[];
+                      colors?: {
+                        primary?: string;
+                        secondary?: string;
+                        accent?: string;
+                        background?: string;
+                        text?: string;
+                      };
+                      fonts?: {
+                        primary?: string;
+                        secondary?: string;
+                        font_urls?: string[];
+                      };
+                      tone?: string;
+                      tagline?: string;
+                      assets?: {
+                        asset_id: string;
+                        asset_type:
+                          | 'image'
+                          | 'video'
+                          | 'audio'
+                          | 'text'
+                          | 'markdown'
+                          | 'html'
+                          | 'css'
+                          | 'javascript'
+                          | 'vast'
+                          | 'daast'
+                          | 'promoted_offerings'
+                          | 'url'
+                          | 'webhook';
+                        url: string;
+                        tags?: string[];
+                        name?: string;
+                        description?: string;
+                        width?: number;
+                        height?: number;
+                        duration_seconds?: number;
+                        file_size_bytes?: number;
+                        format?: string;
+                        metadata?: {
+                          [key: string]: unknown;
+                        };
+                      }[];
+                      product_catalog?: {
+                        feed_url: string;
+                        feed_format?: 'google_merchant_center' | 'facebook_catalog' | 'custom';
+                        categories?: string[];
+                        last_updated?: string;
+                        update_frequency?: 'realtime' | 'hourly' | 'daily' | 'weekly';
+                      };
+                      disclaimers?: {
+                        text: string;
+                        context?: string;
+                        required?: boolean;
+                      }[];
+                      industry?: string;
+                      target_audience?: string;
+                      contact?: {
+                        email?: string;
+                        phone?: string;
+                      };
+                      metadata?: {
+                        created_date?: string;
+                        updated_date?: string;
+                        version?: string;
+                      };
+                    }
+                  | string;
+                product_selectors?: {
+                  manifest_skus?: string[];
+                  manifest_tags?: string[];
+                  manifest_category?: string;
+                  manifest_query?: string;
+                };
+                offerings?: {
+                  name: string;
+                  description?: string;
+                  assets?: {
+                    [key: string]: unknown;
+                  }[];
+                }[];
+                asset_selectors?: {
+                  tags?: string[];
+                  asset_types?: (
+                    | 'image'
+                    | 'video'
+                    | 'audio'
+                    | 'vast'
+                    | 'daast'
+                    | 'text'
+                    | 'url'
+                    | 'html'
+                    | 'css'
+                    | 'javascript'
+                    | 'webhook'
+                  )[];
+                  exclude_tags?: string[];
+                };
+              }
+            | {
+                url: string;
+                url_type?: 'clickthrough' | 'tracker_pixel' | 'tracker_script';
+                description?: string;
+              };
+        };
+        inputs?: {
+          name: string;
+          macros?: {
+            [key: string]: string;
+          };
+          context_description?: string;
+        }[];
+        tags?: string[];
+        approved?: boolean;
       }[];
     };
     UpdateMediaBuyInput: {
       /** @example example_id_123 */
-      mediaBuyId: string;
+      media_buy_id: string;
       /** @example Example Name */
       name?: string;
       /** @example string */
@@ -401,30 +1047,40 @@ export interface components {
         | 'FAILED'
         | 'REJECTED';
       /** @example [] */
-      creativeIds?: string[];
+      creative_ids?: string[];
+      /** @example [] */
+      products?: {
+        product_id: string;
+        budget: number;
+        pacing?: 'even' | 'asap' | 'front_loaded';
+        bid_price?: number;
+      }[];
       /** @example [] */
       packages?: {
-        packageId: string;
-        creativeIds: string[];
+        package_id: string;
+        budget?: number;
+        pacing?: 'even' | 'asap' | 'front_loaded';
+        bid_price?: number;
+        creative_ids?: string[];
       }[];
     };
     DeleteMediaBuyInput: {
       /** @example example_id_123 */
-      mediaBuyId: string;
+      media_buy_id: string;
       /** @example true */
       confirm: boolean;
     };
     ExecuteMediaBuyInput: {
       /** @example example_id_123 */
-      mediaBuyId: string;
+      media_buy_id: string;
     };
     GetMediaBuyInput: {
       /** @example example_id_123 */
-      mediaBuyId: string;
+      media_buy_id: string;
     };
     ListMediaBuysInput: {
       /** @example 100 */
-      tacticId?: number;
+      tactic_id?: number;
       /**
        * @example DRAFT
        * @enum {string}
@@ -444,9 +1100,9 @@ export interface components {
     };
     ValidateMediaBuyBudgetInput: {
       /** @example 100 */
-      tacticId: number;
+      tactic_id: number;
       /** @example 100 */
-      newBudgetAmount: number;
+      new_budget_amount: number;
     };
     ListNotificationsInput: {
       /** @example 100 */
@@ -495,6 +1151,11 @@ export interface components {
         isFixedPrice?: boolean;
         /** @description Filter by format types */
         formatTypes?: ('video' | 'display' | 'audio')[];
+        /** @description Filter by specific structured format IDs (e.g., display_300x250_image). More precise than formatTypes. */
+        formatIds?: {
+          agent_url: string;
+          id: string;
+        }[];
         /** @description Only return products accepting IAB standard formats */
         standardFormatsOnly?: boolean;
         /** @description Minimum exposures/impressions needed for measurement validity */
@@ -511,50 +1172,234 @@ export interface components {
        */
       saveToDatabase?: boolean;
     };
-    SaveProductInput: {
+    MediaProductSaveInput: {
       /** @example example_id_123 */
-      productId: string;
+      product_id: string;
       /** @example Example Name */
       name: string;
       /** @example string */
       description: string;
-      /** @example example_id_123 */
-      publisherId: string;
-      /** @example Example Name */
-      publisherName: string;
-      /**
-       * @example guaranteed
-       * @enum {string}
-       */
-      deliveryType: 'guaranteed' | 'non_guaranteed';
-      /**
-       * @example premium
-       * @enum {string}
-       */
-      inventoryType: 'premium' | 'run_of_site' | 'targeted_package';
-      creativeFormats?:
-        | string[]
-        | {
-            agent_url: string;
-            id: string;
-          }[];
-      /**
-       * @example auction
-       * @enum {string}
-       */
-      pricingModel: 'auction' | 'fixed_cpm';
-      /** @example 100 */
-      fixedCpm?: number;
-      /** @example 100 */
-      floorCpm?: number;
-      /** @example 100 */
-      targetCpm?: number;
       /** @example [] */
-      pricingOptions?: {
-        [key: string]: unknown;
+      publisher_properties: (
+        | {
+            publisher_domain: string;
+            /** @enum {string} */
+            selection_type: 'all';
+          }
+        | {
+            publisher_domain: string;
+            /** @enum {string} */
+            selection_type: 'by_id';
+            property_ids: string[];
+          }
+        | {
+            publisher_domain: string;
+            /** @enum {string} */
+            selection_type: 'by_tag';
+            property_tags: string[];
+          }
+      )[];
+      /** @example [] */
+      format_ids: {
+        agent_url: string;
+        id: string;
       }[];
       /** @example [] */
-      supportedTargeting?: string[];
+      placements?: {
+        placement_id: string;
+        name: string;
+        description?: string;
+        format_ids?: {
+          agent_url: string;
+          id: string;
+        }[];
+      }[];
+      delivery_type: 'guaranteed' | 'non_guaranteed';
+      /** @example [] */
+      pricing_options: (
+        | {
+            pricing_option_id: string;
+            /** @enum {string} */
+            pricing_model: 'cpm';
+            rate: number;
+            currency: string;
+            /** @enum {boolean} */
+            is_fixed: true;
+            min_spend_per_package?: number;
+          }
+        | {
+            pricing_option_id: string;
+            /** @enum {string} */
+            pricing_model: 'cpm';
+            currency: string;
+            /** @enum {boolean} */
+            is_fixed: false;
+            price_guidance: {
+              floor: number;
+              p25?: number;
+              p50?: number;
+              p75?: number;
+              p90?: number;
+            };
+            min_spend_per_package?: number;
+          }
+        | {
+            pricing_option_id: string;
+            /** @enum {string} */
+            pricing_model: 'vcpm';
+            rate: number;
+            currency: string;
+            /** @enum {boolean} */
+            is_fixed: true;
+            min_spend_per_package?: number;
+          }
+        | {
+            pricing_option_id: string;
+            /** @enum {string} */
+            pricing_model: 'vcpm';
+            currency: string;
+            /** @enum {boolean} */
+            is_fixed: false;
+            price_guidance: {
+              floor: number;
+              p25?: number;
+              p50?: number;
+              p75?: number;
+              p90?: number;
+            };
+            min_spend_per_package?: number;
+          }
+        | {
+            pricing_option_id: string;
+            /** @enum {string} */
+            pricing_model: 'cpc';
+            rate: number;
+            currency: string;
+            /** @enum {boolean} */
+            is_fixed: true;
+            min_spend_per_package?: number;
+          }
+        | {
+            pricing_option_id: string;
+            /** @enum {string} */
+            pricing_model: 'cpcv';
+            rate: number;
+            currency: string;
+            /** @enum {boolean} */
+            is_fixed: true;
+            min_spend_per_package?: number;
+          }
+        | {
+            pricing_option_id: string;
+            /** @enum {string} */
+            pricing_model: 'cpv';
+            rate: number;
+            currency: string;
+            /** @enum {boolean} */
+            is_fixed: true;
+            parameters: {
+              view_threshold:
+                | number
+                | {
+                    duration_seconds: number;
+                  };
+            };
+            min_spend_per_package?: number;
+          }
+        | {
+            pricing_option_id: string;
+            /** @enum {string} */
+            pricing_model: 'cpp';
+            rate: number;
+            currency: string;
+            /** @enum {boolean} */
+            is_fixed: true;
+            parameters: {
+              demographic: string;
+              min_points?: number;
+            };
+            min_spend_per_package?: number;
+          }
+        | {
+            pricing_option_id: string;
+            /** @enum {string} */
+            pricing_model: 'flat_rate';
+            rate: number;
+            currency: string;
+            /** @enum {boolean} */
+            is_fixed: true;
+            parameters?: {
+              duration_hours?: number;
+              sov_percentage?: number;
+              loop_duration_seconds?: number;
+              min_plays_per_hour?: number;
+              venue_package?: string;
+              estimated_impressions?: number;
+              daypart?: string;
+            };
+            min_spend_per_package?: number;
+          }
+      )[];
+      /** @example 100 */
+      estimated_exposures?: number;
+      measurement?: {
+        type: string;
+        attribution: string;
+        window?: string;
+        reporting: string;
+      };
+      delivery_measurement: {
+        provider: string;
+        notes?: string;
+      };
+      reporting_capabilities?: {
+        available_reporting_frequencies: ('hourly' | 'daily' | 'monthly')[];
+        expected_delay_minutes: number;
+        timezone: string;
+        supports_webhooks: boolean;
+        available_metrics: (
+          | 'impressions'
+          | 'spend'
+          | 'clicks'
+          | 'ctr'
+          | 'video_completions'
+          | 'completion_rate'
+          | 'conversions'
+          | 'viewability'
+          | 'engagement_rate'
+        )[];
+      };
+      creative_policy?: {
+        co_branding: 'required' | 'optional' | 'none';
+        landing_page: 'any' | 'retailer_site_only' | 'must_include_retailer';
+        templates_available: boolean;
+      };
+      /** @example true */
+      is_custom?: boolean;
+      /** @example string */
+      brief_relevance?: string;
+      /** @example string */
+      expires_at?: string;
+      product_card?: {
+        format_id: {
+          agent_url: string;
+          id: string;
+        };
+        manifest: {
+          [key: string]: unknown;
+        };
+      };
+      product_card_detailed?: {
+        format_id: {
+          agent_url: string;
+          id: string;
+        };
+        manifest: {
+          [key: string]: unknown;
+        };
+      };
+      /** @example 100 */
+      customerId?: number;
       /** @example example_id_123 */
       adcpAgentId?: string;
     };
@@ -577,11 +1422,11 @@ export interface components {
     };
     ListAgentsInput: {
       /**
-       * @description Filter by agent type (SALES or OUTCOME)
+       * @description Filter by agent type (SALES, OUTCOME, or SIGNAL)
        * @example SALES
        * @enum {string}
        */
-      type?: 'SALES' | 'OUTCOME';
+      type?: 'SALES' | 'OUTCOME' | 'SIGNAL';
       /**
        * @description Filter by status (PENDING, ACTIVE, DISABLED)
        * @example PENDING
@@ -611,7 +1456,7 @@ export interface components {
        * @example SALES
        * @enum {string}
        */
-      type: 'SALES' | 'OUTCOME';
+      type: 'SALES' | 'OUTCOME' | 'SIGNAL';
       /**
        * @description Agent name
        * @example Example Name
@@ -961,102 +1806,951 @@ export interface components {
       userId?: number;
     };
     MediaBuyGet: {
-      /** @example example_id_123 */
-      id: string;
-      /** @example 100 */
-      tacticId: number;
-      /** @example 100 */
-      customerId: number;
-      /** @example Example Name */
+      /**
+       * @description ADCP media buy identifier
+       * @example example_id_123
+       */
+      media_buy_id: string;
+      /**
+       * @description Internal tactic ID
+       * @example 100
+       */
+      tactic_id: number;
+      /**
+       * @description Internal customer ID
+       * @example 100
+       */
+      customer_id: number;
+      /**
+       * @description Media buy name
+       * @example Example Name
+       */
       name: string;
-      /** @example string */
+      /**
+       * @description Media buy description
+       * @example string
+       */
       description?: string;
-      /** @example [] */
+      /**
+       * @description Internal status (DRAFT, ACTIVE, PAUSED, etc.)
+       * @example string
+       */
+      status: string;
+      /**
+       * @description Pre-execution product configuration
+       * @example []
+       */
       products?: {
-        mediaProductId: string;
-        salesAgentId: string;
-        salesAgentName?: string;
-        budgetAmount?: number;
-        budgetCurrency?: string;
-        pricingCpm?: number;
-        pricingSignalCost?: number;
-        displayOrder?: number;
-        creativeFormats?: {
+        /** @description ADCP product identifier */
+        product_id: string;
+        sales_agent_id: string;
+        sales_agent_name?: string;
+        /** @description ADCP budget field */
+        budget?: number;
+        /**
+         * @description ADCP pacing field
+         * @enum {string}
+         */
+        pacing?: 'asap' | 'even' | 'front_loaded';
+        pricing_option_id?: string;
+        bid_price?: number;
+        display_order?: number;
+        creative_formats?: {
           agent_url: string;
           id: string;
         }[];
       }[];
-      /** @example [] */
+      /**
+       * @description Post-execution ADCP packages (enriched)
+       * @example []
+       */
       packages?: {
-        packageId: string;
-        productIds: string[];
-        impressions: number;
-        budget: number;
-        targetingOverlay: unknown;
+        package_id: string;
+        buyer_ref?: string;
+        product_id?: string;
+        budget?: number;
+        pacing?: 'even' | 'asap' | 'front_loaded';
+        pricing_option_id?: string;
+        bid_price?: number;
+        impressions?: number;
+        targeting_overlay?: {
+          geo_country_any_of?: string[];
+          geo_region_any_of?: string[];
+          geo_metro_any_of?: string[];
+          geo_postal_code_any_of?: string[];
+          axe_include_segment?: string;
+          axe_exclude_segment?: string;
+          frequency_cap?: {
+            suppress_minutes: number;
+          };
+        };
+        creative_assignments?: {
+          creative_id: string;
+          weight?: number;
+          placement_ids?: string[];
+        }[];
+        format_ids_to_provide?: {
+          agent_url: string;
+          id: string;
+        }[];
+        status: 'draft' | 'active' | 'paused' | 'completed';
+        /** @description Array of product IDs (enriched from joins) */
+        product_ids?: string[];
+        /** @description Full creative objects (enriched from joins) */
         creatives: {
-          creativeId: string;
+          creative_id: string;
           name: string;
-          formatId: string;
-          mediaUrl: string;
+          format_id: {
+            agent_url: string;
+            id: string;
+          };
+          assets: {
+            [key: string]:
+              | {
+                  url: string;
+                  width?: number;
+                  height?: number;
+                  format?: string;
+                  alt_text?: string;
+                }
+              | {
+                  url: string;
+                  width?: number;
+                  height?: number;
+                  duration_ms?: number;
+                  format?: string;
+                  bitrate_kbps?: number;
+                }
+              | {
+                  url: string;
+                  duration_ms?: number;
+                  format?: string;
+                  bitrate_kbps?: number;
+                }
+              | {
+                  content: string;
+                  language?: string;
+                }
+              | {
+                  content: string;
+                  version?: string;
+                }
+              | {
+                  content: string;
+                  media?: string;
+                }
+              | {
+                  content: string;
+                  module_type?: 'esm' | 'commonjs' | 'script';
+                }
+              | (
+                  | {
+                      /** @enum {string} */
+                      delivery_type: 'url';
+                      url: string;
+                      vast_version?: '2.0' | '3.0' | '4.0' | '4.1' | '4.2';
+                      vpaid_enabled?: boolean;
+                      duration_ms?: number;
+                      tracking_events?: (
+                        | 'start'
+                        | 'firstQuartile'
+                        | 'midpoint'
+                        | 'thirdQuartile'
+                        | 'complete'
+                        | 'impression'
+                        | 'click'
+                        | 'pause'
+                        | 'resume'
+                        | 'skip'
+                        | 'mute'
+                        | 'unmute'
+                        | 'fullscreen'
+                        | 'exitFullscreen'
+                        | 'playerExpand'
+                        | 'playerCollapse'
+                      )[];
+                    }
+                  | {
+                      /** @enum {string} */
+                      delivery_type: 'inline';
+                      content: string;
+                      vast_version?: '2.0' | '3.0' | '4.0' | '4.1' | '4.2';
+                      vpaid_enabled?: boolean;
+                      duration_ms?: number;
+                      tracking_events?: (
+                        | 'start'
+                        | 'firstQuartile'
+                        | 'midpoint'
+                        | 'thirdQuartile'
+                        | 'complete'
+                        | 'impression'
+                        | 'click'
+                        | 'pause'
+                        | 'resume'
+                        | 'skip'
+                        | 'mute'
+                        | 'unmute'
+                        | 'fullscreen'
+                        | 'exitFullscreen'
+                        | 'playerExpand'
+                        | 'playerCollapse'
+                      )[];
+                    }
+                )
+              | (
+                  | {
+                      /** @enum {string} */
+                      delivery_type: 'url';
+                      url: string;
+                      daast_version?: '1.0' | '1.1';
+                      duration_ms?: number;
+                      tracking_events?: (
+                        | 'start'
+                        | 'firstQuartile'
+                        | 'midpoint'
+                        | 'thirdQuartile'
+                        | 'complete'
+                        | 'impression'
+                        | 'pause'
+                        | 'resume'
+                        | 'skip'
+                        | 'mute'
+                        | 'unmute'
+                      )[];
+                      companion_ads?: boolean;
+                    }
+                  | {
+                      /** @enum {string} */
+                      delivery_type: 'inline';
+                      content: string;
+                      daast_version?: '1.0' | '1.1';
+                      duration_ms?: number;
+                      tracking_events?: (
+                        | 'start'
+                        | 'firstQuartile'
+                        | 'midpoint'
+                        | 'thirdQuartile'
+                        | 'complete'
+                        | 'impression'
+                        | 'pause'
+                        | 'resume'
+                        | 'skip'
+                        | 'mute'
+                        | 'unmute'
+                      )[];
+                      companion_ads?: boolean;
+                    }
+                )
+              | {
+                  brand_manifest:
+                    | {
+                        url?: string;
+                        name: string;
+                        logos?: {
+                          url: string;
+                          tags?: string[];
+                          width?: number;
+                          height?: number;
+                        }[];
+                        colors?: {
+                          primary?: string;
+                          secondary?: string;
+                          accent?: string;
+                          background?: string;
+                          text?: string;
+                        };
+                        fonts?: {
+                          primary?: string;
+                          secondary?: string;
+                          font_urls?: string[];
+                        };
+                        tone?: string;
+                        tagline?: string;
+                        assets?: {
+                          asset_id: string;
+                          asset_type:
+                            | 'image'
+                            | 'video'
+                            | 'audio'
+                            | 'text'
+                            | 'markdown'
+                            | 'html'
+                            | 'css'
+                            | 'javascript'
+                            | 'vast'
+                            | 'daast'
+                            | 'promoted_offerings'
+                            | 'url'
+                            | 'webhook';
+                          url: string;
+                          tags?: string[];
+                          name?: string;
+                          description?: string;
+                          width?: number;
+                          height?: number;
+                          duration_seconds?: number;
+                          file_size_bytes?: number;
+                          format?: string;
+                          metadata?: {
+                            [key: string]: unknown;
+                          };
+                        }[];
+                        product_catalog?: {
+                          feed_url: string;
+                          feed_format?: 'google_merchant_center' | 'facebook_catalog' | 'custom';
+                          categories?: string[];
+                          last_updated?: string;
+                          update_frequency?: 'realtime' | 'hourly' | 'daily' | 'weekly';
+                        };
+                        disclaimers?: {
+                          text: string;
+                          context?: string;
+                          required?: boolean;
+                        }[];
+                        industry?: string;
+                        target_audience?: string;
+                        contact?: {
+                          email?: string;
+                          phone?: string;
+                        };
+                        metadata?: {
+                          created_date?: string;
+                          updated_date?: string;
+                          version?: string;
+                        };
+                      }
+                    | string;
+                  product_selectors?: {
+                    manifest_skus?: string[];
+                    manifest_tags?: string[];
+                    manifest_category?: string;
+                    manifest_query?: string;
+                  };
+                  offerings?: {
+                    name: string;
+                    description?: string;
+                    assets?: {
+                      [key: string]: unknown;
+                    }[];
+                  }[];
+                  asset_selectors?: {
+                    tags?: string[];
+                    asset_types?: (
+                      | 'image'
+                      | 'video'
+                      | 'audio'
+                      | 'vast'
+                      | 'daast'
+                      | 'text'
+                      | 'url'
+                      | 'html'
+                      | 'css'
+                      | 'javascript'
+                      | 'webhook'
+                    )[];
+                    exclude_tags?: string[];
+                  };
+                }
+              | {
+                  url: string;
+                  url_type?: 'clickthrough' | 'tracker_pixel' | 'tracker_script';
+                  description?: string;
+                };
+          };
+          inputs?: {
+            name: string;
+            macros?: {
+              [key: string]: string;
+            };
+            context_description?: string;
+          }[];
+          tags?: string[];
+          approved?: boolean;
+          /** @description Internal creative status (not in ADCP protocol) */
           status: string;
         }[];
         /** Format: date-time */
-        createdAt: string;
+        created_at: string;
         /** Format: date-time */
-        updatedAt: string;
-        salesAgentId?: string;
-        salesAgentName?: string;
-        pricingCpm?: number;
-        pricingSignalCost?: number;
-        bidPrice?: number;
-        pricingOptionId?: string;
-        creativeFormats?: {
+        updated_at: string;
+        sales_agent_id?: string;
+        sales_agent_name?: string;
+        creative_formats?: {
           agent_url: string;
           id: string;
         }[];
       }[];
-      /** @example [] */
+      /**
+       * @description Full creative objects (enriched from joins)
+       * @example []
+       */
       creatives?: {
-        creativeId: string;
+        creative_id: string;
         name: string;
-        formatId: string;
-        mediaUrl: string;
+        format_id: {
+          agent_url: string;
+          id: string;
+        };
+        assets: {
+          [key: string]:
+            | {
+                url: string;
+                width?: number;
+                height?: number;
+                format?: string;
+                alt_text?: string;
+              }
+            | {
+                url: string;
+                width?: number;
+                height?: number;
+                duration_ms?: number;
+                format?: string;
+                bitrate_kbps?: number;
+              }
+            | {
+                url: string;
+                duration_ms?: number;
+                format?: string;
+                bitrate_kbps?: number;
+              }
+            | {
+                content: string;
+                language?: string;
+              }
+            | {
+                content: string;
+                version?: string;
+              }
+            | {
+                content: string;
+                media?: string;
+              }
+            | {
+                content: string;
+                module_type?: 'esm' | 'commonjs' | 'script';
+              }
+            | (
+                | {
+                    /** @enum {string} */
+                    delivery_type: 'url';
+                    url: string;
+                    vast_version?: '2.0' | '3.0' | '4.0' | '4.1' | '4.2';
+                    vpaid_enabled?: boolean;
+                    duration_ms?: number;
+                    tracking_events?: (
+                      | 'start'
+                      | 'firstQuartile'
+                      | 'midpoint'
+                      | 'thirdQuartile'
+                      | 'complete'
+                      | 'impression'
+                      | 'click'
+                      | 'pause'
+                      | 'resume'
+                      | 'skip'
+                      | 'mute'
+                      | 'unmute'
+                      | 'fullscreen'
+                      | 'exitFullscreen'
+                      | 'playerExpand'
+                      | 'playerCollapse'
+                    )[];
+                  }
+                | {
+                    /** @enum {string} */
+                    delivery_type: 'inline';
+                    content: string;
+                    vast_version?: '2.0' | '3.0' | '4.0' | '4.1' | '4.2';
+                    vpaid_enabled?: boolean;
+                    duration_ms?: number;
+                    tracking_events?: (
+                      | 'start'
+                      | 'firstQuartile'
+                      | 'midpoint'
+                      | 'thirdQuartile'
+                      | 'complete'
+                      | 'impression'
+                      | 'click'
+                      | 'pause'
+                      | 'resume'
+                      | 'skip'
+                      | 'mute'
+                      | 'unmute'
+                      | 'fullscreen'
+                      | 'exitFullscreen'
+                      | 'playerExpand'
+                      | 'playerCollapse'
+                    )[];
+                  }
+              )
+            | (
+                | {
+                    /** @enum {string} */
+                    delivery_type: 'url';
+                    url: string;
+                    daast_version?: '1.0' | '1.1';
+                    duration_ms?: number;
+                    tracking_events?: (
+                      | 'start'
+                      | 'firstQuartile'
+                      | 'midpoint'
+                      | 'thirdQuartile'
+                      | 'complete'
+                      | 'impression'
+                      | 'pause'
+                      | 'resume'
+                      | 'skip'
+                      | 'mute'
+                      | 'unmute'
+                    )[];
+                    companion_ads?: boolean;
+                  }
+                | {
+                    /** @enum {string} */
+                    delivery_type: 'inline';
+                    content: string;
+                    daast_version?: '1.0' | '1.1';
+                    duration_ms?: number;
+                    tracking_events?: (
+                      | 'start'
+                      | 'firstQuartile'
+                      | 'midpoint'
+                      | 'thirdQuartile'
+                      | 'complete'
+                      | 'impression'
+                      | 'pause'
+                      | 'resume'
+                      | 'skip'
+                      | 'mute'
+                      | 'unmute'
+                    )[];
+                    companion_ads?: boolean;
+                  }
+              )
+            | {
+                brand_manifest:
+                  | {
+                      url?: string;
+                      name: string;
+                      logos?: {
+                        url: string;
+                        tags?: string[];
+                        width?: number;
+                        height?: number;
+                      }[];
+                      colors?: {
+                        primary?: string;
+                        secondary?: string;
+                        accent?: string;
+                        background?: string;
+                        text?: string;
+                      };
+                      fonts?: {
+                        primary?: string;
+                        secondary?: string;
+                        font_urls?: string[];
+                      };
+                      tone?: string;
+                      tagline?: string;
+                      assets?: {
+                        asset_id: string;
+                        asset_type:
+                          | 'image'
+                          | 'video'
+                          | 'audio'
+                          | 'text'
+                          | 'markdown'
+                          | 'html'
+                          | 'css'
+                          | 'javascript'
+                          | 'vast'
+                          | 'daast'
+                          | 'promoted_offerings'
+                          | 'url'
+                          | 'webhook';
+                        url: string;
+                        tags?: string[];
+                        name?: string;
+                        description?: string;
+                        width?: number;
+                        height?: number;
+                        duration_seconds?: number;
+                        file_size_bytes?: number;
+                        format?: string;
+                        metadata?: {
+                          [key: string]: unknown;
+                        };
+                      }[];
+                      product_catalog?: {
+                        feed_url: string;
+                        feed_format?: 'google_merchant_center' | 'facebook_catalog' | 'custom';
+                        categories?: string[];
+                        last_updated?: string;
+                        update_frequency?: 'realtime' | 'hourly' | 'daily' | 'weekly';
+                      };
+                      disclaimers?: {
+                        text: string;
+                        context?: string;
+                        required?: boolean;
+                      }[];
+                      industry?: string;
+                      target_audience?: string;
+                      contact?: {
+                        email?: string;
+                        phone?: string;
+                      };
+                      metadata?: {
+                        created_date?: string;
+                        updated_date?: string;
+                        version?: string;
+                      };
+                    }
+                  | string;
+                product_selectors?: {
+                  manifest_skus?: string[];
+                  manifest_tags?: string[];
+                  manifest_category?: string;
+                  manifest_query?: string;
+                };
+                offerings?: {
+                  name: string;
+                  description?: string;
+                  assets?: {
+                    [key: string]: unknown;
+                  }[];
+                }[];
+                asset_selectors?: {
+                  tags?: string[];
+                  asset_types?: (
+                    | 'image'
+                    | 'video'
+                    | 'audio'
+                    | 'vast'
+                    | 'daast'
+                    | 'text'
+                    | 'url'
+                    | 'html'
+                    | 'css'
+                    | 'javascript'
+                    | 'webhook'
+                  )[];
+                  exclude_tags?: string[];
+                };
+              }
+            | {
+                url: string;
+                url_type?: 'clickthrough' | 'tracker_pixel' | 'tracker_script';
+                description?: string;
+              };
+        };
+        inputs?: {
+          name: string;
+          macros?: {
+            [key: string]: string;
+          };
+          context_description?: string;
+        }[];
+        tags?: string[];
+        approved?: boolean;
+        /** @description Internal creative status (not in ADCP protocol) */
         status: string;
       }[];
-      pricing: {
-        cpm: number;
-        signalCost?: number;
-        totalCpm: number;
-      };
-      /** @example string */
-      status: string;
+      /** @description ADCP-specific metadata (from execute response) */
       adcp?: {
-        mediaBuyId?: string;
+        media_buy_id?: string;
         status?: string;
-        webhookUrl?: string;
+        webhook_url?: string;
       };
+      /** @description Performance metrics (from reporting) */
       performance?: {
         impressions: number;
         spend: number;
         clicks: number;
         /** Format: date-time */
-        lastUpdated?: string;
+        last_updated?: string;
       };
       /**
        * Format: date-time
+       * @description Created timestamp
        * @example string
        */
-      archivedAt?: string;
+      created_at: string;
+      /**
+       * Format: date-time
+       * @description Updated timestamp
+       * @example string
+       */
+      updated_at: string;
+      /**
+       * Format: date-time
+       * @description Archived timestamp
+       * @example string
+       */
+      archived_at?: string | null;
+    };
+    MediaProductSave: {
+      /** @example example_id_123 */
+      product_id: string;
+      /** @example Example Name */
+      name: string;
+      /** @example string */
+      description: string;
+      /** @example [] */
+      publisher_properties: (
+        | {
+            publisher_domain: string;
+            /** @enum {string} */
+            selection_type: 'all';
+          }
+        | {
+            publisher_domain: string;
+            /** @enum {string} */
+            selection_type: 'by_id';
+            property_ids: string[];
+          }
+        | {
+            publisher_domain: string;
+            /** @enum {string} */
+            selection_type: 'by_tag';
+            property_tags: string[];
+          }
+      )[];
+      /** @example [] */
+      format_ids: {
+        agent_url: string;
+        id: string;
+      }[];
+      /** @example [] */
+      placements?: {
+        placement_id: string;
+        name: string;
+        description?: string;
+        format_ids?: {
+          agent_url: string;
+          id: string;
+        }[];
+      }[];
+      delivery_type: 'guaranteed' | 'non_guaranteed';
+      /** @example [] */
+      pricing_options: (
+        | {
+            pricing_option_id: string;
+            /** @enum {string} */
+            pricing_model: 'cpm';
+            rate: number;
+            currency: string;
+            /** @enum {boolean} */
+            is_fixed: true;
+            min_spend_per_package?: number;
+          }
+        | {
+            pricing_option_id: string;
+            /** @enum {string} */
+            pricing_model: 'cpm';
+            currency: string;
+            /** @enum {boolean} */
+            is_fixed: false;
+            price_guidance: {
+              floor: number;
+              p25?: number;
+              p50?: number;
+              p75?: number;
+              p90?: number;
+            };
+            min_spend_per_package?: number;
+          }
+        | {
+            pricing_option_id: string;
+            /** @enum {string} */
+            pricing_model: 'vcpm';
+            rate: number;
+            currency: string;
+            /** @enum {boolean} */
+            is_fixed: true;
+            min_spend_per_package?: number;
+          }
+        | {
+            pricing_option_id: string;
+            /** @enum {string} */
+            pricing_model: 'vcpm';
+            currency: string;
+            /** @enum {boolean} */
+            is_fixed: false;
+            price_guidance: {
+              floor: number;
+              p25?: number;
+              p50?: number;
+              p75?: number;
+              p90?: number;
+            };
+            min_spend_per_package?: number;
+          }
+        | {
+            pricing_option_id: string;
+            /** @enum {string} */
+            pricing_model: 'cpc';
+            rate: number;
+            currency: string;
+            /** @enum {boolean} */
+            is_fixed: true;
+            min_spend_per_package?: number;
+          }
+        | {
+            pricing_option_id: string;
+            /** @enum {string} */
+            pricing_model: 'cpcv';
+            rate: number;
+            currency: string;
+            /** @enum {boolean} */
+            is_fixed: true;
+            min_spend_per_package?: number;
+          }
+        | {
+            pricing_option_id: string;
+            /** @enum {string} */
+            pricing_model: 'cpv';
+            rate: number;
+            currency: string;
+            /** @enum {boolean} */
+            is_fixed: true;
+            parameters: {
+              view_threshold:
+                | number
+                | {
+                    duration_seconds: number;
+                  };
+            };
+            min_spend_per_package?: number;
+          }
+        | {
+            pricing_option_id: string;
+            /** @enum {string} */
+            pricing_model: 'cpp';
+            rate: number;
+            currency: string;
+            /** @enum {boolean} */
+            is_fixed: true;
+            parameters: {
+              demographic: string;
+              min_points?: number;
+            };
+            min_spend_per_package?: number;
+          }
+        | {
+            pricing_option_id: string;
+            /** @enum {string} */
+            pricing_model: 'flat_rate';
+            rate: number;
+            currency: string;
+            /** @enum {boolean} */
+            is_fixed: true;
+            parameters?: {
+              duration_hours?: number;
+              sov_percentage?: number;
+              loop_duration_seconds?: number;
+              min_plays_per_hour?: number;
+              venue_package?: string;
+              estimated_impressions?: number;
+              daypart?: string;
+            };
+            min_spend_per_package?: number;
+          }
+      )[];
+      /** @example 100 */
+      estimated_exposures?: number;
+      measurement?: {
+        type: string;
+        attribution: string;
+        window?: string;
+        reporting: string;
+      };
+      delivery_measurement: {
+        provider: string;
+        notes?: string;
+      };
+      reporting_capabilities?: {
+        available_reporting_frequencies: ('hourly' | 'daily' | 'monthly')[];
+        expected_delay_minutes: number;
+        timezone: string;
+        supports_webhooks: boolean;
+        available_metrics: (
+          | 'impressions'
+          | 'spend'
+          | 'clicks'
+          | 'ctr'
+          | 'video_completions'
+          | 'completion_rate'
+          | 'conversions'
+          | 'viewability'
+          | 'engagement_rate'
+        )[];
+      };
+      creative_policy?: {
+        co_branding: 'required' | 'optional' | 'none';
+        landing_page: 'any' | 'retailer_site_only' | 'must_include_retailer';
+        templates_available: boolean;
+      };
+      /** @example true */
+      is_custom?: boolean;
+      /** @example string */
+      brief_relevance?: string;
+      /** @example string */
+      expires_at?: string;
+      product_card?: {
+        format_id: {
+          agent_url: string;
+          id: string;
+        };
+        manifest: {
+          [key: string]: unknown;
+        };
+      };
+      product_card_detailed?: {
+        format_id: {
+          agent_url: string;
+          id: string;
+        };
+        manifest: {
+          [key: string]: unknown;
+        };
+      };
+      /**
+       * @description Internal database ID
+       * @example example_id_123
+       */
+      id: string;
+      /**
+       * @description Customer who owns this product
+       * @example 100
+       */
+      customer_id: number;
+      /**
+       * @description Source ADCP agent ID
+       * @example example_id_123
+       */
+      adcp_agent_id?: string;
+      /**
+       * @description Human-readable agent name
+       * @example Example Name
+       */
+      sales_agent_name?: string;
+      /**
+       * @description Internal classification of inventory type
+       * @example premium
+       * @enum {string}
+       */
+      inventory_type?: 'premium' | 'run_of_site' | 'targeted_package';
       /**
        * Format: date-time
        * @example string
        */
-      createdAt: string;
+      created_at: string;
       /**
        * Format: date-time
        * @example string
        */
-      updatedAt: string;
+      updated_at: string;
     };
     TacticGet: {
       /** @example 100 */
@@ -1182,13 +2876,13 @@ export interface components {
        */
       count: number;
     };
-    CreativeSyncSalesAgents: {
+    SyncSalesAgentsOutput: {
       /** @example true */
       success: boolean;
       /** @example example_id_123 */
-      creativeId: string;
+      creative_id: string;
       /** @example example_id_123 */
-      campaignId?: string;
+      campaign_id?: string;
     };
     CountryList: {
       /** @example 100 */
@@ -1208,31 +2902,31 @@ export interface components {
         displayName: string;
       }[];
     };
-    MediaBuyDelete: {
+    DeleteMediaBuyOutput: {
       /** @example true */
       success: boolean;
       /** @example example_id_123 */
-      id: string;
+      media_buy_id: string;
     };
-    MediaBuyExecute: {
+    ExecuteMediaBuyOutput: {
       /** @example true */
       success: boolean;
       /** @example example_id_123 */
-      mediaBuyId: string;
+      media_buy_id: string;
       /** @example string */
       status: string;
       /** @example example_id_123 */
-      adcpMediaBuyId?: string;
+      adcp_media_buy_id?: string;
       /** @example string */
-      adcpStatus?: string;
+      adcp_status?: string;
     };
-    MediaBuyList: {
+    ListMediaBuysOutput: {
       /** @example 100 */
       total: number;
       /** @example [] */
       items: components['schemas']['MediaBuyGetOutput'][];
     };
-    MediaBuyValidateBudget: {
+    ValidateMediaBuyBudgetOutput: {
       /** @example true */
       valid: boolean;
       /** @example string */
@@ -1278,93 +2972,34 @@ export interface components {
       /** @example true */
       success: boolean;
       /** @example 100 */
-      productsFound: number;
+      products_found: number;
       /** @example 100 */
-      productsSaved: number;
+      products_saved: number;
       /** @example 100 */
-      successfulAgents: number;
+      successful_agents: number;
       /** @example 100 */
-      failedAgents: number;
+      failed_agents: number;
       /** @example [] */
-      products: {
-        productId: string;
-        name: string;
-        publisherName: string;
-        salesAgentId?: string;
-        salesAgentName?: string;
-        /** @enum {string} */
-        deliveryType: 'guaranteed' | 'non_guaranteed';
-        /** @enum {string} */
-        inventoryType: 'premium' | 'run_of_site' | 'targeted_package';
-        creativeFormats?:
-          | string[]
-          | {
-              agent_url: string;
-              id: string;
-            }[];
-        fixedCpm?: number;
-        floorCpm?: number;
-        targetCpm?: number;
-      }[];
-    };
-    MediaProductSave: {
-      /** @example example_id_123 */
-      id: string;
-      /** @example example_id_123 */
-      productId: string;
-      /** @example Example Name */
-      name: string;
-      /** @example example_id_123 */
-      publisherId: string;
-      /** @example Example Name */
-      publisherName: string;
-      /** @example 100 */
-      customerId: number;
-      /**
-       * Format: date-time
-       * @example string
-       */
-      createdAt: string;
-      /**
-       * Format: date-time
-       * @example string
-       */
-      updatedAt: string;
+      products: components['schemas']['MediaProductSaveOutput'][];
     };
     MediaProductList: {
       /** @example 100 */
       total: number;
       /** @example [] */
-      items: {
-        id: string;
-        productId: string;
-        name: string;
-        salesAgent?: string;
-        salesAgentId?: string;
-        salesAgentName?: string;
-        /** @enum {string} */
-        deliveryType: 'guaranteed' | 'non_guaranteed';
-        format?: string;
-        creativeFormats?:
-          | string[]
-          | {
-              agent_url: string;
-              id: string;
-            }[];
-      }[];
+      items: components['schemas']['MediaProductSaveOutput'][];
     };
     MediaProductSync: {
       /** @example true */
       success: boolean;
       /** @example 100 */
-      productsSaved: number;
+      products_saved: number;
     };
     AgentGet:
       | {
           agentId: string;
           name: string;
           /** @enum {string} */
-          type: 'SALES' | 'OUTCOME';
+          type: 'SALES' | 'OUTCOME' | 'SIGNAL';
           status: string;
           relationship: string;
           endpointUrl: string;
@@ -1382,7 +3017,7 @@ export interface components {
           agentId: string;
           name: string;
           /** @enum {string} */
-          type: 'SALES' | 'OUTCOME';
+          type: 'SALES' | 'OUTCOME' | 'SIGNAL';
           status: string;
           relationship: string;
           endpointUrl: string;
@@ -1406,7 +3041,7 @@ export interface components {
             agentId: string;
             name: string;
             /** @enum {string} */
-            type: 'SALES' | 'OUTCOME';
+            type: 'SALES' | 'OUTCOME' | 'SIGNAL';
             status: string;
             relationship: string;
             endpointUrl: string;
@@ -1416,7 +3051,7 @@ export interface components {
             agentId: string;
             name: string;
             /** @enum {string} */
-            type: 'SALES' | 'OUTCOME';
+            type: 'SALES' | 'OUTCOME' | 'SIGNAL';
             status: string;
             relationship: string;
             endpointUrl: string;
@@ -1434,7 +3069,7 @@ export interface components {
        * @example SALES
        * @enum {string}
        */
-      type: 'SALES' | 'OUTCOME';
+      type: 'SALES' | 'OUTCOME' | 'SIGNAL';
       /** @example string */
       status: string;
       /** @example https://example.com */
@@ -1449,7 +3084,7 @@ export interface components {
        * @example SALES
        * @enum {string}
        */
-      type: 'SALES' | 'OUTCOME';
+      type: 'SALES' | 'OUTCOME' | 'SIGNAL';
     };
     AgentUpdate: {
       /** @example example_id_123 */
@@ -1460,7 +3095,7 @@ export interface components {
        * @example SALES
        * @enum {string}
        */
-      type: 'SALES' | 'OUTCOME';
+      type: 'SALES' | 'OUTCOME' | 'SIGNAL';
       /** @example string */
       status: string;
     };
@@ -1814,102 +3449,951 @@ export interface components {
       count: number;
     };
     MediaBuyGetOutput: {
-      /** @example example_id_123 */
-      id: string;
-      /** @example 100 */
-      tacticId: number;
-      /** @example 100 */
-      customerId: number;
-      /** @example Example Name */
+      /**
+       * @description ADCP media buy identifier
+       * @example example_id_123
+       */
+      media_buy_id: string;
+      /**
+       * @description Internal tactic ID
+       * @example 100
+       */
+      tactic_id: number;
+      /**
+       * @description Internal customer ID
+       * @example 100
+       */
+      customer_id: number;
+      /**
+       * @description Media buy name
+       * @example Example Name
+       */
       name: string;
-      /** @example string */
+      /**
+       * @description Media buy description
+       * @example string
+       */
       description?: string;
-      /** @example [] */
+      /**
+       * @description Internal status (DRAFT, ACTIVE, PAUSED, etc.)
+       * @example string
+       */
+      status: string;
+      /**
+       * @description Pre-execution product configuration
+       * @example []
+       */
       products?: {
-        mediaProductId: string;
-        salesAgentId: string;
-        salesAgentName?: string;
-        budgetAmount?: number;
-        budgetCurrency?: string;
-        pricingCpm?: number;
-        pricingSignalCost?: number;
-        displayOrder?: number;
-        creativeFormats?: {
+        /** @description ADCP product identifier */
+        product_id: string;
+        sales_agent_id: string;
+        sales_agent_name?: string;
+        /** @description ADCP budget field */
+        budget?: number;
+        /**
+         * @description ADCP pacing field
+         * @enum {string}
+         */
+        pacing?: 'asap' | 'even' | 'front_loaded';
+        pricing_option_id?: string;
+        bid_price?: number;
+        display_order?: number;
+        creative_formats?: {
           agent_url: string;
           id: string;
         }[];
       }[];
-      /** @example [] */
+      /**
+       * @description Post-execution ADCP packages (enriched)
+       * @example []
+       */
       packages?: {
-        packageId: string;
-        productIds: string[];
-        impressions: number;
-        budget: number;
-        targetingOverlay: unknown;
+        package_id: string;
+        buyer_ref?: string;
+        product_id?: string;
+        budget?: number;
+        pacing?: 'even' | 'asap' | 'front_loaded';
+        pricing_option_id?: string;
+        bid_price?: number;
+        impressions?: number;
+        targeting_overlay?: {
+          geo_country_any_of?: string[];
+          geo_region_any_of?: string[];
+          geo_metro_any_of?: string[];
+          geo_postal_code_any_of?: string[];
+          axe_include_segment?: string;
+          axe_exclude_segment?: string;
+          frequency_cap?: {
+            suppress_minutes: number;
+          };
+        };
+        creative_assignments?: {
+          creative_id: string;
+          weight?: number;
+          placement_ids?: string[];
+        }[];
+        format_ids_to_provide?: {
+          agent_url: string;
+          id: string;
+        }[];
+        status: 'draft' | 'active' | 'paused' | 'completed';
+        /** @description Array of product IDs (enriched from joins) */
+        product_ids?: string[];
+        /** @description Full creative objects (enriched from joins) */
         creatives: {
-          creativeId: string;
+          creative_id: string;
           name: string;
-          formatId: string;
-          mediaUrl: string;
+          format_id: {
+            agent_url: string;
+            id: string;
+          };
+          assets: {
+            [key: string]:
+              | {
+                  url: string;
+                  width?: number;
+                  height?: number;
+                  format?: string;
+                  alt_text?: string;
+                }
+              | {
+                  url: string;
+                  width?: number;
+                  height?: number;
+                  duration_ms?: number;
+                  format?: string;
+                  bitrate_kbps?: number;
+                }
+              | {
+                  url: string;
+                  duration_ms?: number;
+                  format?: string;
+                  bitrate_kbps?: number;
+                }
+              | {
+                  content: string;
+                  language?: string;
+                }
+              | {
+                  content: string;
+                  version?: string;
+                }
+              | {
+                  content: string;
+                  media?: string;
+                }
+              | {
+                  content: string;
+                  module_type?: 'esm' | 'commonjs' | 'script';
+                }
+              | (
+                  | {
+                      /** @enum {string} */
+                      delivery_type: 'url';
+                      url: string;
+                      vast_version?: '2.0' | '3.0' | '4.0' | '4.1' | '4.2';
+                      vpaid_enabled?: boolean;
+                      duration_ms?: number;
+                      tracking_events?: (
+                        | 'start'
+                        | 'firstQuartile'
+                        | 'midpoint'
+                        | 'thirdQuartile'
+                        | 'complete'
+                        | 'impression'
+                        | 'click'
+                        | 'pause'
+                        | 'resume'
+                        | 'skip'
+                        | 'mute'
+                        | 'unmute'
+                        | 'fullscreen'
+                        | 'exitFullscreen'
+                        | 'playerExpand'
+                        | 'playerCollapse'
+                      )[];
+                    }
+                  | {
+                      /** @enum {string} */
+                      delivery_type: 'inline';
+                      content: string;
+                      vast_version?: '2.0' | '3.0' | '4.0' | '4.1' | '4.2';
+                      vpaid_enabled?: boolean;
+                      duration_ms?: number;
+                      tracking_events?: (
+                        | 'start'
+                        | 'firstQuartile'
+                        | 'midpoint'
+                        | 'thirdQuartile'
+                        | 'complete'
+                        | 'impression'
+                        | 'click'
+                        | 'pause'
+                        | 'resume'
+                        | 'skip'
+                        | 'mute'
+                        | 'unmute'
+                        | 'fullscreen'
+                        | 'exitFullscreen'
+                        | 'playerExpand'
+                        | 'playerCollapse'
+                      )[];
+                    }
+                )
+              | (
+                  | {
+                      /** @enum {string} */
+                      delivery_type: 'url';
+                      url: string;
+                      daast_version?: '1.0' | '1.1';
+                      duration_ms?: number;
+                      tracking_events?: (
+                        | 'start'
+                        | 'firstQuartile'
+                        | 'midpoint'
+                        | 'thirdQuartile'
+                        | 'complete'
+                        | 'impression'
+                        | 'pause'
+                        | 'resume'
+                        | 'skip'
+                        | 'mute'
+                        | 'unmute'
+                      )[];
+                      companion_ads?: boolean;
+                    }
+                  | {
+                      /** @enum {string} */
+                      delivery_type: 'inline';
+                      content: string;
+                      daast_version?: '1.0' | '1.1';
+                      duration_ms?: number;
+                      tracking_events?: (
+                        | 'start'
+                        | 'firstQuartile'
+                        | 'midpoint'
+                        | 'thirdQuartile'
+                        | 'complete'
+                        | 'impression'
+                        | 'pause'
+                        | 'resume'
+                        | 'skip'
+                        | 'mute'
+                        | 'unmute'
+                      )[];
+                      companion_ads?: boolean;
+                    }
+                )
+              | {
+                  brand_manifest:
+                    | {
+                        url?: string;
+                        name: string;
+                        logos?: {
+                          url: string;
+                          tags?: string[];
+                          width?: number;
+                          height?: number;
+                        }[];
+                        colors?: {
+                          primary?: string;
+                          secondary?: string;
+                          accent?: string;
+                          background?: string;
+                          text?: string;
+                        };
+                        fonts?: {
+                          primary?: string;
+                          secondary?: string;
+                          font_urls?: string[];
+                        };
+                        tone?: string;
+                        tagline?: string;
+                        assets?: {
+                          asset_id: string;
+                          asset_type:
+                            | 'image'
+                            | 'video'
+                            | 'audio'
+                            | 'text'
+                            | 'markdown'
+                            | 'html'
+                            | 'css'
+                            | 'javascript'
+                            | 'vast'
+                            | 'daast'
+                            | 'promoted_offerings'
+                            | 'url'
+                            | 'webhook';
+                          url: string;
+                          tags?: string[];
+                          name?: string;
+                          description?: string;
+                          width?: number;
+                          height?: number;
+                          duration_seconds?: number;
+                          file_size_bytes?: number;
+                          format?: string;
+                          metadata?: {
+                            [key: string]: unknown;
+                          };
+                        }[];
+                        product_catalog?: {
+                          feed_url: string;
+                          feed_format?: 'google_merchant_center' | 'facebook_catalog' | 'custom';
+                          categories?: string[];
+                          last_updated?: string;
+                          update_frequency?: 'realtime' | 'hourly' | 'daily' | 'weekly';
+                        };
+                        disclaimers?: {
+                          text: string;
+                          context?: string;
+                          required?: boolean;
+                        }[];
+                        industry?: string;
+                        target_audience?: string;
+                        contact?: {
+                          email?: string;
+                          phone?: string;
+                        };
+                        metadata?: {
+                          created_date?: string;
+                          updated_date?: string;
+                          version?: string;
+                        };
+                      }
+                    | string;
+                  product_selectors?: {
+                    manifest_skus?: string[];
+                    manifest_tags?: string[];
+                    manifest_category?: string;
+                    manifest_query?: string;
+                  };
+                  offerings?: {
+                    name: string;
+                    description?: string;
+                    assets?: {
+                      [key: string]: unknown;
+                    }[];
+                  }[];
+                  asset_selectors?: {
+                    tags?: string[];
+                    asset_types?: (
+                      | 'image'
+                      | 'video'
+                      | 'audio'
+                      | 'vast'
+                      | 'daast'
+                      | 'text'
+                      | 'url'
+                      | 'html'
+                      | 'css'
+                      | 'javascript'
+                      | 'webhook'
+                    )[];
+                    exclude_tags?: string[];
+                  };
+                }
+              | {
+                  url: string;
+                  url_type?: 'clickthrough' | 'tracker_pixel' | 'tracker_script';
+                  description?: string;
+                };
+          };
+          inputs?: {
+            name: string;
+            macros?: {
+              [key: string]: string;
+            };
+            context_description?: string;
+          }[];
+          tags?: string[];
+          approved?: boolean;
+          /** @description Internal creative status (not in ADCP protocol) */
           status: string;
         }[];
         /** Format: date-time */
-        createdAt: string;
+        created_at: string;
         /** Format: date-time */
-        updatedAt: string;
-        salesAgentId?: string;
-        salesAgentName?: string;
-        pricingCpm?: number;
-        pricingSignalCost?: number;
-        bidPrice?: number;
-        pricingOptionId?: string;
-        creativeFormats?: {
+        updated_at: string;
+        sales_agent_id?: string;
+        sales_agent_name?: string;
+        creative_formats?: {
           agent_url: string;
           id: string;
         }[];
       }[];
-      /** @example [] */
+      /**
+       * @description Full creative objects (enriched from joins)
+       * @example []
+       */
       creatives?: {
-        creativeId: string;
+        creative_id: string;
         name: string;
-        formatId: string;
-        mediaUrl: string;
+        format_id: {
+          agent_url: string;
+          id: string;
+        };
+        assets: {
+          [key: string]:
+            | {
+                url: string;
+                width?: number;
+                height?: number;
+                format?: string;
+                alt_text?: string;
+              }
+            | {
+                url: string;
+                width?: number;
+                height?: number;
+                duration_ms?: number;
+                format?: string;
+                bitrate_kbps?: number;
+              }
+            | {
+                url: string;
+                duration_ms?: number;
+                format?: string;
+                bitrate_kbps?: number;
+              }
+            | {
+                content: string;
+                language?: string;
+              }
+            | {
+                content: string;
+                version?: string;
+              }
+            | {
+                content: string;
+                media?: string;
+              }
+            | {
+                content: string;
+                module_type?: 'esm' | 'commonjs' | 'script';
+              }
+            | (
+                | {
+                    /** @enum {string} */
+                    delivery_type: 'url';
+                    url: string;
+                    vast_version?: '2.0' | '3.0' | '4.0' | '4.1' | '4.2';
+                    vpaid_enabled?: boolean;
+                    duration_ms?: number;
+                    tracking_events?: (
+                      | 'start'
+                      | 'firstQuartile'
+                      | 'midpoint'
+                      | 'thirdQuartile'
+                      | 'complete'
+                      | 'impression'
+                      | 'click'
+                      | 'pause'
+                      | 'resume'
+                      | 'skip'
+                      | 'mute'
+                      | 'unmute'
+                      | 'fullscreen'
+                      | 'exitFullscreen'
+                      | 'playerExpand'
+                      | 'playerCollapse'
+                    )[];
+                  }
+                | {
+                    /** @enum {string} */
+                    delivery_type: 'inline';
+                    content: string;
+                    vast_version?: '2.0' | '3.0' | '4.0' | '4.1' | '4.2';
+                    vpaid_enabled?: boolean;
+                    duration_ms?: number;
+                    tracking_events?: (
+                      | 'start'
+                      | 'firstQuartile'
+                      | 'midpoint'
+                      | 'thirdQuartile'
+                      | 'complete'
+                      | 'impression'
+                      | 'click'
+                      | 'pause'
+                      | 'resume'
+                      | 'skip'
+                      | 'mute'
+                      | 'unmute'
+                      | 'fullscreen'
+                      | 'exitFullscreen'
+                      | 'playerExpand'
+                      | 'playerCollapse'
+                    )[];
+                  }
+              )
+            | (
+                | {
+                    /** @enum {string} */
+                    delivery_type: 'url';
+                    url: string;
+                    daast_version?: '1.0' | '1.1';
+                    duration_ms?: number;
+                    tracking_events?: (
+                      | 'start'
+                      | 'firstQuartile'
+                      | 'midpoint'
+                      | 'thirdQuartile'
+                      | 'complete'
+                      | 'impression'
+                      | 'pause'
+                      | 'resume'
+                      | 'skip'
+                      | 'mute'
+                      | 'unmute'
+                    )[];
+                    companion_ads?: boolean;
+                  }
+                | {
+                    /** @enum {string} */
+                    delivery_type: 'inline';
+                    content: string;
+                    daast_version?: '1.0' | '1.1';
+                    duration_ms?: number;
+                    tracking_events?: (
+                      | 'start'
+                      | 'firstQuartile'
+                      | 'midpoint'
+                      | 'thirdQuartile'
+                      | 'complete'
+                      | 'impression'
+                      | 'pause'
+                      | 'resume'
+                      | 'skip'
+                      | 'mute'
+                      | 'unmute'
+                    )[];
+                    companion_ads?: boolean;
+                  }
+              )
+            | {
+                brand_manifest:
+                  | {
+                      url?: string;
+                      name: string;
+                      logos?: {
+                        url: string;
+                        tags?: string[];
+                        width?: number;
+                        height?: number;
+                      }[];
+                      colors?: {
+                        primary?: string;
+                        secondary?: string;
+                        accent?: string;
+                        background?: string;
+                        text?: string;
+                      };
+                      fonts?: {
+                        primary?: string;
+                        secondary?: string;
+                        font_urls?: string[];
+                      };
+                      tone?: string;
+                      tagline?: string;
+                      assets?: {
+                        asset_id: string;
+                        asset_type:
+                          | 'image'
+                          | 'video'
+                          | 'audio'
+                          | 'text'
+                          | 'markdown'
+                          | 'html'
+                          | 'css'
+                          | 'javascript'
+                          | 'vast'
+                          | 'daast'
+                          | 'promoted_offerings'
+                          | 'url'
+                          | 'webhook';
+                        url: string;
+                        tags?: string[];
+                        name?: string;
+                        description?: string;
+                        width?: number;
+                        height?: number;
+                        duration_seconds?: number;
+                        file_size_bytes?: number;
+                        format?: string;
+                        metadata?: {
+                          [key: string]: unknown;
+                        };
+                      }[];
+                      product_catalog?: {
+                        feed_url: string;
+                        feed_format?: 'google_merchant_center' | 'facebook_catalog' | 'custom';
+                        categories?: string[];
+                        last_updated?: string;
+                        update_frequency?: 'realtime' | 'hourly' | 'daily' | 'weekly';
+                      };
+                      disclaimers?: {
+                        text: string;
+                        context?: string;
+                        required?: boolean;
+                      }[];
+                      industry?: string;
+                      target_audience?: string;
+                      contact?: {
+                        email?: string;
+                        phone?: string;
+                      };
+                      metadata?: {
+                        created_date?: string;
+                        updated_date?: string;
+                        version?: string;
+                      };
+                    }
+                  | string;
+                product_selectors?: {
+                  manifest_skus?: string[];
+                  manifest_tags?: string[];
+                  manifest_category?: string;
+                  manifest_query?: string;
+                };
+                offerings?: {
+                  name: string;
+                  description?: string;
+                  assets?: {
+                    [key: string]: unknown;
+                  }[];
+                }[];
+                asset_selectors?: {
+                  tags?: string[];
+                  asset_types?: (
+                    | 'image'
+                    | 'video'
+                    | 'audio'
+                    | 'vast'
+                    | 'daast'
+                    | 'text'
+                    | 'url'
+                    | 'html'
+                    | 'css'
+                    | 'javascript'
+                    | 'webhook'
+                  )[];
+                  exclude_tags?: string[];
+                };
+              }
+            | {
+                url: string;
+                url_type?: 'clickthrough' | 'tracker_pixel' | 'tracker_script';
+                description?: string;
+              };
+        };
+        inputs?: {
+          name: string;
+          macros?: {
+            [key: string]: string;
+          };
+          context_description?: string;
+        }[];
+        tags?: string[];
+        approved?: boolean;
+        /** @description Internal creative status (not in ADCP protocol) */
         status: string;
       }[];
-      pricing: {
-        cpm: number;
-        signalCost?: number;
-        totalCpm: number;
-      };
-      /** @example string */
-      status: string;
+      /** @description ADCP-specific metadata (from execute response) */
       adcp?: {
-        mediaBuyId?: string;
+        media_buy_id?: string;
         status?: string;
-        webhookUrl?: string;
+        webhook_url?: string;
       };
+      /** @description Performance metrics (from reporting) */
       performance?: {
         impressions: number;
         spend: number;
         clicks: number;
         /** Format: date-time */
-        lastUpdated?: string;
+        last_updated?: string;
       };
       /**
        * Format: date-time
+       * @description Created timestamp
        * @example string
        */
-      archivedAt?: string;
+      created_at: string;
+      /**
+       * Format: date-time
+       * @description Updated timestamp
+       * @example string
+       */
+      updated_at: string;
+      /**
+       * Format: date-time
+       * @description Archived timestamp
+       * @example string
+       */
+      archived_at?: string | null;
+    };
+    MediaProductSaveOutput: {
+      /** @example example_id_123 */
+      product_id: string;
+      /** @example Example Name */
+      name: string;
+      /** @example string */
+      description: string;
+      /** @example [] */
+      publisher_properties: (
+        | {
+            publisher_domain: string;
+            /** @enum {string} */
+            selection_type: 'all';
+          }
+        | {
+            publisher_domain: string;
+            /** @enum {string} */
+            selection_type: 'by_id';
+            property_ids: string[];
+          }
+        | {
+            publisher_domain: string;
+            /** @enum {string} */
+            selection_type: 'by_tag';
+            property_tags: string[];
+          }
+      )[];
+      /** @example [] */
+      format_ids: {
+        agent_url: string;
+        id: string;
+      }[];
+      /** @example [] */
+      placements?: {
+        placement_id: string;
+        name: string;
+        description?: string;
+        format_ids?: {
+          agent_url: string;
+          id: string;
+        }[];
+      }[];
+      delivery_type: 'guaranteed' | 'non_guaranteed';
+      /** @example [] */
+      pricing_options: (
+        | {
+            pricing_option_id: string;
+            /** @enum {string} */
+            pricing_model: 'cpm';
+            rate: number;
+            currency: string;
+            /** @enum {boolean} */
+            is_fixed: true;
+            min_spend_per_package?: number;
+          }
+        | {
+            pricing_option_id: string;
+            /** @enum {string} */
+            pricing_model: 'cpm';
+            currency: string;
+            /** @enum {boolean} */
+            is_fixed: false;
+            price_guidance: {
+              floor: number;
+              p25?: number;
+              p50?: number;
+              p75?: number;
+              p90?: number;
+            };
+            min_spend_per_package?: number;
+          }
+        | {
+            pricing_option_id: string;
+            /** @enum {string} */
+            pricing_model: 'vcpm';
+            rate: number;
+            currency: string;
+            /** @enum {boolean} */
+            is_fixed: true;
+            min_spend_per_package?: number;
+          }
+        | {
+            pricing_option_id: string;
+            /** @enum {string} */
+            pricing_model: 'vcpm';
+            currency: string;
+            /** @enum {boolean} */
+            is_fixed: false;
+            price_guidance: {
+              floor: number;
+              p25?: number;
+              p50?: number;
+              p75?: number;
+              p90?: number;
+            };
+            min_spend_per_package?: number;
+          }
+        | {
+            pricing_option_id: string;
+            /** @enum {string} */
+            pricing_model: 'cpc';
+            rate: number;
+            currency: string;
+            /** @enum {boolean} */
+            is_fixed: true;
+            min_spend_per_package?: number;
+          }
+        | {
+            pricing_option_id: string;
+            /** @enum {string} */
+            pricing_model: 'cpcv';
+            rate: number;
+            currency: string;
+            /** @enum {boolean} */
+            is_fixed: true;
+            min_spend_per_package?: number;
+          }
+        | {
+            pricing_option_id: string;
+            /** @enum {string} */
+            pricing_model: 'cpv';
+            rate: number;
+            currency: string;
+            /** @enum {boolean} */
+            is_fixed: true;
+            parameters: {
+              view_threshold:
+                | number
+                | {
+                    duration_seconds: number;
+                  };
+            };
+            min_spend_per_package?: number;
+          }
+        | {
+            pricing_option_id: string;
+            /** @enum {string} */
+            pricing_model: 'cpp';
+            rate: number;
+            currency: string;
+            /** @enum {boolean} */
+            is_fixed: true;
+            parameters: {
+              demographic: string;
+              min_points?: number;
+            };
+            min_spend_per_package?: number;
+          }
+        | {
+            pricing_option_id: string;
+            /** @enum {string} */
+            pricing_model: 'flat_rate';
+            rate: number;
+            currency: string;
+            /** @enum {boolean} */
+            is_fixed: true;
+            parameters?: {
+              duration_hours?: number;
+              sov_percentage?: number;
+              loop_duration_seconds?: number;
+              min_plays_per_hour?: number;
+              venue_package?: string;
+              estimated_impressions?: number;
+              daypart?: string;
+            };
+            min_spend_per_package?: number;
+          }
+      )[];
+      /** @example 100 */
+      estimated_exposures?: number;
+      measurement?: {
+        type: string;
+        attribution: string;
+        window?: string;
+        reporting: string;
+      };
+      delivery_measurement: {
+        provider: string;
+        notes?: string;
+      };
+      reporting_capabilities?: {
+        available_reporting_frequencies: ('hourly' | 'daily' | 'monthly')[];
+        expected_delay_minutes: number;
+        timezone: string;
+        supports_webhooks: boolean;
+        available_metrics: (
+          | 'impressions'
+          | 'spend'
+          | 'clicks'
+          | 'ctr'
+          | 'video_completions'
+          | 'completion_rate'
+          | 'conversions'
+          | 'viewability'
+          | 'engagement_rate'
+        )[];
+      };
+      creative_policy?: {
+        co_branding: 'required' | 'optional' | 'none';
+        landing_page: 'any' | 'retailer_site_only' | 'must_include_retailer';
+        templates_available: boolean;
+      };
+      /** @example true */
+      is_custom?: boolean;
+      /** @example string */
+      brief_relevance?: string;
+      /** @example string */
+      expires_at?: string;
+      product_card?: {
+        format_id: {
+          agent_url: string;
+          id: string;
+        };
+        manifest: {
+          [key: string]: unknown;
+        };
+      };
+      product_card_detailed?: {
+        format_id: {
+          agent_url: string;
+          id: string;
+        };
+        manifest: {
+          [key: string]: unknown;
+        };
+      };
+      /**
+       * @description Internal database ID
+       * @example example_id_123
+       */
+      id: string;
+      /**
+       * @description Customer who owns this product
+       * @example 100
+       */
+      customer_id: number;
+      /**
+       * @description Source ADCP agent ID
+       * @example example_id_123
+       */
+      adcp_agent_id?: string;
+      /**
+       * @description Human-readable agent name
+       * @example Example Name
+       */
+      sales_agent_name?: string;
+      /**
+       * @description Internal classification of inventory type
+       * @example premium
+       * @enum {string}
+       */
+      inventory_type?: 'premium' | 'run_of_site' | 'targeted_package';
       /**
        * Format: date-time
        * @example string
        */
-      createdAt: string;
+      created_at: string;
       /**
        * Format: date-time
        * @example string
        */
-      updatedAt: string;
+      updated_at: string;
     };
     TacticGetOutput: {
       /** @example 100 */
@@ -1943,200 +4427,1372 @@ export interface components {
       archivedAt?: string;
     };
     MediaBuyCreate: {
-      /** @example example_id_123 */
-      id: string;
-      /** @example 100 */
-      tacticId: number;
-      /** @example 100 */
-      customerId: number;
-      /** @example Example Name */
+      /**
+       * @description ADCP media buy identifier
+       * @example example_id_123
+       */
+      media_buy_id: string;
+      /**
+       * @description Internal tactic ID
+       * @example 100
+       */
+      tactic_id: number;
+      /**
+       * @description Internal customer ID
+       * @example 100
+       */
+      customer_id: number;
+      /**
+       * @description Media buy name
+       * @example Example Name
+       */
       name: string;
-      /** @example string */
+      /**
+       * @description Media buy description
+       * @example string
+       */
       description?: string;
-      /** @example [] */
+      /**
+       * @description Internal status (DRAFT, ACTIVE, PAUSED, etc.)
+       * @example string
+       */
+      status: string;
+      /**
+       * @description Pre-execution product configuration
+       * @example []
+       */
       products?: {
-        mediaProductId: string;
-        salesAgentId: string;
-        salesAgentName?: string;
-        budgetAmount?: number;
-        budgetCurrency?: string;
-        pricingCpm?: number;
-        pricingSignalCost?: number;
-        displayOrder?: number;
-        creativeFormats?: {
+        /** @description ADCP product identifier */
+        product_id: string;
+        sales_agent_id: string;
+        sales_agent_name?: string;
+        /** @description ADCP budget field */
+        budget?: number;
+        /**
+         * @description ADCP pacing field
+         * @enum {string}
+         */
+        pacing?: 'asap' | 'even' | 'front_loaded';
+        pricing_option_id?: string;
+        bid_price?: number;
+        display_order?: number;
+        creative_formats?: {
           agent_url: string;
           id: string;
         }[];
       }[];
-      /** @example [] */
+      /**
+       * @description Post-execution ADCP packages (enriched)
+       * @example []
+       */
       packages?: {
-        packageId: string;
-        productIds: string[];
-        impressions: number;
-        budget: number;
-        targetingOverlay: unknown;
+        package_id: string;
+        buyer_ref?: string;
+        product_id?: string;
+        budget?: number;
+        pacing?: 'even' | 'asap' | 'front_loaded';
+        pricing_option_id?: string;
+        bid_price?: number;
+        impressions?: number;
+        targeting_overlay?: {
+          geo_country_any_of?: string[];
+          geo_region_any_of?: string[];
+          geo_metro_any_of?: string[];
+          geo_postal_code_any_of?: string[];
+          axe_include_segment?: string;
+          axe_exclude_segment?: string;
+          frequency_cap?: {
+            suppress_minutes: number;
+          };
+        };
+        creative_assignments?: {
+          creative_id: string;
+          weight?: number;
+          placement_ids?: string[];
+        }[];
+        format_ids_to_provide?: {
+          agent_url: string;
+          id: string;
+        }[];
+        status: 'draft' | 'active' | 'paused' | 'completed';
+        /** @description Array of product IDs (enriched from joins) */
+        product_ids?: string[];
+        /** @description Full creative objects (enriched from joins) */
         creatives: {
-          creativeId: string;
+          creative_id: string;
           name: string;
-          formatId: string;
-          mediaUrl: string;
+          format_id: {
+            agent_url: string;
+            id: string;
+          };
+          assets: {
+            [key: string]:
+              | {
+                  url: string;
+                  width?: number;
+                  height?: number;
+                  format?: string;
+                  alt_text?: string;
+                }
+              | {
+                  url: string;
+                  width?: number;
+                  height?: number;
+                  duration_ms?: number;
+                  format?: string;
+                  bitrate_kbps?: number;
+                }
+              | {
+                  url: string;
+                  duration_ms?: number;
+                  format?: string;
+                  bitrate_kbps?: number;
+                }
+              | {
+                  content: string;
+                  language?: string;
+                }
+              | {
+                  content: string;
+                  version?: string;
+                }
+              | {
+                  content: string;
+                  media?: string;
+                }
+              | {
+                  content: string;
+                  module_type?: 'esm' | 'commonjs' | 'script';
+                }
+              | (
+                  | {
+                      /** @enum {string} */
+                      delivery_type: 'url';
+                      url: string;
+                      vast_version?: '2.0' | '3.0' | '4.0' | '4.1' | '4.2';
+                      vpaid_enabled?: boolean;
+                      duration_ms?: number;
+                      tracking_events?: (
+                        | 'start'
+                        | 'firstQuartile'
+                        | 'midpoint'
+                        | 'thirdQuartile'
+                        | 'complete'
+                        | 'impression'
+                        | 'click'
+                        | 'pause'
+                        | 'resume'
+                        | 'skip'
+                        | 'mute'
+                        | 'unmute'
+                        | 'fullscreen'
+                        | 'exitFullscreen'
+                        | 'playerExpand'
+                        | 'playerCollapse'
+                      )[];
+                    }
+                  | {
+                      /** @enum {string} */
+                      delivery_type: 'inline';
+                      content: string;
+                      vast_version?: '2.0' | '3.0' | '4.0' | '4.1' | '4.2';
+                      vpaid_enabled?: boolean;
+                      duration_ms?: number;
+                      tracking_events?: (
+                        | 'start'
+                        | 'firstQuartile'
+                        | 'midpoint'
+                        | 'thirdQuartile'
+                        | 'complete'
+                        | 'impression'
+                        | 'click'
+                        | 'pause'
+                        | 'resume'
+                        | 'skip'
+                        | 'mute'
+                        | 'unmute'
+                        | 'fullscreen'
+                        | 'exitFullscreen'
+                        | 'playerExpand'
+                        | 'playerCollapse'
+                      )[];
+                    }
+                )
+              | (
+                  | {
+                      /** @enum {string} */
+                      delivery_type: 'url';
+                      url: string;
+                      daast_version?: '1.0' | '1.1';
+                      duration_ms?: number;
+                      tracking_events?: (
+                        | 'start'
+                        | 'firstQuartile'
+                        | 'midpoint'
+                        | 'thirdQuartile'
+                        | 'complete'
+                        | 'impression'
+                        | 'pause'
+                        | 'resume'
+                        | 'skip'
+                        | 'mute'
+                        | 'unmute'
+                      )[];
+                      companion_ads?: boolean;
+                    }
+                  | {
+                      /** @enum {string} */
+                      delivery_type: 'inline';
+                      content: string;
+                      daast_version?: '1.0' | '1.1';
+                      duration_ms?: number;
+                      tracking_events?: (
+                        | 'start'
+                        | 'firstQuartile'
+                        | 'midpoint'
+                        | 'thirdQuartile'
+                        | 'complete'
+                        | 'impression'
+                        | 'pause'
+                        | 'resume'
+                        | 'skip'
+                        | 'mute'
+                        | 'unmute'
+                      )[];
+                      companion_ads?: boolean;
+                    }
+                )
+              | {
+                  brand_manifest:
+                    | {
+                        url?: string;
+                        name: string;
+                        logos?: {
+                          url: string;
+                          tags?: string[];
+                          width?: number;
+                          height?: number;
+                        }[];
+                        colors?: {
+                          primary?: string;
+                          secondary?: string;
+                          accent?: string;
+                          background?: string;
+                          text?: string;
+                        };
+                        fonts?: {
+                          primary?: string;
+                          secondary?: string;
+                          font_urls?: string[];
+                        };
+                        tone?: string;
+                        tagline?: string;
+                        assets?: {
+                          asset_id: string;
+                          asset_type:
+                            | 'image'
+                            | 'video'
+                            | 'audio'
+                            | 'text'
+                            | 'markdown'
+                            | 'html'
+                            | 'css'
+                            | 'javascript'
+                            | 'vast'
+                            | 'daast'
+                            | 'promoted_offerings'
+                            | 'url'
+                            | 'webhook';
+                          url: string;
+                          tags?: string[];
+                          name?: string;
+                          description?: string;
+                          width?: number;
+                          height?: number;
+                          duration_seconds?: number;
+                          file_size_bytes?: number;
+                          format?: string;
+                          metadata?: {
+                            [key: string]: unknown;
+                          };
+                        }[];
+                        product_catalog?: {
+                          feed_url: string;
+                          feed_format?: 'google_merchant_center' | 'facebook_catalog' | 'custom';
+                          categories?: string[];
+                          last_updated?: string;
+                          update_frequency?: 'realtime' | 'hourly' | 'daily' | 'weekly';
+                        };
+                        disclaimers?: {
+                          text: string;
+                          context?: string;
+                          required?: boolean;
+                        }[];
+                        industry?: string;
+                        target_audience?: string;
+                        contact?: {
+                          email?: string;
+                          phone?: string;
+                        };
+                        metadata?: {
+                          created_date?: string;
+                          updated_date?: string;
+                          version?: string;
+                        };
+                      }
+                    | string;
+                  product_selectors?: {
+                    manifest_skus?: string[];
+                    manifest_tags?: string[];
+                    manifest_category?: string;
+                    manifest_query?: string;
+                  };
+                  offerings?: {
+                    name: string;
+                    description?: string;
+                    assets?: {
+                      [key: string]: unknown;
+                    }[];
+                  }[];
+                  asset_selectors?: {
+                    tags?: string[];
+                    asset_types?: (
+                      | 'image'
+                      | 'video'
+                      | 'audio'
+                      | 'vast'
+                      | 'daast'
+                      | 'text'
+                      | 'url'
+                      | 'html'
+                      | 'css'
+                      | 'javascript'
+                      | 'webhook'
+                    )[];
+                    exclude_tags?: string[];
+                  };
+                }
+              | {
+                  url: string;
+                  url_type?: 'clickthrough' | 'tracker_pixel' | 'tracker_script';
+                  description?: string;
+                };
+          };
+          inputs?: {
+            name: string;
+            macros?: {
+              [key: string]: string;
+            };
+            context_description?: string;
+          }[];
+          tags?: string[];
+          approved?: boolean;
+          /** @description Internal creative status (not in ADCP protocol) */
           status: string;
         }[];
         /** Format: date-time */
-        createdAt: string;
+        created_at: string;
         /** Format: date-time */
-        updatedAt: string;
-        salesAgentId?: string;
-        salesAgentName?: string;
-        pricingCpm?: number;
-        pricingSignalCost?: number;
-        bidPrice?: number;
-        pricingOptionId?: string;
-        creativeFormats?: {
+        updated_at: string;
+        sales_agent_id?: string;
+        sales_agent_name?: string;
+        creative_formats?: {
           agent_url: string;
           id: string;
         }[];
       }[];
-      /** @example [] */
+      /**
+       * @description Full creative objects (enriched from joins)
+       * @example []
+       */
       creatives?: {
-        creativeId: string;
+        creative_id: string;
         name: string;
-        formatId: string;
-        mediaUrl: string;
+        format_id: {
+          agent_url: string;
+          id: string;
+        };
+        assets: {
+          [key: string]:
+            | {
+                url: string;
+                width?: number;
+                height?: number;
+                format?: string;
+                alt_text?: string;
+              }
+            | {
+                url: string;
+                width?: number;
+                height?: number;
+                duration_ms?: number;
+                format?: string;
+                bitrate_kbps?: number;
+              }
+            | {
+                url: string;
+                duration_ms?: number;
+                format?: string;
+                bitrate_kbps?: number;
+              }
+            | {
+                content: string;
+                language?: string;
+              }
+            | {
+                content: string;
+                version?: string;
+              }
+            | {
+                content: string;
+                media?: string;
+              }
+            | {
+                content: string;
+                module_type?: 'esm' | 'commonjs' | 'script';
+              }
+            | (
+                | {
+                    /** @enum {string} */
+                    delivery_type: 'url';
+                    url: string;
+                    vast_version?: '2.0' | '3.0' | '4.0' | '4.1' | '4.2';
+                    vpaid_enabled?: boolean;
+                    duration_ms?: number;
+                    tracking_events?: (
+                      | 'start'
+                      | 'firstQuartile'
+                      | 'midpoint'
+                      | 'thirdQuartile'
+                      | 'complete'
+                      | 'impression'
+                      | 'click'
+                      | 'pause'
+                      | 'resume'
+                      | 'skip'
+                      | 'mute'
+                      | 'unmute'
+                      | 'fullscreen'
+                      | 'exitFullscreen'
+                      | 'playerExpand'
+                      | 'playerCollapse'
+                    )[];
+                  }
+                | {
+                    /** @enum {string} */
+                    delivery_type: 'inline';
+                    content: string;
+                    vast_version?: '2.0' | '3.0' | '4.0' | '4.1' | '4.2';
+                    vpaid_enabled?: boolean;
+                    duration_ms?: number;
+                    tracking_events?: (
+                      | 'start'
+                      | 'firstQuartile'
+                      | 'midpoint'
+                      | 'thirdQuartile'
+                      | 'complete'
+                      | 'impression'
+                      | 'click'
+                      | 'pause'
+                      | 'resume'
+                      | 'skip'
+                      | 'mute'
+                      | 'unmute'
+                      | 'fullscreen'
+                      | 'exitFullscreen'
+                      | 'playerExpand'
+                      | 'playerCollapse'
+                    )[];
+                  }
+              )
+            | (
+                | {
+                    /** @enum {string} */
+                    delivery_type: 'url';
+                    url: string;
+                    daast_version?: '1.0' | '1.1';
+                    duration_ms?: number;
+                    tracking_events?: (
+                      | 'start'
+                      | 'firstQuartile'
+                      | 'midpoint'
+                      | 'thirdQuartile'
+                      | 'complete'
+                      | 'impression'
+                      | 'pause'
+                      | 'resume'
+                      | 'skip'
+                      | 'mute'
+                      | 'unmute'
+                    )[];
+                    companion_ads?: boolean;
+                  }
+                | {
+                    /** @enum {string} */
+                    delivery_type: 'inline';
+                    content: string;
+                    daast_version?: '1.0' | '1.1';
+                    duration_ms?: number;
+                    tracking_events?: (
+                      | 'start'
+                      | 'firstQuartile'
+                      | 'midpoint'
+                      | 'thirdQuartile'
+                      | 'complete'
+                      | 'impression'
+                      | 'pause'
+                      | 'resume'
+                      | 'skip'
+                      | 'mute'
+                      | 'unmute'
+                    )[];
+                    companion_ads?: boolean;
+                  }
+              )
+            | {
+                brand_manifest:
+                  | {
+                      url?: string;
+                      name: string;
+                      logos?: {
+                        url: string;
+                        tags?: string[];
+                        width?: number;
+                        height?: number;
+                      }[];
+                      colors?: {
+                        primary?: string;
+                        secondary?: string;
+                        accent?: string;
+                        background?: string;
+                        text?: string;
+                      };
+                      fonts?: {
+                        primary?: string;
+                        secondary?: string;
+                        font_urls?: string[];
+                      };
+                      tone?: string;
+                      tagline?: string;
+                      assets?: {
+                        asset_id: string;
+                        asset_type:
+                          | 'image'
+                          | 'video'
+                          | 'audio'
+                          | 'text'
+                          | 'markdown'
+                          | 'html'
+                          | 'css'
+                          | 'javascript'
+                          | 'vast'
+                          | 'daast'
+                          | 'promoted_offerings'
+                          | 'url'
+                          | 'webhook';
+                        url: string;
+                        tags?: string[];
+                        name?: string;
+                        description?: string;
+                        width?: number;
+                        height?: number;
+                        duration_seconds?: number;
+                        file_size_bytes?: number;
+                        format?: string;
+                        metadata?: {
+                          [key: string]: unknown;
+                        };
+                      }[];
+                      product_catalog?: {
+                        feed_url: string;
+                        feed_format?: 'google_merchant_center' | 'facebook_catalog' | 'custom';
+                        categories?: string[];
+                        last_updated?: string;
+                        update_frequency?: 'realtime' | 'hourly' | 'daily' | 'weekly';
+                      };
+                      disclaimers?: {
+                        text: string;
+                        context?: string;
+                        required?: boolean;
+                      }[];
+                      industry?: string;
+                      target_audience?: string;
+                      contact?: {
+                        email?: string;
+                        phone?: string;
+                      };
+                      metadata?: {
+                        created_date?: string;
+                        updated_date?: string;
+                        version?: string;
+                      };
+                    }
+                  | string;
+                product_selectors?: {
+                  manifest_skus?: string[];
+                  manifest_tags?: string[];
+                  manifest_category?: string;
+                  manifest_query?: string;
+                };
+                offerings?: {
+                  name: string;
+                  description?: string;
+                  assets?: {
+                    [key: string]: unknown;
+                  }[];
+                }[];
+                asset_selectors?: {
+                  tags?: string[];
+                  asset_types?: (
+                    | 'image'
+                    | 'video'
+                    | 'audio'
+                    | 'vast'
+                    | 'daast'
+                    | 'text'
+                    | 'url'
+                    | 'html'
+                    | 'css'
+                    | 'javascript'
+                    | 'webhook'
+                  )[];
+                  exclude_tags?: string[];
+                };
+              }
+            | {
+                url: string;
+                url_type?: 'clickthrough' | 'tracker_pixel' | 'tracker_script';
+                description?: string;
+              };
+        };
+        inputs?: {
+          name: string;
+          macros?: {
+            [key: string]: string;
+          };
+          context_description?: string;
+        }[];
+        tags?: string[];
+        approved?: boolean;
+        /** @description Internal creative status (not in ADCP protocol) */
         status: string;
       }[];
-      pricing: {
-        cpm: number;
-        signalCost?: number;
-        totalCpm: number;
-      };
-      /** @example string */
-      status: string;
+      /** @description ADCP-specific metadata (from execute response) */
       adcp?: {
-        mediaBuyId?: string;
+        media_buy_id?: string;
         status?: string;
-        webhookUrl?: string;
+        webhook_url?: string;
       };
+      /** @description Performance metrics (from reporting) */
       performance?: {
         impressions: number;
         spend: number;
         clicks: number;
         /** Format: date-time */
-        lastUpdated?: string;
+        last_updated?: string;
       };
       /**
        * Format: date-time
+       * @description Created timestamp
        * @example string
        */
-      archivedAt?: string;
+      created_at: string;
       /**
        * Format: date-time
+       * @description Updated timestamp
        * @example string
        */
-      createdAt: string;
+      updated_at: string;
       /**
        * Format: date-time
+       * @description Archived timestamp
        * @example string
        */
-      updatedAt: string;
+      archived_at?: string | null;
     };
     MediaBuyUpdate: {
-      /** @example example_id_123 */
-      id: string;
-      /** @example 100 */
-      tacticId: number;
-      /** @example 100 */
-      customerId: number;
-      /** @example Example Name */
+      /**
+       * @description ADCP media buy identifier
+       * @example example_id_123
+       */
+      media_buy_id: string;
+      /**
+       * @description Internal tactic ID
+       * @example 100
+       */
+      tactic_id: number;
+      /**
+       * @description Internal customer ID
+       * @example 100
+       */
+      customer_id: number;
+      /**
+       * @description Media buy name
+       * @example Example Name
+       */
       name: string;
-      /** @example string */
+      /**
+       * @description Media buy description
+       * @example string
+       */
       description?: string;
-      /** @example [] */
+      /**
+       * @description Internal status (DRAFT, ACTIVE, PAUSED, etc.)
+       * @example string
+       */
+      status: string;
+      /**
+       * @description Pre-execution product configuration
+       * @example []
+       */
       products?: {
-        mediaProductId: string;
-        salesAgentId: string;
-        salesAgentName?: string;
-        budgetAmount?: number;
-        budgetCurrency?: string;
-        pricingCpm?: number;
-        pricingSignalCost?: number;
-        displayOrder?: number;
-        creativeFormats?: {
+        /** @description ADCP product identifier */
+        product_id: string;
+        sales_agent_id: string;
+        sales_agent_name?: string;
+        /** @description ADCP budget field */
+        budget?: number;
+        /**
+         * @description ADCP pacing field
+         * @enum {string}
+         */
+        pacing?: 'asap' | 'even' | 'front_loaded';
+        pricing_option_id?: string;
+        bid_price?: number;
+        display_order?: number;
+        creative_formats?: {
           agent_url: string;
           id: string;
         }[];
       }[];
-      /** @example [] */
+      /**
+       * @description Post-execution ADCP packages (enriched)
+       * @example []
+       */
       packages?: {
-        packageId: string;
-        productIds: string[];
-        impressions: number;
-        budget: number;
-        targetingOverlay: unknown;
+        package_id: string;
+        buyer_ref?: string;
+        product_id?: string;
+        budget?: number;
+        pacing?: 'even' | 'asap' | 'front_loaded';
+        pricing_option_id?: string;
+        bid_price?: number;
+        impressions?: number;
+        targeting_overlay?: {
+          geo_country_any_of?: string[];
+          geo_region_any_of?: string[];
+          geo_metro_any_of?: string[];
+          geo_postal_code_any_of?: string[];
+          axe_include_segment?: string;
+          axe_exclude_segment?: string;
+          frequency_cap?: {
+            suppress_minutes: number;
+          };
+        };
+        creative_assignments?: {
+          creative_id: string;
+          weight?: number;
+          placement_ids?: string[];
+        }[];
+        format_ids_to_provide?: {
+          agent_url: string;
+          id: string;
+        }[];
+        status: 'draft' | 'active' | 'paused' | 'completed';
+        /** @description Array of product IDs (enriched from joins) */
+        product_ids?: string[];
+        /** @description Full creative objects (enriched from joins) */
         creatives: {
-          creativeId: string;
+          creative_id: string;
           name: string;
-          formatId: string;
-          mediaUrl: string;
+          format_id: {
+            agent_url: string;
+            id: string;
+          };
+          assets: {
+            [key: string]:
+              | {
+                  url: string;
+                  width?: number;
+                  height?: number;
+                  format?: string;
+                  alt_text?: string;
+                }
+              | {
+                  url: string;
+                  width?: number;
+                  height?: number;
+                  duration_ms?: number;
+                  format?: string;
+                  bitrate_kbps?: number;
+                }
+              | {
+                  url: string;
+                  duration_ms?: number;
+                  format?: string;
+                  bitrate_kbps?: number;
+                }
+              | {
+                  content: string;
+                  language?: string;
+                }
+              | {
+                  content: string;
+                  version?: string;
+                }
+              | {
+                  content: string;
+                  media?: string;
+                }
+              | {
+                  content: string;
+                  module_type?: 'esm' | 'commonjs' | 'script';
+                }
+              | (
+                  | {
+                      /** @enum {string} */
+                      delivery_type: 'url';
+                      url: string;
+                      vast_version?: '2.0' | '3.0' | '4.0' | '4.1' | '4.2';
+                      vpaid_enabled?: boolean;
+                      duration_ms?: number;
+                      tracking_events?: (
+                        | 'start'
+                        | 'firstQuartile'
+                        | 'midpoint'
+                        | 'thirdQuartile'
+                        | 'complete'
+                        | 'impression'
+                        | 'click'
+                        | 'pause'
+                        | 'resume'
+                        | 'skip'
+                        | 'mute'
+                        | 'unmute'
+                        | 'fullscreen'
+                        | 'exitFullscreen'
+                        | 'playerExpand'
+                        | 'playerCollapse'
+                      )[];
+                    }
+                  | {
+                      /** @enum {string} */
+                      delivery_type: 'inline';
+                      content: string;
+                      vast_version?: '2.0' | '3.0' | '4.0' | '4.1' | '4.2';
+                      vpaid_enabled?: boolean;
+                      duration_ms?: number;
+                      tracking_events?: (
+                        | 'start'
+                        | 'firstQuartile'
+                        | 'midpoint'
+                        | 'thirdQuartile'
+                        | 'complete'
+                        | 'impression'
+                        | 'click'
+                        | 'pause'
+                        | 'resume'
+                        | 'skip'
+                        | 'mute'
+                        | 'unmute'
+                        | 'fullscreen'
+                        | 'exitFullscreen'
+                        | 'playerExpand'
+                        | 'playerCollapse'
+                      )[];
+                    }
+                )
+              | (
+                  | {
+                      /** @enum {string} */
+                      delivery_type: 'url';
+                      url: string;
+                      daast_version?: '1.0' | '1.1';
+                      duration_ms?: number;
+                      tracking_events?: (
+                        | 'start'
+                        | 'firstQuartile'
+                        | 'midpoint'
+                        | 'thirdQuartile'
+                        | 'complete'
+                        | 'impression'
+                        | 'pause'
+                        | 'resume'
+                        | 'skip'
+                        | 'mute'
+                        | 'unmute'
+                      )[];
+                      companion_ads?: boolean;
+                    }
+                  | {
+                      /** @enum {string} */
+                      delivery_type: 'inline';
+                      content: string;
+                      daast_version?: '1.0' | '1.1';
+                      duration_ms?: number;
+                      tracking_events?: (
+                        | 'start'
+                        | 'firstQuartile'
+                        | 'midpoint'
+                        | 'thirdQuartile'
+                        | 'complete'
+                        | 'impression'
+                        | 'pause'
+                        | 'resume'
+                        | 'skip'
+                        | 'mute'
+                        | 'unmute'
+                      )[];
+                      companion_ads?: boolean;
+                    }
+                )
+              | {
+                  brand_manifest:
+                    | {
+                        url?: string;
+                        name: string;
+                        logos?: {
+                          url: string;
+                          tags?: string[];
+                          width?: number;
+                          height?: number;
+                        }[];
+                        colors?: {
+                          primary?: string;
+                          secondary?: string;
+                          accent?: string;
+                          background?: string;
+                          text?: string;
+                        };
+                        fonts?: {
+                          primary?: string;
+                          secondary?: string;
+                          font_urls?: string[];
+                        };
+                        tone?: string;
+                        tagline?: string;
+                        assets?: {
+                          asset_id: string;
+                          asset_type:
+                            | 'image'
+                            | 'video'
+                            | 'audio'
+                            | 'text'
+                            | 'markdown'
+                            | 'html'
+                            | 'css'
+                            | 'javascript'
+                            | 'vast'
+                            | 'daast'
+                            | 'promoted_offerings'
+                            | 'url'
+                            | 'webhook';
+                          url: string;
+                          tags?: string[];
+                          name?: string;
+                          description?: string;
+                          width?: number;
+                          height?: number;
+                          duration_seconds?: number;
+                          file_size_bytes?: number;
+                          format?: string;
+                          metadata?: {
+                            [key: string]: unknown;
+                          };
+                        }[];
+                        product_catalog?: {
+                          feed_url: string;
+                          feed_format?: 'google_merchant_center' | 'facebook_catalog' | 'custom';
+                          categories?: string[];
+                          last_updated?: string;
+                          update_frequency?: 'realtime' | 'hourly' | 'daily' | 'weekly';
+                        };
+                        disclaimers?: {
+                          text: string;
+                          context?: string;
+                          required?: boolean;
+                        }[];
+                        industry?: string;
+                        target_audience?: string;
+                        contact?: {
+                          email?: string;
+                          phone?: string;
+                        };
+                        metadata?: {
+                          created_date?: string;
+                          updated_date?: string;
+                          version?: string;
+                        };
+                      }
+                    | string;
+                  product_selectors?: {
+                    manifest_skus?: string[];
+                    manifest_tags?: string[];
+                    manifest_category?: string;
+                    manifest_query?: string;
+                  };
+                  offerings?: {
+                    name: string;
+                    description?: string;
+                    assets?: {
+                      [key: string]: unknown;
+                    }[];
+                  }[];
+                  asset_selectors?: {
+                    tags?: string[];
+                    asset_types?: (
+                      | 'image'
+                      | 'video'
+                      | 'audio'
+                      | 'vast'
+                      | 'daast'
+                      | 'text'
+                      | 'url'
+                      | 'html'
+                      | 'css'
+                      | 'javascript'
+                      | 'webhook'
+                    )[];
+                    exclude_tags?: string[];
+                  };
+                }
+              | {
+                  url: string;
+                  url_type?: 'clickthrough' | 'tracker_pixel' | 'tracker_script';
+                  description?: string;
+                };
+          };
+          inputs?: {
+            name: string;
+            macros?: {
+              [key: string]: string;
+            };
+            context_description?: string;
+          }[];
+          tags?: string[];
+          approved?: boolean;
+          /** @description Internal creative status (not in ADCP protocol) */
           status: string;
         }[];
         /** Format: date-time */
-        createdAt: string;
+        created_at: string;
         /** Format: date-time */
-        updatedAt: string;
-        salesAgentId?: string;
-        salesAgentName?: string;
-        pricingCpm?: number;
-        pricingSignalCost?: number;
-        bidPrice?: number;
-        pricingOptionId?: string;
-        creativeFormats?: {
+        updated_at: string;
+        sales_agent_id?: string;
+        sales_agent_name?: string;
+        creative_formats?: {
           agent_url: string;
           id: string;
         }[];
       }[];
-      /** @example [] */
+      /**
+       * @description Full creative objects (enriched from joins)
+       * @example []
+       */
       creatives?: {
-        creativeId: string;
+        creative_id: string;
         name: string;
-        formatId: string;
-        mediaUrl: string;
+        format_id: {
+          agent_url: string;
+          id: string;
+        };
+        assets: {
+          [key: string]:
+            | {
+                url: string;
+                width?: number;
+                height?: number;
+                format?: string;
+                alt_text?: string;
+              }
+            | {
+                url: string;
+                width?: number;
+                height?: number;
+                duration_ms?: number;
+                format?: string;
+                bitrate_kbps?: number;
+              }
+            | {
+                url: string;
+                duration_ms?: number;
+                format?: string;
+                bitrate_kbps?: number;
+              }
+            | {
+                content: string;
+                language?: string;
+              }
+            | {
+                content: string;
+                version?: string;
+              }
+            | {
+                content: string;
+                media?: string;
+              }
+            | {
+                content: string;
+                module_type?: 'esm' | 'commonjs' | 'script';
+              }
+            | (
+                | {
+                    /** @enum {string} */
+                    delivery_type: 'url';
+                    url: string;
+                    vast_version?: '2.0' | '3.0' | '4.0' | '4.1' | '4.2';
+                    vpaid_enabled?: boolean;
+                    duration_ms?: number;
+                    tracking_events?: (
+                      | 'start'
+                      | 'firstQuartile'
+                      | 'midpoint'
+                      | 'thirdQuartile'
+                      | 'complete'
+                      | 'impression'
+                      | 'click'
+                      | 'pause'
+                      | 'resume'
+                      | 'skip'
+                      | 'mute'
+                      | 'unmute'
+                      | 'fullscreen'
+                      | 'exitFullscreen'
+                      | 'playerExpand'
+                      | 'playerCollapse'
+                    )[];
+                  }
+                | {
+                    /** @enum {string} */
+                    delivery_type: 'inline';
+                    content: string;
+                    vast_version?: '2.0' | '3.0' | '4.0' | '4.1' | '4.2';
+                    vpaid_enabled?: boolean;
+                    duration_ms?: number;
+                    tracking_events?: (
+                      | 'start'
+                      | 'firstQuartile'
+                      | 'midpoint'
+                      | 'thirdQuartile'
+                      | 'complete'
+                      | 'impression'
+                      | 'click'
+                      | 'pause'
+                      | 'resume'
+                      | 'skip'
+                      | 'mute'
+                      | 'unmute'
+                      | 'fullscreen'
+                      | 'exitFullscreen'
+                      | 'playerExpand'
+                      | 'playerCollapse'
+                    )[];
+                  }
+              )
+            | (
+                | {
+                    /** @enum {string} */
+                    delivery_type: 'url';
+                    url: string;
+                    daast_version?: '1.0' | '1.1';
+                    duration_ms?: number;
+                    tracking_events?: (
+                      | 'start'
+                      | 'firstQuartile'
+                      | 'midpoint'
+                      | 'thirdQuartile'
+                      | 'complete'
+                      | 'impression'
+                      | 'pause'
+                      | 'resume'
+                      | 'skip'
+                      | 'mute'
+                      | 'unmute'
+                    )[];
+                    companion_ads?: boolean;
+                  }
+                | {
+                    /** @enum {string} */
+                    delivery_type: 'inline';
+                    content: string;
+                    daast_version?: '1.0' | '1.1';
+                    duration_ms?: number;
+                    tracking_events?: (
+                      | 'start'
+                      | 'firstQuartile'
+                      | 'midpoint'
+                      | 'thirdQuartile'
+                      | 'complete'
+                      | 'impression'
+                      | 'pause'
+                      | 'resume'
+                      | 'skip'
+                      | 'mute'
+                      | 'unmute'
+                    )[];
+                    companion_ads?: boolean;
+                  }
+              )
+            | {
+                brand_manifest:
+                  | {
+                      url?: string;
+                      name: string;
+                      logos?: {
+                        url: string;
+                        tags?: string[];
+                        width?: number;
+                        height?: number;
+                      }[];
+                      colors?: {
+                        primary?: string;
+                        secondary?: string;
+                        accent?: string;
+                        background?: string;
+                        text?: string;
+                      };
+                      fonts?: {
+                        primary?: string;
+                        secondary?: string;
+                        font_urls?: string[];
+                      };
+                      tone?: string;
+                      tagline?: string;
+                      assets?: {
+                        asset_id: string;
+                        asset_type:
+                          | 'image'
+                          | 'video'
+                          | 'audio'
+                          | 'text'
+                          | 'markdown'
+                          | 'html'
+                          | 'css'
+                          | 'javascript'
+                          | 'vast'
+                          | 'daast'
+                          | 'promoted_offerings'
+                          | 'url'
+                          | 'webhook';
+                        url: string;
+                        tags?: string[];
+                        name?: string;
+                        description?: string;
+                        width?: number;
+                        height?: number;
+                        duration_seconds?: number;
+                        file_size_bytes?: number;
+                        format?: string;
+                        metadata?: {
+                          [key: string]: unknown;
+                        };
+                      }[];
+                      product_catalog?: {
+                        feed_url: string;
+                        feed_format?: 'google_merchant_center' | 'facebook_catalog' | 'custom';
+                        categories?: string[];
+                        last_updated?: string;
+                        update_frequency?: 'realtime' | 'hourly' | 'daily' | 'weekly';
+                      };
+                      disclaimers?: {
+                        text: string;
+                        context?: string;
+                        required?: boolean;
+                      }[];
+                      industry?: string;
+                      target_audience?: string;
+                      contact?: {
+                        email?: string;
+                        phone?: string;
+                      };
+                      metadata?: {
+                        created_date?: string;
+                        updated_date?: string;
+                        version?: string;
+                      };
+                    }
+                  | string;
+                product_selectors?: {
+                  manifest_skus?: string[];
+                  manifest_tags?: string[];
+                  manifest_category?: string;
+                  manifest_query?: string;
+                };
+                offerings?: {
+                  name: string;
+                  description?: string;
+                  assets?: {
+                    [key: string]: unknown;
+                  }[];
+                }[];
+                asset_selectors?: {
+                  tags?: string[];
+                  asset_types?: (
+                    | 'image'
+                    | 'video'
+                    | 'audio'
+                    | 'vast'
+                    | 'daast'
+                    | 'text'
+                    | 'url'
+                    | 'html'
+                    | 'css'
+                    | 'javascript'
+                    | 'webhook'
+                  )[];
+                  exclude_tags?: string[];
+                };
+              }
+            | {
+                url: string;
+                url_type?: 'clickthrough' | 'tracker_pixel' | 'tracker_script';
+                description?: string;
+              };
+        };
+        inputs?: {
+          name: string;
+          macros?: {
+            [key: string]: string;
+          };
+          context_description?: string;
+        }[];
+        tags?: string[];
+        approved?: boolean;
+        /** @description Internal creative status (not in ADCP protocol) */
         status: string;
       }[];
-      pricing: {
-        cpm: number;
-        signalCost?: number;
-        totalCpm: number;
-      };
-      /** @example string */
-      status: string;
+      /** @description ADCP-specific metadata (from execute response) */
       adcp?: {
-        mediaBuyId?: string;
+        media_buy_id?: string;
         status?: string;
-        webhookUrl?: string;
+        webhook_url?: string;
       };
+      /** @description Performance metrics (from reporting) */
       performance?: {
         impressions: number;
         spend: number;
         clicks: number;
         /** Format: date-time */
-        lastUpdated?: string;
+        last_updated?: string;
       };
       /**
        * Format: date-time
+       * @description Created timestamp
        * @example string
        */
-      archivedAt?: string;
+      created_at: string;
       /**
        * Format: date-time
+       * @description Updated timestamp
        * @example string
        */
-      createdAt: string;
+      updated_at: string;
       /**
        * Format: date-time
+       * @description Archived timestamp
        * @example string
        */
-      updatedAt: string;
+      archived_at?: string | null;
     };
     TacticUpdate: {
       /** @example 100 */
@@ -2429,7 +6085,7 @@ export interface operations {
          * @example {
          *   "tool": "creative_sync_sales_agents",
          *   "arguments": {
-         *     "creativeId": "example_id_123"
+         *     "creative_id": "example_id_123"
          *   }
          * }
          */
@@ -2446,7 +6102,7 @@ export interface operations {
         content: {
           'application/json': {
             content: components['schemas']['MCPContent'][];
-            structuredContent: components['schemas']['CreativeSyncSalesAgents'];
+            structuredContent: components['schemas']['SyncSalesAgentsOutput'];
           };
         };
       };
@@ -2488,8 +6144,11 @@ export interface operations {
          * @example {
          *   "tool": "media_buy_create",
          *   "arguments": {
-         *     "tacticId": 100,
-         *     "agentId": "example_id_123",
+         *     "brand_manifest": null,
+         *     "start_time": null,
+         *     "end_time": "string",
+         *     "tactic_id": 100,
+         *     "agent_id": "example_id_123",
          *     "name": "Example Name",
          *     "products": []
          *   }
@@ -2498,7 +6157,7 @@ export interface operations {
         'application/json': {
           /** @enum {string} */
           tool: 'media_buy_create';
-          arguments: components['schemas']['CreateMediaBuyInput'];
+          arguments: components['schemas']['MediaBuyCreateInput'];
         };
       };
     };
@@ -2550,7 +6209,7 @@ export interface operations {
          * @example {
          *   "tool": "media_buy_update",
          *   "arguments": {
-         *     "mediaBuyId": "example_id_123"
+         *     "media_buy_id": "example_id_123"
          *   }
          * }
          */
@@ -2609,7 +6268,7 @@ export interface operations {
          * @example {
          *   "tool": "media_buy_delete",
          *   "arguments": {
-         *     "mediaBuyId": "example_id_123",
+         *     "media_buy_id": "example_id_123",
          *     "confirm": true
          *   }
          * }
@@ -2627,7 +6286,7 @@ export interface operations {
         content: {
           'application/json': {
             content: components['schemas']['MCPContent'][];
-            structuredContent: components['schemas']['MediaBuyDelete'];
+            structuredContent: components['schemas']['DeleteMediaBuyOutput'];
           };
         };
       };
@@ -2669,7 +6328,7 @@ export interface operations {
          * @example {
          *   "tool": "media_buy_execute",
          *   "arguments": {
-         *     "mediaBuyId": "example_id_123"
+         *     "media_buy_id": "example_id_123"
          *   }
          * }
          */
@@ -2686,7 +6345,7 @@ export interface operations {
         content: {
           'application/json': {
             content: components['schemas']['MCPContent'][];
-            structuredContent: components['schemas']['MediaBuyExecute'];
+            structuredContent: components['schemas']['ExecuteMediaBuyOutput'];
           };
         };
       };
@@ -2728,7 +6387,7 @@ export interface operations {
          * @example {
          *   "tool": "media_buy_get",
          *   "arguments": {
-         *     "mediaBuyId": "example_id_123"
+         *     "media_buy_id": "example_id_123"
          *   }
          * }
          */
@@ -2802,7 +6461,7 @@ export interface operations {
         content: {
           'application/json': {
             content: components['schemas']['MCPContent'][];
-            structuredContent: components['schemas']['MediaBuyList'];
+            structuredContent: components['schemas']['ListMediaBuysOutput'];
           };
         };
       };
@@ -2844,8 +6503,8 @@ export interface operations {
          * @example {
          *   "tool": "media_buy_validate_budget",
          *   "arguments": {
-         *     "tacticId": 100,
-         *     "newBudgetAmount": 100
+         *     "tactic_id": 100,
+         *     "new_budget_amount": 100
          *   }
          * }
          */
@@ -2862,7 +6521,7 @@ export interface operations {
         content: {
           'application/json': {
             content: components['schemas']['MCPContent'][];
-            structuredContent: components['schemas']['MediaBuyValidateBudget'];
+            structuredContent: components['schemas']['ValidateMediaBuyBudgetOutput'];
           };
         };
       };
@@ -3196,21 +6855,23 @@ export interface operations {
          * @example {
          *   "tool": "media_product_save",
          *   "arguments": {
-         *     "productId": "example_id_123",
+         *     "product_id": "example_id_123",
          *     "name": "Example Name",
          *     "description": "string",
-         *     "publisherId": "example_id_123",
-         *     "publisherName": "Example Name",
-         *     "deliveryType": "guaranteed",
-         *     "inventoryType": "premium",
-         *     "pricingModel": "auction"
+         *     "publisher_properties": null,
+         *     "format_ids": [],
+         *     "delivery_type": null,
+         *     "pricing_options": null,
+         *     "delivery_measurement": {
+         *       "provider": "example_id_123"
+         *     }
          *   }
          * }
          */
         'application/json': {
           /** @enum {string} */
           tool: 'media_product_save';
-          arguments: components['schemas']['SaveProductInput'];
+          arguments: components['schemas']['MediaProductSaveInput'];
         };
       };
     };
@@ -3220,7 +6881,7 @@ export interface operations {
         content: {
           'application/json': {
             content: components['schemas']['MCPContent'][];
-            structuredContent: components['schemas']['MediaProductSave'];
+            structuredContent: components['schemas']['MediaProductSaveOutput'];
           };
         };
       };
