@@ -1,47 +1,224 @@
-import { PlatformClient } from '../platform-client';
+/**
+ * Tests for Scope3Client
+ */
 
-describe('PlatformClient', () => {
-  let client: PlatformClient;
+import { Scope3Client } from '../client';
 
-  beforeEach(() => {
-    client = new PlatformClient({
-      apiKey: 'test-api-key',
+describe('Scope3Client', () => {
+  describe('initialization', () => {
+    it('should require apiKey', () => {
+      expect(() => new Scope3Client({ apiKey: '', persona: 'buyer' })).toThrow(
+        'apiKey is required'
+      );
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      expect(() => new Scope3Client({} as any)).toThrow('apiKey is required');
+    });
+
+    it('should require persona', () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      expect(() => new Scope3Client({ apiKey: 'test-key' } as any)).toThrow('persona is required');
+    });
+
+    it('should default to v2 version', () => {
+      const client = new Scope3Client({ apiKey: 'test-key', persona: 'buyer' });
+      expect(client.version).toBe('v2');
+    });
+
+    it('should allow custom version', () => {
+      const client = new Scope3Client({ apiKey: 'test-key', persona: 'buyer', version: 'v1' });
+      expect(client.version).toBe('v1');
+    });
+
+    it('should default to production base URL', () => {
+      const client = new Scope3Client({ apiKey: 'test-key', persona: 'buyer' });
+      expect(client.baseUrl).toBe('https://api.agentic.scope3.com');
+    });
+
+    it('should use staging URL when environment is staging', () => {
+      const client = new Scope3Client({
+        apiKey: 'test-key',
+        persona: 'buyer',
+        environment: 'staging',
+      });
+      expect(client.baseUrl).toBe('https://api.agentic.staging.scope3.com');
+    });
+
+    it('should allow custom base URL', () => {
+      const client = new Scope3Client({
+        apiKey: 'test-key',
+        persona: 'buyer',
+        baseUrl: 'https://custom.api.com',
+      });
+      expect(client.baseUrl).toBe('https://custom.api.com');
+    });
+
+    it('should remove trailing slash from base URL', () => {
+      const client = new Scope3Client({
+        apiKey: 'test-key',
+        persona: 'buyer',
+        baseUrl: 'https://custom.api.com/',
+      });
+      expect(client.baseUrl).toBe('https://custom.api.com');
+    });
+
+    it('should store persona', () => {
+      const client = new Scope3Client({ apiKey: 'test-key', persona: 'buyer' });
+      expect(client.persona).toBe('buyer');
     });
   });
 
-  it('should initialize with default production URL', () => {
-    expect(client).toBeDefined();
-  });
-
-  it('should have all resource modules', () => {
-    expect(client.agents).toBeDefined();
-    expect(client.assets).toBeDefined();
-    expect(client.brandAgents).toBeDefined();
-    expect(client.brandStandards).toBeDefined();
-    expect(client.brandStories).toBeDefined();
-    expect(client.campaigns).toBeDefined();
-    expect(client.channels).toBeDefined();
-    expect(client.creatives).toBeDefined();
-    expect(client.tactics).toBeDefined();
-    expect(client.mediaBuys).toBeDefined();
-    expect(client.mediaProducts).toBeDefined();
-    expect(client.agents).toBeDefined();
-    expect(client.targeting).toBeDefined();
-  });
-
-  it('should accept custom base URL', () => {
-    const customClient = new PlatformClient({
-      apiKey: 'test-api-key',
-      baseUrl: 'https://custom.api.com',
+  describe('buyer persona resources', () => {
+    it('should have advertisers resource', () => {
+      const client = new Scope3Client({ apiKey: 'test-key', persona: 'buyer' });
+      expect(client.advertisers).toBeDefined();
+      expect(typeof client.advertisers.list).toBe('function');
+      expect(typeof client.advertisers.get).toBe('function');
+      expect(typeof client.advertisers.create).toBe('function');
+      expect(typeof client.advertisers.update).toBe('function');
+      expect(typeof client.advertisers.delete).toBe('function');
+      expect(typeof client.advertisers.brand).toBe('function');
     });
-    expect(customClient).toBeDefined();
+
+    it('should have campaigns resource with type-specific methods', () => {
+      const client = new Scope3Client({ apiKey: 'test-key', persona: 'buyer' });
+      expect(client.campaigns).toBeDefined();
+      expect(typeof client.campaigns.list).toBe('function');
+      expect(typeof client.campaigns.get).toBe('function');
+      expect(typeof client.campaigns.createBundle).toBe('function');
+      expect(typeof client.campaigns.updateBundle).toBe('function');
+      expect(typeof client.campaigns.createPerformance).toBe('function');
+      expect(typeof client.campaigns.updatePerformance).toBe('function');
+      expect(typeof client.campaigns.createAudience).toBe('function');
+      expect(typeof client.campaigns.execute).toBe('function');
+      expect(typeof client.campaigns.pause).toBe('function');
+    });
+
+    it('should return linked brand resource for advertiser with get, link, unlink', () => {
+      const client = new Scope3Client({ apiKey: 'test-key', persona: 'buyer' });
+      const brand = client.advertisers.brand('adv-123');
+      expect(brand).toBeDefined();
+      expect(typeof brand.get).toBe('function');
+      expect(typeof brand.link).toBe('function');
+      expect(typeof brand.unlink).toBe('function');
+    });
+
+    it('should have bundles resource', () => {
+      const client = new Scope3Client({ apiKey: 'test-key', persona: 'buyer' });
+      expect(client.bundles).toBeDefined();
+      expect(typeof client.bundles.create).toBe('function');
+      expect(typeof client.bundles.discoverProducts).toBe('function');
+      expect(typeof client.bundles.browseProducts).toBe('function');
+      expect(typeof client.bundles.products).toBe('function');
+    });
+
+    it('should return products resource for bundle with list, add, remove', () => {
+      const client = new Scope3Client({ apiKey: 'test-key', persona: 'buyer' });
+      const products = client.bundles.products('bundle-123');
+      expect(products).toBeDefined();
+      expect(typeof products.list).toBe('function');
+      expect(typeof products.add).toBe('function');
+      expect(typeof products.remove).toBe('function');
+    });
+
+    it('should have signals resource', () => {
+      const client = new Scope3Client({ apiKey: 'test-key', persona: 'buyer' });
+      expect(client.signals).toBeDefined();
+      expect(typeof client.signals.discover).toBe('function');
+      expect(typeof client.signals.list).toBe('function');
+    });
+
+    it('should have buyerBrands resource', () => {
+      const client = new Scope3Client({ apiKey: 'test-key', persona: 'buyer' });
+      expect(client.buyerBrands).toBeDefined();
+      expect(typeof client.buyerBrands.list).toBe('function');
+    });
   });
 
-  it('should accept custom timeout', () => {
-    const customClient = new PlatformClient({
-      apiKey: 'test-api-key',
-      timeout: 60000,
+  describe('brand persona resources', () => {
+    it('should have brands resource', () => {
+      const client = new Scope3Client({ apiKey: 'test-key', persona: 'brand' });
+      expect(client.brands).toBeDefined();
+      expect(typeof client.brands.list).toBe('function');
+      expect(typeof client.brands.get).toBe('function');
+      expect(typeof client.brands.create).toBe('function');
+      expect(typeof client.brands.update).toBe('function');
+      expect(typeof client.brands.delete).toBe('function');
     });
-    expect(customClient).toBeDefined();
+
+    it('should NOT have advertisers', () => {
+      const client = new Scope3Client({ apiKey: 'test-key', persona: 'brand' });
+      expect(() => client.advertisers).toThrow(
+        'advertisers is only available with the buyer persona'
+      );
+    });
+
+    it('should NOT have campaigns', () => {
+      const client = new Scope3Client({ apiKey: 'test-key', persona: 'brand' });
+      expect(() => client.campaigns).toThrow('campaigns is only available with the buyer persona');
+    });
+  });
+
+  describe('partner persona resources', () => {
+    it('should have health resource', () => {
+      const client = new Scope3Client({ apiKey: 'test-key', persona: 'partner' });
+      expect(client.health).toBeDefined();
+      expect(typeof client.health.check).toBe('function');
+    });
+
+    it('should NOT have advertisers', () => {
+      const client = new Scope3Client({ apiKey: 'test-key', persona: 'partner' });
+      expect(() => client.advertisers).toThrow(
+        'advertisers is only available with the buyer persona'
+      );
+    });
+
+    it('should NOT have campaigns', () => {
+      const client = new Scope3Client({ apiKey: 'test-key', persona: 'partner' });
+      expect(() => client.campaigns).toThrow('campaigns is only available with the buyer persona');
+    });
+  });
+
+  describe('adapter selection', () => {
+    it('should default to REST adapter', () => {
+      const client = new Scope3Client({ apiKey: 'test-key', persona: 'buyer' });
+      expect(client.baseUrl).toBe('https://api.agentic.scope3.com');
+    });
+
+    it('should use MCP adapter when specified', () => {
+      const client = new Scope3Client({ apiKey: 'test-key', persona: 'buyer', adapter: 'mcp' });
+      expect(client.baseUrl).toBe('https://api.agentic.scope3.com');
+    });
+  });
+
+  describe('version handling', () => {
+    it('should support latest version', () => {
+      const client = new Scope3Client({ apiKey: 'test-key', persona: 'buyer', version: 'latest' });
+      expect(client.version).toBe('latest');
+    });
+
+    it('should support v1 version', () => {
+      const client = new Scope3Client({ apiKey: 'test-key', persona: 'buyer', version: 'v1' });
+      expect(client.version).toBe('v1');
+    });
+  });
+
+  describe('connect/disconnect', () => {
+    it('should connect and disconnect without error for REST', async () => {
+      const client = new Scope3Client({ apiKey: 'test-key', persona: 'buyer' });
+      await expect(client.connect()).resolves.toBeUndefined();
+      await expect(client.disconnect()).resolves.toBeUndefined();
+    });
+  });
+
+  describe('debug mode', () => {
+    it('should default to debug off', () => {
+      const client = new Scope3Client({ apiKey: 'test-key', persona: 'buyer' });
+      expect(client.debug).toBe(false);
+    });
+
+    it('should enable debug when specified', () => {
+      const client = new Scope3Client({ apiKey: 'test-key', persona: 'buyer', debug: true });
+      expect(client.debug).toBe(true);
+    });
   });
 });

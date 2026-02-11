@@ -1,3 +1,4 @@
+import { timingSafeEqual } from 'crypto';
 import express from 'express';
 import type { Express, Request, Response, NextFunction } from 'express';
 import { Server } from 'http';
@@ -26,24 +27,32 @@ export class WebhookServer {
     this.app = express();
     this.handlers = new Map();
     this.config = {
-      port: config.port || 3000,
-      path: config.path || '/webhooks',
-      secret: config.secret || '',
+      port: config.port ?? 3000,
+      path: config.path ?? '/webhooks',
+      secret: config.secret ?? '',
     };
+
+    if (!this.config.secret) {
+      console.warn('WebhookServer: No secret configured. Webhook endpoint is unauthenticated.');
+    }
 
     this.setupMiddleware();
     this.setupRoutes();
   }
 
   private setupMiddleware(): void {
-    this.app.use(express.json());
+    this.app.use(express.json({ limit: '10kb' }));
 
     if (this.config.secret) {
       this.app.use((req: Request, res: Response, next: NextFunction) => {
         const authHeader = req.headers['authorization'];
         const expectedAuth = `Bearer ${this.config.secret}`;
 
-        if (authHeader !== expectedAuth) {
+        if (
+          !authHeader ||
+          authHeader.length !== expectedAuth.length ||
+          !timingSafeEqual(Buffer.from(authHeader), Buffer.from(expectedAuth))
+        ) {
           res.status(401).json({ error: 'Unauthorized' });
           return;
         }
@@ -56,12 +65,12 @@ export class WebhookServer {
   private setupRoutes(): void {
     this.app.post(this.config.path, async (req: Request, res: Response) => {
       try {
-        const event: WebhookEvent = req.body;
-
-        if (!event.type) {
-          res.status(400).json({ error: 'Missing event type' });
+        const body = req.body;
+        if (!body || typeof body !== 'object' || typeof body.type !== 'string' || !body.type) {
+          res.status(400).json({ error: 'Invalid webhook event format' });
           return;
         }
+        const event = body as WebhookEvent;
 
         const handlers = this.handlers.get(event.type) || [];
         const allHandlers = this.handlers.get('*') || [];
@@ -73,7 +82,10 @@ export class WebhookServer {
 
         res.status(200).json({ success: true });
       } catch (error) {
-        console.error('Webhook handler error:', error);
+        console.error(
+          'Webhook handler error:',
+          error instanceof Error ? error.message : 'Unknown error'
+        );
         res.status(500).json({ error: 'Internal server error' });
       }
     });
@@ -87,7 +99,9 @@ export class WebhookServer {
     if (!this.handlers.has(eventType)) {
       this.handlers.set(eventType, []);
     }
-    this.handlers.get(eventType)!.push(handler);
+    const handlers = this.handlers.get(eventType) ?? [];
+    handlers.push(handler);
+    this.handlers.set(eventType, handlers);
   }
 
   off(eventType: string, handler?: WebhookHandler): void {
@@ -106,11 +120,14 @@ export class WebhookServer {
   }
 
   start(): Promise<void> {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       this.server = this.app.listen(this.config.port, () => {
         console.log(`Webhook server listening on port ${this.config.port}`);
         console.log(`Webhook endpoint: http://localhost:${this.config.port}${this.config.path}`);
         resolve();
+      });
+      this.server.on('error', (err) => {
+        reject(err);
       });
     });
   }
