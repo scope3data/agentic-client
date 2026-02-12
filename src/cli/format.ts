@@ -29,9 +29,7 @@ export function formatOutput(data: unknown, format: OutputFormat = 'table'): voi
  * Check if a value looks like a paginated API response
  * Supports both old format { items, total } and new format { data, pagination }
  */
-function isPaginatedResponse(
-  data: unknown
-): data is {
+function isPaginatedResponse(data: unknown): data is {
   data: unknown[];
   pagination: { total: number; take: number; skip: number; hasMore: boolean };
 } {
