@@ -52,51 +52,74 @@ program.addCommand(configCommand);
 const commandsCmd = new Command('commands')
   .description('List all available commands')
   .action(() => {
-    console.log(chalk.bold('\nScope3 CLI - All Commands\n'));
+    console.log(chalk.bold('\nScope3 CLI - Commands by Persona\n'));
 
-    console.log(chalk.cyan('advertisers'));
-    console.log('  list                      List all advertisers');
-    console.log('  get <id>                  Get advertiser by ID');
-    console.log('  create                    Create a new advertiser');
-    console.log('  update <id>               Update an advertiser');
-    console.log('  delete <id>               Delete an advertiser');
+    // Buyer persona (default)
+    console.log(
+      chalk.green.bold('BUYER PERSONA') + chalk.gray(' (default, or use --persona buyer)')
+    );
+    console.log(
+      chalk.gray('For programmatic ad buyers - manage advertisers, campaigns, and inventory\n')
+    );
 
-    console.log(chalk.cyan('\nbrands'));
-    console.log('  list                      List brands');
-    console.log('  get <id>                  Get brand by ID (brand persona)');
-    console.log('  create                    Create a new brand (brand persona)');
-    console.log('  update <id>               Update a brand (brand persona)');
-    console.log('  delete <id>               Delete a brand (brand persona)');
-    console.log('  link                      Link brand to advertiser (buyer persona)');
-    console.log('  unlink                    Unlink brand from advertiser (buyer persona)');
-    console.log('  get-linked                Get linked brand (buyer persona)');
+    console.log(chalk.cyan('  advertisers'));
+    console.log('    list                      List all advertisers');
+    console.log('    get <id>                  Get advertiser by ID');
+    console.log('    create                    Create a new advertiser');
+    console.log('    update <id>               Update an advertiser');
+    console.log('    delete <id>               Delete an advertiser');
 
-    console.log(chalk.cyan('\nbundles'));
-    console.log('  create                    Create a new media bundle');
-    console.log('  discover-products <id>    Discover available products for a bundle');
-    console.log('  browse-products           Browse products without creating a bundle');
-    console.log('  products list <id>        List products in a bundle');
-    console.log('  products add <id>         Add products to a bundle');
-    console.log('  products remove <id>      Remove products from a bundle');
+    console.log(chalk.cyan('\n  brands') + chalk.gray(' (buyer context)'));
+    console.log('    list                      List brands available to link');
+    console.log('    link                      Link a brand to an advertiser');
+    console.log('    unlink                    Unlink a brand from an advertiser');
+    console.log('    get-linked                Get the brand linked to an advertiser');
 
-    console.log(chalk.cyan('\ncampaigns'));
-    console.log('  list                      List all campaigns');
-    console.log('  get <id>                  Get campaign by ID');
-    console.log('  create-bundle             Create a bundle campaign');
-    console.log('  create-performance        Create a performance campaign');
-    console.log('  create-audience           Create an audience campaign');
-    console.log('  update-bundle <id>        Update a bundle campaign');
-    console.log('  update-performance <id>   Update a performance campaign');
-    console.log('  execute <id>              Execute a campaign (go live)');
-    console.log('  pause <id>                Pause an active campaign');
+    console.log(chalk.cyan('\n  bundles'));
+    console.log('    create                    Create a new media bundle');
+    console.log('    discover-products <id>    Discover available products for a bundle');
+    console.log('    browse-products           Browse products without creating a bundle');
+    console.log('    products list <id>        List products in a bundle');
+    console.log('    products add <id>         Add products to a bundle');
+    console.log('    products remove <id>      Remove products from a bundle');
 
-    console.log(chalk.cyan('\nconfig'));
-    console.log('  set <key> <value>         Set a configuration value');
-    console.log('  get [key]                 Get configuration value(s)');
-    console.log('  clear                     Clear all configuration');
-    console.log('  path                      Show configuration file path');
+    console.log(chalk.cyan('\n  campaigns'));
+    console.log('    list                      List all campaigns');
+    console.log('    get <id>                  Get campaign by ID');
+    console.log('    create-bundle             Create a bundle campaign');
+    console.log('    create-performance        Create a performance campaign');
+    console.log('    create-audience           Create an audience campaign');
+    console.log('    update-bundle <id>        Update a bundle campaign');
+    console.log('    update-performance <id>   Update a performance campaign');
+    console.log('    execute <id>              Execute a campaign (go live)');
+    console.log('    pause <id>                Pause an active campaign');
 
-    console.log(chalk.gray('\nRun "scope3 <command> --help" for details on a specific command.'));
+    // Brand persona
+    console.log(chalk.magenta.bold('\n\nBRAND PERSONA') + chalk.gray(' (use --persona brand)'));
+    console.log(chalk.gray('For brand owners - manage brand identity and manifests\n'));
+
+    console.log(chalk.cyan('  brands'));
+    console.log('    list                      List all owned brands');
+    console.log('    get <id>                  Get brand by ID');
+    console.log('    create                    Create a new brand');
+    console.log('    update <id>               Update a brand');
+    console.log('    delete <id>               Delete a brand');
+
+    // Partner persona
+    console.log(chalk.blue.bold('\n\nPARTNER PERSONA') + chalk.gray(' (use --persona partner)'));
+    console.log(chalk.gray('For DSPs and publishers - integration health monitoring\n'));
+    console.log(chalk.gray('  (Partner CLI commands not yet implemented)'));
+
+    // Config (all personas)
+    console.log(chalk.yellow.bold('\n\nCONFIGURATION') + chalk.gray(' (all personas)'));
+    console.log(chalk.cyan('\n  config'));
+    console.log('    set <key> <value>         Set a configuration value');
+    console.log('    get [key]                 Get configuration value(s)');
+    console.log('    clear                     Clear all configuration');
+    console.log('    path                      Show configuration file path');
+
+    console.log(chalk.gray('\n─────────────────────────────────────────────────────────────'));
+    console.log(chalk.gray('Run "scope3 <command> --help" for details on a specific command.'));
     console.log(chalk.gray('Docs: https://github.com/scope3data/agentic-client#cli\n'));
   });
 
