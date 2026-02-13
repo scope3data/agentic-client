@@ -26,24 +26,51 @@ export function formatOutput(data: unknown, format: OutputFormat = 'table'): voi
 }
 
 /**
- * Check if a value looks like a paginated API response
- * Supports both old format { items, total } and new format { data, pagination }
+ * Check if a value looks like an API response with data array
+ * Supports: { data: [...], meta?: { pagination } } or { data: [...], pagination }
  */
-function isPaginatedResponse(data: unknown): data is {
+function isDataArrayResponse(data: unknown): data is {
   data: unknown[];
-  pagination: { total: number; take: number; skip: number; hasMore: boolean };
+  meta?: { pagination?: { total: number; take: number; skip: number; hasMore: boolean } };
+  pagination?: { total: number; take: number; skip: number; hasMore: boolean };
 } {
   if (typeof data !== 'object' || data === null) {
     return false;
   }
   const obj = data as Record<string, unknown>;
-  return (
-    'data' in obj &&
-    Array.isArray(obj.data) &&
-    'pagination' in obj &&
-    typeof obj.pagination === 'object' &&
-    obj.pagination !== null
-  );
+  return 'data' in obj && Array.isArray(obj.data);
+}
+
+/**
+ * Check if a value looks like an API response with nested data object containing an array
+ * Supports: { data: { campaigns: [...], total }, meta } or { data: { items: [...] } }
+ */
+function isNestedDataResponse(data: unknown): {
+  items: unknown[];
+  total?: number;
+} | null {
+  if (typeof data !== 'object' || data === null) {
+    return null;
+  }
+  const obj = data as Record<string, unknown>;
+  if (!('data' in obj) || typeof obj.data !== 'object' || obj.data === null) {
+    return null;
+  }
+
+  const dataObj = obj.data as Record<string, unknown>;
+
+  // Look for common array property names
+  const arrayKeys = ['campaigns', 'items', 'bundles', 'products', 'brands', 'advertisers'];
+  for (const key of arrayKeys) {
+    if (key in dataObj && Array.isArray(dataObj[key])) {
+      return {
+        items: dataObj[key] as unknown[],
+        total: typeof dataObj.total === 'number' ? dataObj.total : undefined,
+      };
+    }
+  }
+
+  return null;
 }
 
 /**
@@ -77,16 +104,31 @@ function printTable(data: unknown): void {
     return;
   }
 
-  // Handle new paginated responses { data: [...], pagination: {...} }
-  if (isPaginatedResponse(data)) {
+  // Handle API responses with data array { data: [...], meta?: { pagination } }
+  if (isDataArrayResponse(data)) {
     if (data.data.length === 0) {
       console.log(chalk.gray('No items'));
       return;
     }
     printArrayTable(data.data);
-    const pag = data.pagination;
-    if (typeof pag.total === 'number') {
+    // Check for pagination in meta.pagination or directly in pagination
+    const pag = data.meta?.pagination ?? data.pagination;
+    if (pag && typeof pag.total === 'number') {
       console.log(chalk.gray(`\nShowing ${data.data.length} of ${pag.total} items`));
+    }
+    return;
+  }
+
+  // Handle nested data responses { data: { campaigns: [...], total } }
+  const nested = isNestedDataResponse(data);
+  if (nested) {
+    if (nested.items.length === 0) {
+      console.log(chalk.gray('No items'));
+      return;
+    }
+    printArrayTable(nested.items);
+    if (typeof nested.total === 'number') {
+      console.log(chalk.gray(`\nShowing ${nested.items.length} of ${nested.total} items`));
     }
     return;
   }
