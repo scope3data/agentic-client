@@ -25,7 +25,6 @@
     "lint": "eslint src --ext .ts",
     "format": "prettier --write \"src/**/*.ts\"",
     "type-check": "tsc --noEmit",
-    "bundle-skill": "ts-node scripts/bundle-skill.ts",
     "test:buyer": "./scripts/test-buyer-workflow.sh",
     "test:brand": "./scripts/test-brand-workflow.sh",
     "test:partner": "./scripts/test-partner-workflow.sh",

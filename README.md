@@ -114,17 +114,19 @@ const client = new Scope3Client({
 ```bash
 # Configure
 scope3 config set apiKey your_api_key_here
-scope3 config set persona buyer
+scope3 config set environment staging
 
 # Use
 scope3 advertisers list
-scope3 advertisers get --id adv-123
+scope3 advertisers get adv-123
 scope3 campaigns list --format json
-scope3 bundles create --advertiserId adv-123 --channels display,video
+scope3 bundles create --advertiser-id adv-123 --channels display,video
 
 # Override persona per-command
 scope3 --persona brand brands list
-scope3 --persona partner health
+
+# See all commands
+scope3 commands
 ```
 
 ## API Resources
@@ -166,6 +168,42 @@ npm run type-check
 npm run build
 npm test
 npm run lint
+```
+
+### Updating the SDK When the API Changes
+
+The SDK is manually maintained. When the Agentic API changes, update these files:
+
+| What changed | Files to update |
+|---|---|
+| Request/response shapes | `src/types/index.ts` |
+| Endpoints added/removed | `src/resources/` (the relevant resource class) |
+| CLI commands | `src/cli/commands/` (the relevant command file) |
+| Bundled skill.md | `src/skill/bundled.ts` (copy from API response) |
+
+**Steps:**
+
+1. Check the latest skill.md for your persona:
+   ```bash
+   curl https://api.agentic.scope3.com/api/v2/buyer/skill.md
+   curl https://api.agentic.scope3.com/api/v2/brand/skill.md
+   curl https://api.agentic.scope3.com/api/v2/partner/skill.md
+   ```
+2. Compare against `src/skill/bundled.ts` and update if needed
+3. Update types in `src/types/index.ts` to match any schema changes
+4. Update resource methods in `src/resources/` for endpoint changes
+5. Update CLI commands in `src/cli/commands/` if applicable
+6. Run `npm test` and `npm run build` to verify
+7. Run manual workflow tests: `npm run test:buyer`, `npm run test:brand`
+
+### Integration Tests
+
+```bash
+export SCOPE3_API_KEY=your_key
+npm run test:buyer     # Buyer workflow against real API
+npm run test:brand     # Brand workflow against real API
+npm run test:partner   # Partner workflow against real API
+npm run test:all       # All workflows
 ```
 
 ## Documentation
