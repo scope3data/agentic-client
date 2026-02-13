@@ -30,16 +30,20 @@ program
   .name('scope3')
   .description(
     'Scope3 Agentic Platform CLI\n\n' +
+      'Quick Start:\n' +
+      '  scope3 config set apiKey <your-key>    Save API key\n' +
+      '  scope3 config set environment staging  Use staging (optional)\n' +
+      '  scope3 advertisers list                Run commands\n\n' +
       'Documentation: https://github.com/scope3data/agentic-client#cli'
   )
   .version('2.0.0', '-V, --cli-version')
-  .option('--api-key <key>', 'API key for authentication')
-  .option('--api-version <v>', 'API version: v1, v2, or latest', 'v2')
-  .option('--environment <env>', 'Environment: production or staging', 'production')
+  .option('--api-key <key>', 'API key (or use: config set apiKey <key>)')
+  .option('--api-version <v>', 'API version: v1, v2, or latest (default: v2)')
+  .option('--environment <env>', 'Environment: production or staging (default: production)')
   .option('--base-url <url>', 'Custom API base URL')
-  .option('--format <format>', 'Output format: json, table, or yaml', 'table')
+  .option('--format <format>', 'Output format: json, table, or yaml (default: table)')
   .option('--debug', 'Enable debug mode')
-  .option('--persona <persona>', 'API persona: buyer, brand, or partner', 'buyer');
+  .option('--persona <persona>', 'API persona: buyer, brand, or partner (default: buyer)');
 
 // Add commands
 program.addCommand(advertisersCommand);
@@ -124,6 +128,29 @@ const commandsCmd = new Command('commands')
   });
 
 program.addCommand(commandsCmd);
+
+// Default action when no command provided but options were given
+program.action(() => {
+  const opts = program.opts();
+  const hasOptions = opts.apiKey || opts.environment || opts.persona;
+
+  if (hasOptions) {
+    console.log(chalk.yellow('\nNote: Global options must be used WITH a command.\n'));
+    console.log('Examples:');
+    console.log(
+      chalk.cyan('  scope3 --api-key <key> advertisers list') +
+        chalk.gray('  # pass options with command')
+    );
+    console.log(
+      chalk.cyan('  scope3 config set apiKey <key>') + chalk.gray('           # or save to config')
+    );
+    console.log(
+      chalk.cyan('  scope3 config set environment staging') +
+        chalk.gray('   # then run commands normally\n')
+    );
+  }
+  program.help();
+});
 
 // Error handling
 program.exitOverride((err) => {
