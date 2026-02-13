@@ -118,12 +118,15 @@ await client.brands.delete('brand-123');
 
 ## Pagination
 
-List operations support pagination. Use the cursor returned in the response to fetch additional pages:
+List operations support pagination using `take` and `skip` parameters:
 
 ```typescript
-const firstPage = await client.brands.list();
+const firstPage = await client.brands.list({ take: 10, skip: 0 });
 
-if (firstPage.nextCursor) {
-  const secondPage = await client.brands.list({ cursor: firstPage.nextCursor });
+// Check if there are more pages
+if (firstPage.pagination.hasMore) {
+  const secondPage = await client.brands.list({ take: 10, skip: 10 });
 }
+
+console.log(`Showing ${firstPage.data.length} of ${firstPage.pagination.total}`);
 ```
