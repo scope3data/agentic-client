@@ -42,6 +42,23 @@ function isDataArrayResponse(data: unknown): data is {
 }
 
 /**
+ * Check if a value looks like an API response with single data object
+ * Supports: { data: {...}, error?: null }
+ */
+function isSingleDataResponse(data: unknown): data is {
+  data: Record<string, unknown>;
+  error?: unknown;
+} {
+  if (typeof data !== 'object' || data === null) {
+    return false;
+  }
+  const obj = data as Record<string, unknown>;
+  return (
+    'data' in obj && typeof obj.data === 'object' && obj.data !== null && !Array.isArray(obj.data)
+  );
+}
+
+/**
  * Check if a value looks like an API response with nested data object containing an array
  * Supports: { data: { campaigns: [...], total }, meta } or { data: { items: [...] } }
  */
@@ -130,6 +147,12 @@ function printTable(data: unknown): void {
     if (typeof nested.total === 'number') {
       console.log(chalk.gray(`\nShowing ${nested.items.length} of ${nested.total} items`));
     }
+    return;
+  }
+
+  // Handle single data object responses { data: {...}, error }
+  if (isSingleDataResponse(data)) {
+    printObjectTable(data.data);
     return;
   }
 
