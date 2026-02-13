@@ -10,6 +10,22 @@ npm install -g scope3
 npx scope3 --help
 ```
 
+## Quick Start
+
+```bash
+# See all available commands
+scope3 commands
+
+# Configure your API key
+scope3 config set apiKey your_api_key_here
+
+# List advertisers (buyer persona, default)
+scope3 advertisers list
+
+# List brands (brand persona)
+scope3 --persona brand brands list
+```
+
 ## Configuration
 
 ### Setting Configuration Values
@@ -25,7 +41,10 @@ scope3 config set persona buyer
 scope3 config set environment staging
 
 # View current config
-scope3 config show
+scope3 config get
+
+# View specific config value
+scope3 config get apiKey
 ```
 
 ### Environment Variables
@@ -48,8 +67,8 @@ export SCOPE3_PERSONA=buyer
 | `--base-url <url>` | Custom API base URL |
 | `--format <format>` | Output format: `table` (default), `json`, `yaml` |
 | `--debug` | Enable debug logging |
-| `--version` | Show version number |
-| `--help` | Show help information |
+| `-V, --cli-version` | Show version number |
+| `-h, --help` | Show help information |
 
 ## Buyer Commands
 
@@ -62,16 +81,16 @@ The buyer persona is the default. The following commands are available without s
 scope3 advertisers list
 
 # Get a specific advertiser
-scope3 advertisers get --id <id>
+scope3 advertisers get <id>
 
 # Create an advertiser
 scope3 advertisers create --name "Acme Corp"
 
 # Update an advertiser
-scope3 advertisers update --id <id> --name "New Name"
+scope3 advertisers update <id> --name "New Name"
 
 # Delete an advertiser
-scope3 advertisers delete --id <id>
+scope3 advertisers delete <id>
 ```
 
 ### Campaigns
@@ -81,42 +100,73 @@ scope3 advertisers delete --id <id>
 scope3 campaigns list
 
 # Get a specific campaign
-scope3 campaigns get --id <id>
+scope3 campaigns get <id>
 
 # Create a bundle campaign
-scope3 campaigns create-bundle --advertiserId <id> --bundleId <id> --name "Campaign" ...
+scope3 campaigns create-bundle \
+  --advertiser-id <id> \
+  --bundle-id <id> \
+  --name "Q1 Campaign" \
+  --start-date 2025-01-01 \
+  --end-date 2025-03-31 \
+  --budget 50000
 
 # Create a performance campaign
-scope3 campaigns create-performance --advertiserId <id> --name "Perf Campaign" ...
+scope3 campaigns create-performance \
+  --advertiser-id <id> \
+  --name "Performance Campaign" \
+  --start-date 2025-01-01 \
+  --end-date 2025-03-31 \
+  --budget 50000 \
+  --objective CONVERSIONS
 
-# Execute a campaign
-scope3 campaigns execute --id <id>
+# Execute a campaign (go live)
+scope3 campaigns execute <id>
 
-# Pause a campaign
-scope3 campaigns pause --id <id>
+# Pause an active campaign
+scope3 campaigns pause <id>
 ```
 
 ### Bundles
 
 ```bash
-# Create a bundle
-scope3 bundles create --advertiserId <id> --channels display,video
+# Create a bundle for inventory discovery
+scope3 bundles create \
+  --advertiser-id <id> \
+  --channels display,video \
+  --countries US,CA
 
 # Discover products for a bundle
-scope3 bundles discover-products --bundleId <id>
+scope3 bundles discover-products <bundle-id>
+
+# Browse products without creating a bundle
+scope3 bundles browse-products --advertiser-id <id> --channels display
 
 # List products in a bundle
-scope3 bundles list-products --bundleId <id>
+scope3 bundles products list <bundle-id>
 
-# Add products to a bundle
-scope3 bundles add-products --bundleId <id> --products '[...]'
+# Add products to a bundle (JSON format)
+scope3 bundles products add <bundle-id> \
+  --products '[{"productId":"prod-1","salesAgentId":"sa-1","groupId":"g-1","groupName":"Group 1"}]'
+
+# Remove products from a bundle
+scope3 bundles products remove <bundle-id> --product-ids prod-1,prod-2
 ```
 
-### Brands
+### Brands (Buyer Context)
 
 ```bash
-# List brands (buyer context)
+# List brands available to the buyer
 scope3 brands list
+
+# Link a brand to an advertiser
+scope3 brands link --advertiser-id <id> --brand-id <brand-id>
+
+# Get the brand linked to an advertiser
+scope3 brands get-linked --advertiser-id <id>
+
+# Unlink a brand from an advertiser
+scope3 brands unlink --advertiser-id <id>
 ```
 
 ## Brand Commands
@@ -128,13 +178,16 @@ Brand commands require the `brand` persona. Use the `--persona brand` flag or se
 scope3 --persona brand brands list
 
 # Get a specific brand
-scope3 --persona brand brands get --id <id>
+scope3 --persona brand brands get <id>
 
 # Create a brand with a manifest URL
-scope3 --persona brand brands create --manifestUrl "https://..."
+scope3 --persona brand brands create --manifest-url "https://example.com/brand-manifest.json"
+
+# Update a brand
+scope3 --persona brand brands update <id> --manifest-url "https://example.com/updated-manifest.json"
 
 # Delete a brand
-scope3 --persona brand brands delete --id <id>
+scope3 --persona brand brands delete <id>
 ```
 
 ## Partner Commands
@@ -157,11 +210,12 @@ scope3 advertisers list
 ```
 
 ```
-ID          Name          Status
-----------  ------------  --------
-adv-001     Acme Corp     active
-adv-002     Widget Inc    active
-adv-003     FooBar Ltd    paused
+┌────────┬─────────────┬────────┐
+│ id     │ name        │ status │
+├────────┼─────────────┼────────┤
+│ 5661   │ Acme Corp   │ ACTIVE │
+│ 5662   │ Widget Inc  │ ACTIVE │
+└────────┴─────────────┴────────┘
 ```
 
 ### JSON
@@ -175,9 +229,67 @@ scope3 advertisers list --format json
 ```json
 {
   "data": [
-    { "id": "adv-001", "name": "Acme Corp", "status": "active" },
-    { "id": "adv-002", "name": "Widget Inc", "status": "active" },
-    { "id": "adv-003", "name": "FooBar Ltd", "status": "paused" }
-  ]
+    { "id": "5661", "name": "Acme Corp", "status": "ACTIVE" },
+    { "id": "5662", "name": "Widget Inc", "status": "ACTIVE" }
+  ],
+  "meta": {
+    "pagination": { "skip": 0, "take": 50, "total": 2, "hasMore": false }
+  }
 }
+```
+
+### YAML
+
+Use `--format yaml` for YAML output:
+
+```bash
+scope3 advertisers list --format yaml
+```
+
+## All Commands Reference
+
+Run `scope3 commands` to see all available commands:
+
+```
+advertisers
+  list                      List all advertisers
+  get <id>                  Get advertiser by ID
+  create                    Create a new advertiser
+  update <id>               Update an advertiser
+  delete <id>               Delete an advertiser
+
+brands
+  list                      List brands
+  get <id>                  Get brand by ID (brand persona)
+  create                    Create a new brand (brand persona)
+  update <id>               Update a brand (brand persona)
+  delete <id>               Delete a brand (brand persona)
+  link                      Link brand to advertiser (buyer persona)
+  unlink                    Unlink brand from advertiser (buyer persona)
+  get-linked                Get linked brand (buyer persona)
+
+bundles
+  create                    Create a new media bundle
+  discover-products <id>    Discover available products for a bundle
+  browse-products           Browse products without creating a bundle
+  products list <id>        List products in a bundle
+  products add <id>         Add products to a bundle
+  products remove <id>      Remove products from a bundle
+
+campaigns
+  list                      List all campaigns
+  get <id>                  Get campaign by ID
+  create-bundle             Create a bundle campaign
+  create-performance        Create a performance campaign
+  create-audience           Create an audience campaign
+  update-bundle <id>        Update a bundle campaign
+  update-performance <id>   Update a performance campaign
+  execute <id>              Execute a campaign (go live)
+  pause <id>                Pause an active campaign
+
+config
+  set <key> <value>         Set a configuration value
+  get [key]                 Get configuration value(s)
+  clear                     Clear all configuration
+  path                      Show configuration file path
 ```
