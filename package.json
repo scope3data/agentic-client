@@ -19,7 +19,7 @@
     "scope3": "dist/cli/index.js"
   },
   "scripts": {
-    "build": "npm run type-check && tsc",
+    "build": "npm run type-check && tsc && chmod +x dist/cli/index.js",
     "dev": "tsc --watch",
     "test": "jest",
     "lint": "eslint src --ext .ts",
