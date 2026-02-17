@@ -1,6 +1,6 @@
 {
   "name": "scope3",
-  "version": "1.1.0",
+  "version": "2.0.0",
   "description": "Scope3 SDK - REST and MCP client for the Agentic Platform",
   "engines": {
     "node": ">=18"
