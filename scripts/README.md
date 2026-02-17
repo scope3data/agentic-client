@@ -1,114 +1,46 @@
-# Scope3 CLI Workflow Scripts
+# Scope3 SDK v2 - Test Scripts
 
-This directory contains end-to-end workflow test scripts for the Scope3 CLI tool.
+Manual workflow tests for the Scope3 SDK. Each script exercises real API calls against production or staging.
 
-## 🎯 Platform vs Partner Access
-
-Scope3 has two levels of API access:
-
-- **Platform API** - Create/manage brand agents, campaigns, creatives; read-only access to tactics and media buys
-- **Partner API** - Full access to create/manage tactics, media buys, and execute campaigns
-
-**Use the appropriate workflow for your access level!**
-
-## Available Scripts
-
-### `platform-workflow-test.sh` - Platform Workflow Test
-
-**For platform users with platform-level API keys**
-
-Demonstrates complete platform workflow:
-- ✅ Create and manage brand agents
-- ✅ Create and manage campaigns
-- ✅ Discover marketplace agents and products
-- ✅ View tactics and media buys (read-only)
-- ✅ Manage notifications
-
-**Usage:**
+## Setup
 
 ```bash
-# Set your platform API key
-export SCOPE3_API_KEY=your_platform_api_key
-
-# Run the platform workflow test
-./scripts/platform-workflow-test.sh
+npm run build                          # build the SDK + CLI first
+export SCOPE3_API_KEY=your_api_key     # get from agentic.scope3.com -> Manage API Keys
 ```
 
-**Expected output:**
-```
-==========================================
-    PLATFORM WORKFLOW TEST
-==========================================
+## Scripts
 
-✓ Channels discovered (12 channels)
-✓ Brand agent created (ID: 3167)
-✓ Campaign created (ID: campaign_xxx)
-✓ Marketplace agents discovered
-✓ Tactics viewed (read-only)
-✓ Media buys viewed (read-only)
+| Script | Persona | What it tests |
+|--------|---------|---------------|
+| `test-buyer-workflow.sh` | buyer | Advertisers, bundles, product discovery, campaigns |
+| `test-brand-workflow.sh` | brand | Brand CRUD with manifest URL and inline JSON |
+| `test-partner-workflow.sh` | partner | Health check, config, skill.md |
+| `test-sdk-workflow.ts` | all 3 | Full TypeScript SDK test (not CLI) |
 
-✅ Platform workflow test successful!
-```
-
-### `partner-workflow-test.sh` - Partner Workflow Test
-
-**For partners with partner-level API keys**
-
-Demonstrates complete partner workflow:
-- ✅ Register and manage sales/outcome agents
-- ✅ Create and manage tactics
-- ✅ Create and manage media buys
-- ✅ Execute campaigns
-- ✅ Sync products
-
-**Usage:**
+## Usage
 
 ```bash
-# Set your partner API key
-export SCOPE3_API_KEY=your_partner_api_key
+# CLI workflow tests (bash)
+./scripts/test-buyer-workflow.sh
+./scripts/test-brand-workflow.sh
+./scripts/test-partner-workflow.sh
 
-# Run the partner workflow test
-./scripts/partner-workflow-test.sh
+# Use staging
+./scripts/test-buyer-workflow.sh --staging
+
+# TypeScript SDK test (all personas)
+npx ts-node scripts/test-sdk-workflow.ts
+npx ts-node scripts/test-sdk-workflow.ts --staging
+
+# Or via npm scripts
+npm run test:buyer
+npm run test:brand
+npm run test:partner
+npm run test:sdk
+npm run test:all                       # runs all 4
 ```
 
-**Note:** If you have a platform key and try to run this, it will show warnings explaining that partner operations require elevated permissions.
+## Cleanup
 
-## Quick Start
-
-### If you're a Platform User (Most Common)
-
-```bash
-export SCOPE3_API_KEY=your_key
-./scripts/platform-workflow-test.sh
-```
-
-### If you're a Partner
-
-```bash
-export SCOPE3_API_KEY=your_partner_key
-./scripts/partner-workflow-test.sh
-```
-
-### If you're unsure
-
-Run the platform workflow first. If you get permission errors on tactics/media buys **creation** (viewing is OK), you have platform access.
-
-## What Each Workflow Tests
-
-| Operation | Platform | Partner |
-|-----------|----------|---------|
-| List Channels | ✅ | ✅ |
-| Create Brand Agents | ✅ | ✅ |
-| Create Campaigns | ✅ | ✅ |
-| Register Agents | ❌ | ✅ |
-| Create Tactics | ❌ | ✅ |
-| Create Media Buys | ❌ | ✅ |
-| View Tactics | ✅ (read-only) | ✅ |
-| View Media Buys | ✅ (read-only) | ✅ |
-| Discover Marketplace | ✅ | ✅ |
-
-## See Also
-
-- **CLI Documentation**: See `../CLI.md` for complete CLI reference
-- **Workflow Guide**: See `../WORKFLOW_GUIDE.md` for detailed explanation of platform vs partner roles
-- **Status Report**: See `../CLI_STATUS.md` for current status of all operations
+The buyer and brand scripts auto-clean test resources on exit. If a script is interrupted, check your dashboard for leftover test advertisers/brands.

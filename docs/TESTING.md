@@ -1,124 +1,91 @@
-# Testing Simple Media Agent
+# Testing the Scope3 SDK
 
-## Prerequisites
+## Unit Tests
 
-You need:
-- Scope3 API key
-- Registered agents in your Scope3 account
-- Products available from those agents
-
-## Method 1: Direct Testing (Recommended First)
-
-Test the tools directly without MCP to verify logic:
+Run the test suite:
 
 ```bash
+npm test
+```
+
+This runs 211 unit tests covering:
+- Client initialization
+- REST and MCP adapters
+- All resource classes
+- CLI utilities and formatting
+- Webhook server
+
+## Manual CLI Testing
+
+Build and test the CLI:
+
+```bash
+npm run build
 export SCOPE3_API_KEY=your_api_key
-npx ts-node test-media-agent.ts
+
+# Test buyer persona (default)
+./dist/cli/index.js advertisers list
+./dist/cli/index.js campaigns list
+./dist/cli/index.js bundles create --advertiser-id <id> --channels display
+
+# Test partner persona
+./dist/cli/index.js --persona partner partners list
+
+# Test config
+./dist/cli/index.js config set apiKey your_key
+./dist/cli/index.js config set environment staging
+./dist/cli/index.js config get
 ```
 
-This will:
-1. Call `get_proposed_tactics` with a test campaign
-2. Call `manage_tactic` to create media buys
-3. Show you the results and verify overallocation is working
+## Workflow Test Scripts
 
-## Method 2: Claude Desktop Integration
-
-Add to your Claude Desktop MCP config (`~/Library/Application Support/Claude/claude_desktop_config.json`):
-
-```json
-{
-  "mcpServers": {
-    "simple-media-agent": {
-      "command": "node",
-      "args": [
-        "/path/to/agentic-client/.conductor/zurich-v4/dist/simple-media-agent-server.js"
-      ],
-      "env": {
-        "SCOPE3_API_KEY": "your_api_key_here",
-        "MIN_DAILY_BUDGET": "100",
-        "OVERALLOCATION_PERCENT": "40"
-      }
-    }
-  }
-}
-```
-
-Then in Claude Desktop:
-
-```
-Use get_proposed_tactics to propose tactics for campaign "test-123" with max budget 50000
-```
-
-Claude will call your MCP server and show the results!
-
-## Method 3: MCP Inspector
-
-Use the MCP Inspector tool to test your server:
+Comprehensive workflow tests against real APIs:
 
 ```bash
-export SCOPE3_API_KEY=your_key
-npx @modelcontextprotocol/inspector node dist/simple-media-agent-server.js
+# Setup
+npm run build
+export SCOPE3_API_KEY=your_api_key
+
+# CLI workflow tests
+npm run test:buyer     # Buyer persona: advertisers, bundles, campaigns
+npm run test:partner   # Partner persona: health check
+
+# TypeScript SDK test
+npm run test:sdk
+
+# Run all
+npm run test:all
 ```
 
-This opens a web UI where you can:
-- See all available tools
-- Call tools with test parameters
-- View responses in real-time
+### Using Staging
 
-## What to Verify
+```bash
+# Via environment
+export SCOPE3_ENVIRONMENT=staging
+./scripts/test-buyer-workflow.sh
 
-### get_proposed_tactics
-✅ Returns proposed tactics with:
-- Correct tactic ID format
-- Estimated CPM based on floor prices
-- Budget capacity matches request
-- No metadata field (spec compliance)
-
-### manage_tactic
-✅ Creates media buys with:
-- Sum of all budgets = original budget * 1.4 (40% overallocation)
-- Each media buy has correct product ID, agent ID, CPM
-- Uses MediaBuyProduct structure from ADCP client
-- N products where daily budget >= $100
-
-## Example Output
-
-```json
-{
-  "proposedTactics": [
-    {
-      "tacticId": "simple-passthrough-test-123",
-      "execution": "Passthrough strategy: distribute budget across 25 products...",
-      "budgetCapacity": 50000,
-      "pricing": {
-        "method": "passthrough",
-        "estimatedCpm": 2.50,
-        "currency": "USD"
-      },
-      "sku": "simple-passthrough"
-    }
-  ]
-}
+# Or via CLI flag
+./scripts/test-buyer-workflow.sh --staging
 ```
 
-## Debugging
+## What the Tests Verify
 
-If something fails:
+### Buyer Workflow (`test-buyer-workflow.sh`)
+- Advertiser CRUD
+- Bundle creation and product discovery
+- Campaign creation and lifecycle
 
-1. **Check logs**: The server outputs to stderr
-2. **Verify API key**: Make sure it's valid and has proper permissions
-3. **Check agents**: Run `scope3.agents.list({ type: 'SALES' })` to verify you have agents registered
-4. **Check products**: Run `scope3.products.discover()` to verify products are available
+### Partner Workflow (`test-partner-workflow.sh`)
+- Partner listing
+- Agent listing
+- Config management
+- Skill.md fetching
 
-## Common Issues
+### SDK Workflow (`test-sdk-workflow.ts`)
+- Both personas programmatically
+- Error handling
+- Response parsing
 
-**"No products found"**
-- You need to register sales agents first
-- Sales agents need to have products available
+## Cleanup
 
-**"Budget calculation is wrong"**
-- Check that overallocationPercent is set correctly
-- Verify: sum of all media buy budgets = totalBudget * (1 + overallocationPercent/100)
-
-**"Type errors"**
-- Make sure you've run `npm run build` after making changes
+The test scripts auto-clean resources on exit. If interrupted, check your dashboard for leftover test advertisers.

@@ -1,18 +1,19 @@
-import { PlatformClient } from '../src';
+import { Scope3Client } from '../src';
 
 async function main() {
-  const client = new PlatformClient({
+  const client = new Scope3Client({
     apiKey: process.env.SCOPE3_API_KEY || 'your-api-key',
+    persona: 'buyer',
   });
 
   try {
-    console.log('Listing brand agents...');
-    const brandAgents = await client.brandAgents.list();
-    console.log('Brand agents:', brandAgents);
+    console.log('Listing advertisers...');
+    const advertisers = await client.advertisers.list();
+    console.log('Advertisers:', advertisers);
 
-    console.log('\nListing channels...');
-    const channels = await client.channels.list();
-    console.log('Channels:', channels);
+    console.log('\nDiscovering signals...');
+    const signals = await client.signals.discover();
+    console.log('Signals:', signals);
   } catch (error) {
     console.error('Error:', error);
   }
