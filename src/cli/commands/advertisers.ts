@@ -17,6 +17,7 @@ advertisersCommand
   .option('--take <n>', 'Maximum number of results', '50')
   .option('--skip <n>', 'Number of results to skip', '0')
   .option('--status <status>', 'Filter by status (ACTIVE, ARCHIVED)')
+  .option('--include-brand', 'Include resolved brand info for each advertiser')
   .action(async (options, cmd) => {
     try {
       const globalOpts = cmd.optsWithGlobals() as GlobalOptions;
@@ -26,6 +27,7 @@ advertisersCommand
         take: parseInt(options.take, 10),
         skip: parseInt(options.skip, 10),
         status: options.status,
+        includeBrand: options.includeBrand,
       });
 
       formatOutput(result, globalOpts.format as OutputFormat);
@@ -61,6 +63,7 @@ advertisersCommand
   .command('create')
   .description('Create a new advertiser')
   .requiredOption('--name <name>', 'Advertiser name')
+  .requiredOption('--brand-domain <domain>', 'Brand website domain (e.g., nike.com)')
   .option('--description <desc>', 'Advertiser description')
   .action(async (options, cmd) => {
     try {
@@ -69,6 +72,7 @@ advertisersCommand
 
       const result = await client.advertisers.create({
         name: options.name,
+        brandDomain: options.brandDomain,
         description: options.description,
       });
 
@@ -88,17 +92,19 @@ advertisersCommand
   .description('Update an advertiser')
   .option('--name <name>', 'New name')
   .option('--description <desc>', 'New description')
+  .option('--brand-domain <domain>', 'New brand domain')
   .action(async (id: string, options, cmd) => {
     try {
       const globalOpts = cmd.optsWithGlobals() as GlobalOptions;
       const client = createClient(globalOpts);
 
-      const updateData: { name?: string; description?: string } = {};
+      const updateData: { name?: string; description?: string; brandDomain?: string } = {};
       if (options.name) updateData.name = options.name;
       if (options.description) updateData.description = options.description;
+      if (options.brandDomain) updateData.brandDomain = options.brandDomain;
 
       if (Object.keys(updateData).length === 0) {
-        printError('No update fields provided. Use --name or --description');
+        printError('No update fields provided. Use --name, --description, or --brand-domain');
         process.exit(1);
       }
 

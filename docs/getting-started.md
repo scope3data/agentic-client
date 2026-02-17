@@ -1,6 +1,6 @@
 # Getting Started with the Scope3 SDK
 
-The `scope3` npm package provides a TypeScript/JavaScript client for the Scope3 Agentic Platform. It supports REST and MCP (Model Context Protocol) adapters, and organizes functionality around three personas: buyer, brand, and partner.
+The `scope3` npm package provides a TypeScript/JavaScript client for the Scope3 Agentic Platform. It supports REST and MCP (Model Context Protocol) adapters, and organizes functionality around two personas: buyer and partner.
 
 ## Installation
 
@@ -19,13 +19,12 @@ Store your API key securely. You will pass it to the client at initialization.
 
 ## Choose Your Persona
 
-The SDK requires a persona to determine which API surface is available. There are three personas:
+The SDK requires a persona to determine which API surface is available. There are two personas:
 
 | Persona    | Use Case                                                                                      |
 |------------|-----------------------------------------------------------------------------------------------|
 | `buyer`    | Programmatic advertising -- manage advertisers, campaigns, bundles, and inventory discovery.   |
-| `brand`    | Brand identity management -- create and update brands with manifests.                         |
-| `partner`  | Integration partners -- health checks and coming-soon features.                               |
+| `partner`  | Integration partners -- manage partners and agents.                                           |
 
 Resources are scoped by persona. Attempting to access a resource outside of your chosen persona will throw an error at runtime.
 
@@ -36,7 +35,7 @@ import { Scope3Client } from 'scope3';
 
 const client = new Scope3Client({
   apiKey: process.env.SCOPE3_API_KEY!,
-  persona: 'buyer', // or 'brand' or 'partner'
+  persona: 'buyer', // or 'partner'
 });
 ```
 
@@ -49,8 +48,8 @@ interface Scope3ClientConfig {
   /** API key (Bearer token) for authentication. Required. */
   apiKey: string;
 
-  /** API persona -- buyer, brand, or partner. Required. */
-  persona: 'buyer' | 'brand' | 'partner';
+  /** API persona -- buyer or partner. Required. */
+  persona: 'buyer' | 'partner';
 
   /** API version to use. Default: 'v2'. */
   version?: 'v1' | 'v2' | 'latest';
@@ -122,21 +121,6 @@ const bundle = await client.bundles.create({
 console.log('Bundle:', bundle);
 ```
 
-### Brand persona
-
-```typescript
-import { Scope3Client } from 'scope3';
-
-const client = new Scope3Client({
-  apiKey: process.env.SCOPE3_API_KEY!,
-  persona: 'brand',
-});
-
-// List brands
-const brands = await client.brands.list();
-console.log('Brands:', brands);
-```
-
 ### Partner persona
 
 ```typescript
@@ -147,9 +131,9 @@ const client = new Scope3Client({
   persona: 'partner',
 });
 
-// Run a health check
-const health = await client.health.check();
-console.log('Health:', health);
+// List partners
+const partners = await client.partners.list();
+console.log('Partners:', partners);
 ```
 
 ## Error Handling
@@ -181,6 +165,5 @@ try {
 ## Next Steps
 
 - [Buyer Guide](./buyer-guide.md) -- Full buyer workflow: advertisers, campaigns, bundles, and inventory discovery.
-- [Brand Guide](./brand-guide.md) -- Brand identity management and manifests.
-- [Partner Guide](./partner-guide.md) -- Partner integration and health checks.
+- [Partner Guide](./partner-guide.md) -- Partner integration, agent management, and OAuth.
 - [CLI Reference](./cli-reference.md) -- Command-line interface usage.

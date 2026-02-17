@@ -8,7 +8,7 @@ Run the test suite:
 npm test
 ```
 
-This runs 225 unit tests covering:
+This runs 211 unit tests covering:
 - Client initialization
 - REST and MCP adapters
 - All resource classes
@@ -28,8 +28,8 @@ export SCOPE3_API_KEY=your_api_key
 ./dist/cli/index.js campaigns list
 ./dist/cli/index.js bundles create --advertiser-id <id> --channels display
 
-# Test brand persona
-./dist/cli/index.js --persona brand brands list
+# Test partner persona
+./dist/cli/index.js --persona partner partners list
 
 # Test config
 ./dist/cli/index.js config set apiKey your_key
@@ -48,7 +48,6 @@ export SCOPE3_API_KEY=your_api_key
 
 # CLI workflow tests
 npm run test:buyer     # Buyer persona: advertisers, bundles, campaigns
-npm run test:brand     # Brand persona: CRUD with manifests
 npm run test:partner   # Partner persona: health check
 
 # TypeScript SDK test
@@ -75,23 +74,18 @@ export SCOPE3_ENVIRONMENT=staging
 - Advertiser CRUD
 - Bundle creation and product discovery
 - Campaign creation and lifecycle
-- Brand linking
-
-### Brand Workflow (`test-brand-workflow.sh`)
-- Brand creation with manifest URL
-- Brand creation with inline JSON manifest
-- Brand update and delete
 
 ### Partner Workflow (`test-partner-workflow.sh`)
-- Health check endpoint
+- Partner listing
+- Agent listing
 - Config management
 - Skill.md fetching
 
 ### SDK Workflow (`test-sdk-workflow.ts`)
-- All three personas programmatically
+- Both personas programmatically
 - Error handling
 - Response parsing
 
 ## Cleanup
 
-The test scripts auto-clean resources on exit. If interrupted, check your dashboard for leftover test advertisers/brands.
+The test scripts auto-clean resources on exit. If interrupted, check your dashboard for leftover test advertisers.

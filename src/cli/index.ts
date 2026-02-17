@@ -9,8 +9,8 @@
  * Examples:
  *   scope3 config set apiKey sk_xxx
  *   scope3 --persona buyer advertisers list
- *   scope3 --persona brand brands list
- *   scope3 campaigns create-bundle --advertiser-id xxx --bundle-id yyy --name "Q1 Campaign"
+ *   scope3 --persona partner partners list
+ *   scope3 campaigns create-discovery --advertiser-id xxx --bundle-id yyy --name "Q1 Campaign"
  *   scope3 bundles create --advertiser-id xxx --channels ctv,display
  */
 
@@ -18,10 +18,12 @@ import { Command } from 'commander';
 import chalk from 'chalk';
 import {
   advertisersCommand,
-  brandsCommand,
   bundlesCommand,
   campaignsCommand,
   configCommand,
+  partnersCommand,
+  reportingCommand,
+  salesAgentsCommand,
 } from './commands';
 
 const program = new Command();
@@ -43,14 +45,16 @@ program
   .option('--base-url <url>', 'Custom API base URL')
   .option('--format <format>', 'Output format: json, table, or yaml (default: table)')
   .option('--debug', 'Enable debug mode')
-  .option('--persona <persona>', 'API persona: buyer, brand, or partner (default: buyer)');
+  .option('--persona <persona>', 'API persona: buyer or partner (default: buyer)');
 
 // Add commands
 program.addCommand(advertisersCommand);
-program.addCommand(brandsCommand);
 program.addCommand(bundlesCommand);
 program.addCommand(campaignsCommand);
 program.addCommand(configCommand);
+program.addCommand(partnersCommand);
+program.addCommand(reportingCommand);
+program.addCommand(salesAgentsCommand);
 
 // Add 'commands' command to list all available commands
 const commandsCmd = new Command('commands')
@@ -73,12 +77,6 @@ const commandsCmd = new Command('commands')
     console.log('    update <id>               Update an advertiser');
     console.log('    delete <id>               Delete an advertiser');
 
-    console.log(chalk.cyan('\n  brands') + chalk.gray(' (buyer context)'));
-    console.log('    list                      List brands available to link');
-    console.log('    link                      Link a brand to an advertiser');
-    console.log('    unlink                    Unlink a brand from an advertiser');
-    console.log('    get-linked                Get the brand linked to an advertiser');
-
     console.log(chalk.cyan('\n  bundles'));
     console.log('    create                    Create a new media bundle');
     console.log('    discover-products <id>    Discover available products for a bundle');
@@ -90,29 +88,39 @@ const commandsCmd = new Command('commands')
     console.log(chalk.cyan('\n  campaigns'));
     console.log('    list                      List all campaigns');
     console.log('    get <id>                  Get campaign by ID');
-    console.log('    create-bundle             Create a bundle campaign');
+    console.log('    create-discovery          Create a discovery campaign');
     console.log('    create-performance        Create a performance campaign');
     console.log('    create-audience           Create an audience campaign');
-    console.log('    update-bundle <id>        Update a bundle campaign');
+    console.log('    update-discovery <id>     Update a discovery campaign');
     console.log('    update-performance <id>   Update a performance campaign');
     console.log('    execute <id>              Execute a campaign (go live)');
     console.log('    pause <id>                Pause an active campaign');
 
-    // Brand persona
-    console.log(chalk.magenta.bold('\n\nBRAND PERSONA') + chalk.gray(' (use --persona brand)'));
-    console.log(chalk.gray('For brand owners - manage brand identity and manifests\n'));
+    console.log(chalk.cyan('\n  reporting'));
+    console.log('    get                       Get reporting metrics');
 
-    console.log(chalk.cyan('  brands'));
-    console.log('    list                      List all owned brands');
-    console.log('    get <id>                  Get brand by ID');
-    console.log('    create                    Create a new brand');
-    console.log('    update <id>               Update a brand');
-    console.log('    delete <id>               Delete a brand');
+    console.log(chalk.cyan('\n  sales-agents'));
+    console.log('    list                      List available sales agents');
+    console.log('    register-account <id>     Register an account for a sales agent');
 
     // Partner persona
     console.log(chalk.blue.bold('\n\nPARTNER PERSONA') + chalk.gray(' (use --persona partner)'));
-    console.log(chalk.gray('For DSPs and publishers - integration health monitoring\n'));
-    console.log(chalk.gray('  (Partner CLI commands not yet implemented)'));
+    console.log(chalk.gray('For technology partners - manage partners and agents\n'));
+
+    console.log(chalk.cyan('  partners'));
+    console.log('    list                      List all partners');
+    console.log('    create                    Create a new partner');
+    console.log('    update <id>               Update a partner');
+    console.log('    archive <id>              Archive a partner');
+
+    console.log(chalk.cyan('\n  partners agents'));
+    console.log('    list                      List all agents');
+    console.log('    get <id>                  Get agent details');
+    console.log('    register                  Register a new agent');
+    console.log('    update <id>               Update an agent');
+    console.log('    oauth-authorize <id>      Start agent-level OAuth flow');
+    console.log('    oauth-authorize-account <id>  Start per-account OAuth flow');
+    console.log('    oauth-exchange <id>       Exchange OAuth code for tokens');
 
     // Config (all personas)
     console.log(chalk.yellow.bold('\n\nCONFIGURATION') + chalk.gray(' (all personas)'));

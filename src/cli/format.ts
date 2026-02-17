@@ -77,7 +77,15 @@ function isNestedDataResponse(data: unknown): {
   const dataObj = obj.data as Record<string, unknown>;
 
   // Look for common array property names
-  const arrayKeys = ['campaigns', 'items', 'bundles', 'products', 'brands', 'advertisers'];
+  const arrayKeys = [
+    'campaigns',
+    'items',
+    'bundles',
+    'products',
+    'advertisers',
+    'agents',
+    'partners',
+  ];
   for (const key of arrayKeys) {
     if (key in dataObj && Array.isArray(dataObj[key])) {
       return {

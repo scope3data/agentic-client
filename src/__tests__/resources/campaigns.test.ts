@@ -42,14 +42,14 @@ describe('CampaignsResource', () => {
     it('should pass filter params including type', async () => {
       mockAdapter.request.mockResolvedValue({ items: [], total: 0 });
 
-      await resource.list({ advertiserId: 'adv-123', status: 'ACTIVE', type: 'bundle' });
+      await resource.list({ advertiserId: 'adv-123', status: 'ACTIVE', type: 'discovery' });
 
       expect(mockAdapter.request).toHaveBeenCalledWith('GET', '/campaigns', undefined, {
         params: {
           take: undefined,
           skip: undefined,
           advertiserId: 'adv-123',
-          type: 'bundle',
+          type: 'discovery',
           status: 'ACTIVE',
         },
       });
@@ -66,8 +66,8 @@ describe('CampaignsResource', () => {
     });
   });
 
-  describe('createBundle', () => {
-    it('should call adapter with POST /campaigns/bundle', async () => {
+  describe('createDiscovery', () => {
+    it('should call adapter with POST /campaigns/discovery', async () => {
       const input = {
         advertiserId: 'adv-123',
         name: 'Q1 Campaign',
@@ -78,19 +78,19 @@ describe('CampaignsResource', () => {
 
       mockAdapter.request.mockResolvedValue({ id: 'camp-123', ...input });
 
-      await resource.createBundle(input);
+      await resource.createDiscovery(input);
 
-      expect(mockAdapter.request).toHaveBeenCalledWith('POST', '/campaigns/bundle', input);
+      expect(mockAdapter.request).toHaveBeenCalledWith('POST', '/campaigns/discovery', input);
     });
   });
 
-  describe('updateBundle', () => {
-    it('should call adapter with PUT /campaigns/bundle/{id}', async () => {
+  describe('updateDiscovery', () => {
+    it('should call adapter with PUT /campaigns/discovery/{id}', async () => {
       mockAdapter.request.mockResolvedValue({ id: 'camp-123', name: 'Updated' });
 
-      await resource.updateBundle('camp-123', { name: 'Updated' });
+      await resource.updateDiscovery('camp-123', { name: 'Updated' });
 
-      expect(mockAdapter.request).toHaveBeenCalledWith('PUT', '/campaigns/bundle/camp-123', {
+      expect(mockAdapter.request).toHaveBeenCalledWith('PUT', '/campaigns/discovery/camp-123', {
         name: 'Updated',
       });
     });

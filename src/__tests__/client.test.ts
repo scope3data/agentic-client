@@ -76,7 +76,6 @@ describe('Scope3Client', () => {
       expect(typeof client.advertisers.create).toBe('function');
       expect(typeof client.advertisers.update).toBe('function');
       expect(typeof client.advertisers.delete).toBe('function');
-      expect(typeof client.advertisers.brand).toBe('function');
     });
 
     it('should have campaigns resource with type-specific methods', () => {
@@ -84,22 +83,13 @@ describe('Scope3Client', () => {
       expect(client.campaigns).toBeDefined();
       expect(typeof client.campaigns.list).toBe('function');
       expect(typeof client.campaigns.get).toBe('function');
-      expect(typeof client.campaigns.createBundle).toBe('function');
-      expect(typeof client.campaigns.updateBundle).toBe('function');
+      expect(typeof client.campaigns.createDiscovery).toBe('function');
+      expect(typeof client.campaigns.updateDiscovery).toBe('function');
       expect(typeof client.campaigns.createPerformance).toBe('function');
       expect(typeof client.campaigns.updatePerformance).toBe('function');
       expect(typeof client.campaigns.createAudience).toBe('function');
       expect(typeof client.campaigns.execute).toBe('function');
       expect(typeof client.campaigns.pause).toBe('function');
-    });
-
-    it('should return linked brand resource for advertiser with get, link, unlink', () => {
-      const client = new Scope3Client({ apiKey: 'test-key', persona: 'buyer' });
-      const brand = client.advertisers.brand('adv-123');
-      expect(brand).toBeDefined();
-      expect(typeof brand.get).toBe('function');
-      expect(typeof brand.link).toBe('function');
-      expect(typeof brand.unlink).toBe('function');
     });
 
     it('should have bundles resource', () => {
@@ -127,42 +117,37 @@ describe('Scope3Client', () => {
       expect(typeof client.signals.list).toBe('function');
     });
 
-    it('should have buyerBrands resource', () => {
+    it('should have reporting resource', () => {
       const client = new Scope3Client({ apiKey: 'test-key', persona: 'buyer' });
-      expect(client.buyerBrands).toBeDefined();
-      expect(typeof client.buyerBrands.list).toBe('function');
-    });
-  });
-
-  describe('brand persona resources', () => {
-    it('should have brands resource', () => {
-      const client = new Scope3Client({ apiKey: 'test-key', persona: 'brand' });
-      expect(client.brands).toBeDefined();
-      expect(typeof client.brands.list).toBe('function');
-      expect(typeof client.brands.get).toBe('function');
-      expect(typeof client.brands.create).toBe('function');
-      expect(typeof client.brands.update).toBe('function');
-      expect(typeof client.brands.delete).toBe('function');
+      expect(client.reporting).toBeDefined();
+      expect(typeof client.reporting.get).toBe('function');
     });
 
-    it('should NOT have advertisers', () => {
-      const client = new Scope3Client({ apiKey: 'test-key', persona: 'brand' });
-      expect(() => client.advertisers).toThrow(
-        'advertisers is only available with the buyer persona'
-      );
-    });
-
-    it('should NOT have campaigns', () => {
-      const client = new Scope3Client({ apiKey: 'test-key', persona: 'brand' });
-      expect(() => client.campaigns).toThrow('campaigns is only available with the buyer persona');
+    it('should have salesAgents resource', () => {
+      const client = new Scope3Client({ apiKey: 'test-key', persona: 'buyer' });
+      expect(client.salesAgents).toBeDefined();
+      expect(typeof client.salesAgents.list).toBe('function');
+      expect(typeof client.salesAgents.registerAccount).toBe('function');
     });
   });
 
   describe('partner persona resources', () => {
-    it('should have health resource', () => {
+    it('should have partners resource', () => {
       const client = new Scope3Client({ apiKey: 'test-key', persona: 'partner' });
-      expect(client.health).toBeDefined();
-      expect(typeof client.health.check).toBe('function');
+      expect(client.partners).toBeDefined();
+      expect(typeof client.partners.list).toBe('function');
+      expect(typeof client.partners.create).toBe('function');
+      expect(typeof client.partners.update).toBe('function');
+      expect(typeof client.partners.archive).toBe('function');
+    });
+
+    it('should have agents resource', () => {
+      const client = new Scope3Client({ apiKey: 'test-key', persona: 'partner' });
+      expect(client.agents).toBeDefined();
+      expect(typeof client.agents.list).toBe('function');
+      expect(typeof client.agents.get).toBe('function');
+      expect(typeof client.agents.register).toBe('function');
+      expect(typeof client.agents.update).toBe('function');
     });
 
     it('should NOT have advertisers', () => {

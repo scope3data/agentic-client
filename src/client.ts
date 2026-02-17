@@ -10,12 +10,13 @@ import { BaseAdapter } from './adapters/base';
 import { RestAdapter } from './adapters/rest';
 import { McpAdapter } from './adapters/mcp';
 import { AdvertisersResource } from './resources/advertisers';
-import { BuyerBrandsResource } from './resources/brands';
 import { CampaignsResource } from './resources/campaigns';
 import { BundlesResource } from './resources/bundles';
 import { SignalsResource } from './resources/signals';
-import { BrandBrandsResource } from './resources/brand-brands';
-import { PartnerHealthResource } from './resources/partner-health';
+import { ReportingResource } from './resources/reporting';
+import { SalesAgentsResource } from './resources/sales-agents';
+import { PartnersResource } from './resources/partners';
+import { AgentsResource } from './resources/agents';
 import { fetchSkillMd, parseSkillMd, ParsedSkill } from './skill';
 
 /**
@@ -28,28 +29,23 @@ import { fetchSkillMd, parseSkillMd, ParsedSkill } from './skill';
  * const advertisers = await client.advertisers.list();
  * const bundle = await client.bundles.create({ advertiserId: '123', channels: ['display'] });
  *
- * // Brand persona
- * const brandClient = new Scope3Client({ apiKey: 'token', persona: 'brand' });
- * const brands = await brandClient.brands.list();
- *
  * // Partner persona
  * const partnerClient = new Scope3Client({ apiKey: 'token', persona: 'partner' });
- * const health = await partnerClient.health.check();
+ * const partners = await partnerClient.partners.list();
  * ```
  */
 export class Scope3Client {
   // Buyer persona resources
   private _advertisers?: AdvertisersResource;
-  private _buyerBrands?: BuyerBrandsResource;
   private _campaigns?: CampaignsResource;
   private _bundles?: BundlesResource;
   private _signals?: SignalsResource;
-
-  // Brand persona resources
-  private _brandBrands?: BrandBrandsResource;
+  private _reporting?: ReportingResource;
+  private _salesAgents?: SalesAgentsResource;
 
   // Partner persona resources
-  private _health?: PartnerHealthResource;
+  private _partners?: PartnersResource;
+  private _agents?: AgentsResource;
 
   /** The adapter used for API communication */
   private readonly adapter: BaseAdapter;
@@ -68,7 +64,7 @@ export class Scope3Client {
       throw new Error('apiKey is required');
     }
     if (!config.persona) {
-      throw new Error('persona is required (buyer, brand, or partner)');
+      throw new Error('persona is required (buyer or partner)');
     }
 
     this.version = config.version ?? 'v2';
@@ -85,16 +81,15 @@ export class Scope3Client {
     switch (this.persona) {
       case 'buyer':
         this._advertisers = new AdvertisersResource(this.adapter);
-        this._buyerBrands = new BuyerBrandsResource(this.adapter);
         this._campaigns = new CampaignsResource(this.adapter);
         this._bundles = new BundlesResource(this.adapter);
         this._signals = new SignalsResource(this.adapter);
-        break;
-      case 'brand':
-        this._brandBrands = new BrandBrandsResource(this.adapter);
+        this._reporting = new ReportingResource(this.adapter);
+        this._salesAgents = new SalesAgentsResource(this.adapter);
         break;
       case 'partner':
-        this._health = new PartnerHealthResource(this.adapter);
+        this._partners = new PartnersResource(this.adapter);
+        this._agents = new AgentsResource(this.adapter);
         break;
     }
   }
@@ -107,14 +102,6 @@ export class Scope3Client {
       throw new Error('advertisers is only available with the buyer persona');
     }
     return this._advertisers;
-  }
-
-  /** Brand listing for buyers (buyer persona) */
-  get buyerBrands(): BuyerBrandsResource {
-    if (!this._buyerBrands) {
-      throw new Error('buyerBrands is only available with the buyer persona');
-    }
-    return this._buyerBrands;
   }
 
   /** Campaign management (buyer persona) */
@@ -141,24 +128,38 @@ export class Scope3Client {
     return this._signals;
   }
 
-  // ── Brand persona resources ──────────────────────────────────────
-
-  /** Brand identity management (brand persona) */
-  get brands(): BrandBrandsResource {
-    if (!this._brandBrands) {
-      throw new Error('brands is only available with the brand persona');
+  /** Reporting metrics (buyer persona) */
+  get reporting(): ReportingResource {
+    if (!this._reporting) {
+      throw new Error('reporting is only available with the buyer persona');
     }
-    return this._brandBrands;
+    return this._reporting;
+  }
+
+  /** Sales agents (buyer persona) */
+  get salesAgents(): SalesAgentsResource {
+    if (!this._salesAgents) {
+      throw new Error('salesAgents is only available with the buyer persona');
+    }
+    return this._salesAgents;
   }
 
   // ── Partner persona resources ────────────────────────────────────
 
-  /** Health check (partner persona) */
-  get health(): PartnerHealthResource {
-    if (!this._health) {
-      throw new Error('health is only available with the partner persona');
+  /** Partner management (partner persona) */
+  get partners(): PartnersResource {
+    if (!this._partners) {
+      throw new Error('partners is only available with the partner persona');
     }
-    return this._health;
+    return this._partners;
+  }
+
+  /** Agent management (partner persona) */
+  get agents(): AgentsResource {
+    if (!this._agents) {
+      throw new Error('agents is only available with the partner persona');
+    }
+    return this._agents;
   }
 
   // ── Shared methods ───────────────────────────────────────────────

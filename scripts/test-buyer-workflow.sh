@@ -74,7 +74,7 @@ RESULT=$($CLI advertisers list --take 5 2>&1) && {
 
 # ── 2. Create advertiser ────────────────────────────────────────────
 step "Create advertiser"
-RESULT=$($CLI advertisers create --name "SDK Test $(date +%s)" --description "Automated test" 2>&1) && {
+RESULT=$($CLI advertisers create --name "SDK Test $(date +%s)" --brand-domain "example.com" --description "Automated test" 2>&1) && {
     CREATED_ADVERTISER_ID=$(echo "$RESULT" | extract 'data.id')
     pass "Created advertiser: $CREATED_ADVERTISER_ID"
 } || {
@@ -100,15 +100,7 @@ RESULT=$($CLI advertisers update "$CREATED_ADVERTISER_ID" --name "SDK Test Updat
     fail "Could not update advertiser"
 }
 
-# ── 5. List buyer brands ────────────────────────────────────────────
-step "List buyer brands"
-RESULT=$($CLI brands list --take 3 2>&1) && {
-    pass "Listed buyer brands"
-} || {
-    warn "Could not list brands (may need brand data)"
-}
-
-# ── 6. Create bundle ────────────────────────────────────────────────
+# ── 5. Create bundle ────────────────────────────────────────────────
 step "Create bundle for product discovery"
 RESULT=$($CLI bundles create \
     --advertiser-id "$CREATED_ADVERTISER_ID" \
@@ -121,7 +113,7 @@ RESULT=$($CLI bundles create \
     echo "$RESULT"
 }
 
-# ── 7. Discover products ────────────────────────────────────────────
+# ── 6. Discover products ────────────────────────────────────────────
 if [ -n "$CREATED_BUNDLE_ID" ]; then
     step "Discover products in bundle"
     RESULT=$($CLI bundles discover-products "$CREATED_BUNDLE_ID" --group-limit 3 2>&1) && {
@@ -135,7 +127,7 @@ else
     warn "Skipped (no bundle created)"
 fi
 
-# ── 8. Browse products without bundle ────────────────────────────────
+# ── 7. Browse products without bundle ────────────────────────────────
 step "Browse products (no bundle required)"
 RESULT=$($CLI bundles browse-products \
     --advertiser-id "$CREATED_ADVERTISER_ID" \
@@ -145,7 +137,7 @@ RESULT=$($CLI bundles browse-products \
     warn "Could not browse products"
 }
 
-# ── 9. List campaigns ───────────────────────────────────────────────
+# ── 8. List campaigns ───────────────────────────────────────────────
 step "List campaigns"
 RESULT=$($CLI campaigns list --take 5 2>&1) && {
     pass "Listed campaigns"
@@ -154,10 +146,10 @@ RESULT=$($CLI campaigns list --take 5 2>&1) && {
     fail "Could not list campaigns"
 }
 
-# ── 10. Create bundle campaign ──────────────────────────────────────
+# ── 9. Create discovery campaign ──────────────────────────────────────
 if [ -n "$CREATED_BUNDLE_ID" ]; then
-    step "Create bundle campaign"
-    RESULT=$($CLI campaigns create-bundle \
+    step "Create discovery campaign"
+    RESULT=$($CLI campaigns create-discovery \
         --advertiser-id "$CREATED_ADVERTISER_ID" \
         --name "SDK Test Campaign $(date +%s)" \
         --bundle-id "$CREATED_BUNDLE_ID" \
@@ -166,17 +158,17 @@ if [ -n "$CREATED_BUNDLE_ID" ]; then
         --budget 10000 \
         --channels display,video 2>&1) && {
         CREATED_CAMPAIGN_ID=$(echo "$RESULT" | extract 'data.id')
-        pass "Created bundle campaign: $CREATED_CAMPAIGN_ID"
+        pass "Created discovery campaign: $CREATED_CAMPAIGN_ID"
     } || {
         warn "Could not create campaign (may need products in bundle)"
         echo "$RESULT" | head -3
     }
 else
-    step "Create bundle campaign"
+    step "Create discovery campaign"
     warn "Skipped (no bundle created)"
 fi
 
-# ── 11. Get campaign ────────────────────────────────────────────────
+# ── 10. Get campaign ────────────────────────────────────────────────
 if [ -n "$CREATED_CAMPAIGN_ID" ]; then
     step "Get campaign by ID"
     RESULT=$($CLI campaigns get "$CREATED_CAMPAIGN_ID" 2>&1) && {

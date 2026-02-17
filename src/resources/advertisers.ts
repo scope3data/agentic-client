@@ -11,12 +11,9 @@ import type {
   PaginatedApiResponse,
   ApiResponse,
 } from '../types';
-import { BuyerLinkedBrandResource } from './brands';
 import { ConversionEventsResource } from './conversion-events';
 import { CreativeSetsResource } from './creative-sets';
 import { TestCohortsResource } from './test-cohorts';
-import { ReportingResource } from './reporting';
-import { MediaBuysResource } from './media-buys';
 
 /**
  * Resource for managing advertisers (Buyer persona)
@@ -40,13 +37,14 @@ export class AdvertisersResource {
           skip: params?.skip,
           status: params?.status,
           name: params?.name,
+          includeBrand: params?.includeBrand,
         },
       }
     );
   }
 
   /**
-   * Get an advertiser by ID
+   * Get an advertiser by ID (always includes brand details)
    * @param id Advertiser ID
    * @returns Advertiser details
    */
@@ -59,7 +57,7 @@ export class AdvertisersResource {
 
   /**
    * Create a new advertiser
-   * @param data Advertiser creation data
+   * @param data Advertiser creation data (brandDomain required)
    * @returns Created advertiser
    */
   async create(data: CreateAdvertiserInput): Promise<ApiResponse<Advertiser>> {
@@ -89,15 +87,6 @@ export class AdvertisersResource {
   }
 
   /**
-   * Get the linked brand resource for a specific advertiser
-   * @param advertiserId Advertiser ID
-   * @returns BuyerLinkedBrandResource scoped to the advertiser
-   */
-  brand(advertiserId: string): BuyerLinkedBrandResource {
-    return new BuyerLinkedBrandResource(this.adapter, validateResourceId(advertiserId));
-  }
-
-  /**
    * Get the conversion events resource for a specific advertiser
    * @param advertiserId Advertiser ID
    * @returns ConversionEventsResource scoped to the advertiser
@@ -122,23 +111,5 @@ export class AdvertisersResource {
    */
   testCohorts(advertiserId: string): TestCohortsResource {
     return new TestCohortsResource(this.adapter, validateResourceId(advertiserId));
-  }
-
-  /**
-   * Get the reporting resource for a specific advertiser
-   * @param advertiserId Advertiser ID
-   * @returns ReportingResource scoped to the advertiser
-   */
-  reporting(advertiserId: string): ReportingResource {
-    return new ReportingResource(this.adapter, validateResourceId(advertiserId));
-  }
-
-  /**
-   * Get the media buys resource for a specific advertiser
-   * @param advertiserId Advertiser ID
-   * @returns MediaBuysResource scoped to the advertiser
-   */
-  mediaBuys(advertiserId: string): MediaBuysResource {
-    return new MediaBuysResource(this.adapter, validateResourceId(advertiserId));
   }
 }

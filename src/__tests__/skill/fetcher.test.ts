@@ -78,15 +78,15 @@ describe('fetchSkillMd', () => {
     );
   });
 
-  it('should fetch brand persona skill.md', async () => {
+  it('should fetch partner persona skill.md', async () => {
     mockFetch.mockResolvedValue({
       ok: true,
-      text: () => Promise.resolve('# Brand Skill'),
+      text: () => Promise.resolve('# Partner Skill'),
     });
 
-    await fetchSkillMd({ persona: 'brand' });
+    await fetchSkillMd({ persona: 'partner' });
 
-    expect(mockFetch).toHaveBeenCalledWith(`${baseUrl}/api/v2/brand/skill.md`, expect.anything());
+    expect(mockFetch).toHaveBeenCalledWith(`${baseUrl}/api/v2/partner/skill.md`, expect.anything());
   });
 
   it('should fall back to bundled buyer skill on non-200 response', async () => {
@@ -126,15 +126,15 @@ describe('fetchSkillMd', () => {
     expect(result).toBe(getBundledSkillMdFromBundled('buyer'));
   });
 
-  it('should fall back to bundled brand skill on non-200 for brand persona', async () => {
+  it('should fall back to bundled partner skill on non-200 for partner persona', async () => {
     mockFetch.mockResolvedValue({
       ok: false,
       status: 500,
     });
 
-    const result = await fetchSkillMd({ persona: 'brand' });
+    const result = await fetchSkillMd({ persona: 'partner' });
 
-    expect(result).toBe(getBundledSkillMdFromBundled('brand'));
+    expect(result).toBe(getBundledSkillMdFromBundled('partner'));
   });
 });
 
@@ -147,11 +147,6 @@ describe('getBundledSkillMd', () => {
   it('should return buyer skill.md content with buyer persona', () => {
     const result = getBundledSkillMd('buyer');
     expect(result).toContain('scope3-agentic-buyer');
-  });
-
-  it('should return brand skill.md content with brand persona', () => {
-    const result = getBundledSkillMd('brand');
-    expect(result).toContain('scope3-agentic-brand');
   });
 
   it('should return partner skill.md content with partner persona', () => {

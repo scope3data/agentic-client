@@ -4,7 +4,7 @@
  * Scope3 SDK v2 - TypeScript SDK Workflow Test
  *
  * Tests the SDK programmatically (not via CLI).
- * Exercises all 3 personas and core operations.
+ * Exercises both personas and core operations.
  *
  * Usage:
  *   export SCOPE3_API_KEY=your_api_key
@@ -64,6 +64,7 @@ async function testBuyer() {
   try {
     const result = await client.advertisers.create({
       name: `SDK Test ${Date.now()}`,
+      brandDomain: 'example.com',
       description: 'TypeScript SDK test',
     });
     advertiserId = result.data.id;
@@ -92,15 +93,6 @@ async function testBuyer() {
     } catch (e: unknown) {
       fail((e as Error).message);
     }
-  }
-
-  // List buyer brands
-  log('List buyer brands');
-  try {
-    const result = await client.buyerBrands.list({ take: 3 });
-    pass(`${result.data.length} brand(s)`);
-  } catch (e: unknown) {
-    warn((e as Error).message);
   }
 
   // Create bundle
@@ -139,6 +131,24 @@ async function testBuyer() {
     fail((e as Error).message);
   }
 
+  // List sales agents
+  log('List sales agents');
+  try {
+    await client.salesAgents.list();
+    pass(`Listed sales agents`);
+  } catch (e: unknown) {
+    warn((e as Error).message);
+  }
+
+  // Get reporting
+  log('Get reporting');
+  try {
+    await client.reporting.get({ days: 7, view: 'summary' });
+    pass('Got reporting metrics');
+  } catch (e: unknown) {
+    warn((e as Error).message);
+  }
+
   // Get skill.md
   log('Get buyer skill.md');
   try {
@@ -160,80 +170,6 @@ async function testBuyer() {
   }
 }
 
-async function testBrand() {
-  console.log('\n==========================================');
-  console.log('  BRAND PERSONA');
-  console.log('==========================================');
-
-  const client = makeClient('brand');
-  let brandId = '';
-
-  // List brands
-  log('List brands');
-  try {
-    const result = await client.brands.list({ take: 3 });
-    pass(`${result.data.length} brand(s)`);
-  } catch (e: unknown) {
-    fail((e as Error).message);
-  }
-
-  // Create brand
-  log('Create brand');
-  try {
-    const result = await client.brands.create({
-      manifestUrl: 'https://example.com/test-manifest.json',
-    });
-    brandId = result.data.id;
-    pass(`Created: ${brandId}`);
-  } catch (e: unknown) {
-    fail((e as Error).message);
-  }
-
-  // Get brand
-  if (brandId) {
-    log('Get brand');
-    try {
-      const result = await client.brands.get(brandId);
-      pass(`Got brand: ${result.data.id}`);
-    } catch (e: unknown) {
-      fail((e as Error).message);
-    }
-  }
-
-  // Update brand
-  if (brandId) {
-    log('Update brand');
-    try {
-      await client.brands.update(brandId, {
-        manifestUrl: 'https://example.com/updated-manifest.json',
-      });
-      pass('Updated');
-    } catch (e: unknown) {
-      fail((e as Error).message);
-    }
-  }
-
-  // Get skill.md
-  log('Get brand skill.md');
-  try {
-    const skill = await client.getSkill();
-    pass(`${skill.name} v${skill.version} - ${skill.commands.length} commands`);
-  } catch (e: unknown) {
-    warn((e as Error).message);
-  }
-
-  // Cleanup
-  if (brandId) {
-    log('Delete test brand');
-    try {
-      await client.brands.delete(brandId);
-      pass(`Deleted: ${brandId}`);
-    } catch (e: unknown) {
-      warn((e as Error).message);
-    }
-  }
-}
-
 async function testPartner() {
   console.log('\n==========================================');
   console.log('  PARTNER PERSONA');
@@ -241,11 +177,20 @@ async function testPartner() {
 
   const client = makeClient('partner');
 
-  // Health check
-  log('Health check');
+  // List partners
+  log('List partners');
   try {
-    const result = await client.health.check();
-    pass(`Status: ${result.data.status}`);
+    await client.partners.list();
+    pass('Listed partners');
+  } catch (e: unknown) {
+    fail((e as Error).message);
+  }
+
+  // List agents
+  log('List agents');
+  try {
+    await client.agents.list();
+    pass('Listed agents');
   } catch (e: unknown) {
     fail((e as Error).message);
   }
@@ -265,30 +210,29 @@ async function testPersonaGuards() {
   console.log('  PERSONA GUARDS');
   console.log('==========================================');
 
-  // Verify wrong-persona access throws
   const buyer = makeClient('buyer');
 
-  log('Buyer cannot access brands (brand persona)');
+  log('Buyer cannot access partners (partner persona)');
   try {
-    buyer.brands; // eslint-disable-line @typescript-eslint/no-unused-expressions
+    buyer.partners; // eslint-disable-line @typescript-eslint/no-unused-expressions
     fail('Should have thrown');
   } catch (e: unknown) {
     pass(`Threw: ${(e as Error).message}`);
   }
 
-  log('Buyer cannot access health (partner persona)');
+  log('Buyer cannot access agents (partner persona)');
   try {
-    buyer.health; // eslint-disable-line @typescript-eslint/no-unused-expressions
+    buyer.agents; // eslint-disable-line @typescript-eslint/no-unused-expressions
     fail('Should have thrown');
   } catch (e: unknown) {
     pass(`Threw: ${(e as Error).message}`);
   }
 
-  const brand = makeClient('brand');
+  const partner = makeClient('partner');
 
-  log('Brand cannot access advertisers (buyer persona)');
+  log('Partner cannot access advertisers (buyer persona)');
   try {
-    brand.advertisers; // eslint-disable-line @typescript-eslint/no-unused-expressions
+    partner.advertisers; // eslint-disable-line @typescript-eslint/no-unused-expressions
     fail('Should have thrown');
   } catch (e: unknown) {
     pass(`Threw: ${(e as Error).message}`);
@@ -302,7 +246,6 @@ async function main() {
   console.log('==========================================');
 
   await testBuyer();
-  await testBrand();
   await testPartner();
   await testPersonaGuards();
 

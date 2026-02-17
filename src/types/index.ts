@@ -10,7 +10,7 @@
 export type ApiVersion = 'v1' | 'v2' | 'latest';
 
 /** API persona - determines which API surface to use */
-export type Persona = 'buyer' | 'brand' | 'partner';
+export type Persona = 'buyer' | 'partner';
 
 /** Environment for API endpoints */
 export type Environment = 'production' | 'staging';
@@ -24,7 +24,7 @@ export type AdapterType = 'rest' | 'mcp';
 export interface Scope3ClientConfig {
   /** API key (Bearer token) for authentication */
   apiKey: string;
-  /** API persona - buyer, brand, or partner */
+  /** API persona - buyer or partner */
   persona: Persona;
   /** API version to use (default: 'v2') */
   version?: ApiVersion;
@@ -101,50 +101,46 @@ export interface Advertiser {
   name: string;
   description?: string;
   status: AdvertiserStatus;
+  brandDomain?: string;
+  brandWarning?: string;
+  linkedBrand?: LinkedBrand;
   createdAt: string;
   updatedAt: string;
 }
 
 export interface CreateAdvertiserInput {
   name: string;
+  brandDomain: string;
   description?: string;
 }
 
 export interface UpdateAdvertiserInput {
   name?: string;
   description?: string;
+  brandDomain?: string;
 }
 
 export interface ListAdvertisersParams extends PaginationParams {
   status?: AdvertiserStatus;
   name?: string;
+  /** Include resolved brand information for each advertiser */
+  includeBrand?: boolean;
 }
 
 // ============================================================================
-// Brand Types (Brand Persona - standalone)
+// Linked Brand Types (brand resolved from advertiser's brandDomain)
 // ============================================================================
 
-export interface Brand {
+export interface LinkedBrand {
   id: string;
   name: string;
-  manifestUrl?: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface CreateBrandInput {
-  manifestUrl?: string;
-  manifestJson?: BrandManifest;
-}
-
-export interface UpdateBrandInput {
-  manifestUrl?: string;
-  manifestJson?: BrandManifest;
-}
-
-export interface ListBrandsParams extends PaginationParams {
-  status?: string;
-  name?: string;
+  domain: string;
+  manifest?: BrandManifest;
+  logoUrl?: string;
+  industry?: string;
+  colors?: BrandColors;
+  tagline?: string;
+  tone?: string;
 }
 
 /**
@@ -195,25 +191,11 @@ export interface BrandAsset {
 }
 
 // ============================================================================
-// Buyer Linked Brand Types (brand linked to advertiser)
-// ============================================================================
-
-export interface LinkedBrand {
-  brandId: string;
-  advertiserId: string;
-  brand?: Brand;
-}
-
-export interface LinkBrandInput {
-  brandId: string;
-}
-
-// ============================================================================
 // Campaign Types (Buyer Persona)
 // ============================================================================
 
 export type CampaignStatus = 'DRAFT' | 'ACTIVE' | 'PAUSED' | 'COMPLETED' | 'ARCHIVED';
-export type CampaignType = 'bundle' | 'performance' | 'audience';
+export type CampaignType = 'discovery' | 'performance' | 'audience';
 export type BudgetPacing = 'EVEN' | 'ASAP' | 'FRONTLOADED';
 export type PerformanceObjective = 'ROAS' | 'CONVERSIONS' | 'LEADS' | 'SALES';
 
@@ -257,8 +239,8 @@ export interface Campaign {
   updatedAt: string;
 }
 
-/** Input for creating a bundle campaign */
-export interface CreateBundleCampaignInput {
+/** Input for creating a discovery campaign */
+export interface CreateDiscoveryCampaignInput {
   advertiserId: string;
   name: string;
   bundleId: string;
@@ -269,8 +251,8 @@ export interface CreateBundleCampaignInput {
   brief?: string;
 }
 
-/** Input for updating a bundle campaign */
-export interface UpdateBundleCampaignInput {
+/** Input for updating a discovery campaign */
+export interface UpdateDiscoveryCampaignInput {
   name?: string;
   flightDates?: FlightDates;
   budget?: Budget;
@@ -329,6 +311,8 @@ export interface CreateBundleInput {
   brief?: string;
   budget?: number;
   flightDates?: FlightDates;
+  salesAgentIds?: string[];
+  salesAgentNames?: string[];
 }
 
 /** Parameters for discovering products in a bundle */
@@ -339,8 +323,14 @@ export interface DiscoverProductsParams {
   groupOffset?: number;
   /** Products per group (default: 5, max: 50) */
   productsPerGroup?: number;
+  /** Products to skip within each group */
+  productOffset?: number;
   /** Filter by publisher domain */
   publisherDomain?: string;
+  /** Filter by sales agent IDs (comma-separated) */
+  salesAgentIds?: string;
+  /** Filter by sales agent names (comma-separated) */
+  salesAgentNames?: string;
 }
 
 /** Response from discover-products endpoint */
@@ -358,6 +348,8 @@ export interface ProductGroup {
   groupName: string;
   products: Product[];
   productCount: number;
+  totalProducts: number;
+  hasMoreProducts: boolean;
 }
 
 export interface Product {
@@ -367,6 +359,7 @@ export interface Product {
   channel: string;
   cpm: number;
   salesAgentId: string;
+  briefRelevance?: string;
 }
 
 export interface ProductSummary {
@@ -427,6 +420,8 @@ export interface BrowseProductsInput {
   countries?: string[];
   brief?: string;
   publisherDomain?: string;
+  salesAgentIds?: string[];
+  salesAgentNames?: string[];
 }
 
 // ============================================================================
@@ -522,48 +517,132 @@ export interface CreateTestCohortInput {
 // Reporting Types (Buyer Persona)
 // ============================================================================
 
+export type ReportingView = 'summary' | 'timeseries';
+
 export interface ReportingParams {
+  /** Response format: summary (hierarchical) or timeseries (daily) */
+  view?: ReportingView;
+  /** Number of days to include (default: 7, max: 90) */
   days?: number;
   startDate?: string;
   endDate?: string;
+  advertiserId?: string;
   campaignId?: string;
-  mediaBuyId?: string;
+  /** Return demo data instead of real data */
+  demo?: boolean;
 }
 
-export interface ReportingResponse {
-  dailyMetrics: DailyMetric[];
-  totals: MetricTotals;
+export interface ReportingMetrics {
+  impressions: number;
+  spend: number;
+  clicks: number;
+  views: number;
+  completedViews: number;
+  conversions: number;
+  leads: number;
+  videoCompletions: number;
+  ecpm: number;
+  cpc: number;
+  ctr: number;
+  completionRate: number;
+}
+
+export interface ReportingSummaryResponse {
+  advertisers: ReportingAdvertiser[];
+  totals: Partial<ReportingMetrics>;
   periodStart: string;
   periodEnd: string;
 }
 
-export interface DailyMetric {
-  date: string;
-  impressions: number;
-  clicks: number;
-  spend: number;
+export interface ReportingAdvertiser {
+  advertiserId: string;
+  advertiserName: string;
+  metrics: Partial<ReportingMetrics>;
+  campaigns: ReportingCampaign[];
 }
 
-export interface MetricTotals {
-  impressions: number;
-  clicks: number;
-  spend: number;
-}
-
-// ============================================================================
-// Media Buy Types (Buyer Persona)
-// ============================================================================
-
-export interface MediaBuy {
-  id: string;
+export interface ReportingCampaign {
   campaignId: string;
-  status: string;
-  createdAt: string;
-  updatedAt: string;
+  campaignName: string;
+  metrics: Partial<ReportingMetrics>;
+  mediaBuys: ReportingMediaBuy[];
 }
 
-export interface ListMediaBuysParams extends PaginationParams {
-  campaignId?: string;
+export interface ReportingMediaBuy {
+  mediaBuyId: string;
+  name: string;
+  status: string;
+  metrics: Partial<ReportingMetrics>;
+  packages: ReportingPackage[];
+}
+
+export interface ReportingPackage {
+  packageId: string;
+  metrics: Partial<ReportingMetrics>;
+}
+
+export interface ReportingTimeseriesResponse {
+  timeseries: ReportingTimeseriesEntry[];
+  totals: Partial<ReportingMetrics>;
+  periodStart: string;
+  periodEnd: string;
+}
+
+export interface ReportingTimeseriesEntry {
+  date: string;
+  metrics: Partial<ReportingMetrics>;
+}
+
+// ============================================================================
+// Sales Agent Types (Buyer Persona)
+// ============================================================================
+
+export interface SalesAgent {
+  agentId: string;
+  type: string;
+  name: string;
+  description?: string;
+  endpointUrl?: string;
+  protocol?: string;
+  authenticationType?: string;
+  accountPolicy?: string[];
+  status: string;
+  relationship?: string;
+  customerAccounts?: SalesAgentAccount[];
+  requiresAccount?: boolean;
+  authConfigured?: boolean;
+  createdAt: string;
+}
+
+export interface SalesAgentAccount {
+  id?: string;
+  accountIdentifier: string;
+  status: string;
+  registeredBy?: string;
+  createdAt?: string;
+  oauth?: {
+    authorizationUrl: string;
+    agentId: string;
+    agentName: string;
+  };
+}
+
+export interface ListSalesAgentsParams {
+  status?: string;
+  relationship?: string;
+  name?: string;
+  limit?: number;
+  offset?: number;
+}
+
+export interface RegisterSalesAgentAccountInput {
+  advertiserId: string;
+  accountIdentifier: string;
+  auth?: {
+    type: string;
+    token?: string;
+  };
+  marketplaceAccount?: boolean;
 }
 
 // ============================================================================
@@ -584,12 +663,115 @@ export interface DiscoverSignalsInput {
 }
 
 // ============================================================================
-// Partner Types
+// Partner Types (Partner Persona)
 // ============================================================================
 
-export interface HealthCheckResponse {
+export interface Partner {
+  id: string;
+  name: string;
+  description?: string;
   status: string;
-  version: string;
-  apiVersion: string;
-  timestamp: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreatePartnerInput {
+  name: string;
+  description?: string;
+}
+
+export interface UpdatePartnerInput {
+  name?: string;
+  description?: string;
+}
+
+export interface ListPartnersParams extends PaginationParams {
+  status?: string;
+  name?: string;
+}
+
+// ============================================================================
+// Agent Types (Partner Persona)
+// ============================================================================
+
+export type AgentType = 'SALES' | 'SIGNAL' | 'CREATIVE' | 'OUTCOME';
+export type AgentStatus = 'PENDING' | 'ACTIVE' | 'DISABLED' | 'COMING_SOON';
+export type AgentAuthenticationType = 'API_KEY' | 'NO_AUTH' | 'JWT' | 'OAUTH';
+export type AgentProtocol = 'MCP' | 'A2A';
+
+export interface Agent {
+  agentId: string;
+  type: AgentType;
+  name: string;
+  description?: string;
+  endpointUrl?: string;
+  protocol?: AgentProtocol;
+  authenticationType?: AgentAuthenticationType;
+  accountPolicy?: string[];
+  status: AgentStatus;
+  relationship?: string;
+  customerAccounts?: SalesAgentAccount[];
+  requiresAccount?: boolean;
+  authConfigured?: boolean;
+  customerId?: number;
+  reportingType?: string;
+  reportingPollingCadence?: string;
+  oauth?: {
+    authorizationUrl: string;
+    agentId: string;
+    agentName: string;
+  };
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface RegisterAgentInput {
+  partnerId: string;
+  type: AgentType;
+  name: string;
+  endpointUrl: string;
+  protocol: AgentProtocol;
+  accountPolicy: string[];
+  authenticationType: AgentAuthenticationType;
+  auth?: {
+    type: string;
+    token?: string;
+    privateKey?: string;
+  };
+  description?: string;
+  reportingType?: string;
+  reportingPollingCadence?: string;
+}
+
+export interface UpdateAgentInput {
+  name?: string;
+  description?: string;
+  endpointUrl?: string;
+  protocol?: AgentProtocol;
+  accountPolicy?: string[];
+  authenticationType?: AgentAuthenticationType;
+  auth?: {
+    type: string;
+    token?: string;
+  };
+  reportingType?: string;
+  reportingPollingCadence?: string;
+  status?: string;
+}
+
+export interface ListAgentsParams {
+  type?: AgentType;
+  status?: string;
+  relationship?: string;
+}
+
+export interface OAuthAuthorizeResponse {
+  authorizationUrl: string;
+  agentId: string;
+  agentName: string;
+}
+
+export interface OAuthCallbackInput {
+  code: string;
+  state: string;
 }

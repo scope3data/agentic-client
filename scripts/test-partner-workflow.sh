@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Scope3 SDK v2 - Partner Workflow Test
-# Tests the partner persona flow: health check
+# Tests the partner persona flow: partners, agents, config, skill.md
 #
 # Usage:
 #   export SCOPE3_API_KEY=your_partner_api_key
@@ -17,8 +17,6 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m'
 
-# Partner CLI doesn't have many commands yet — health is the main one
-# We also test the config and skill.md fetching
 CLI="node dist/cli/index.js --persona partner --format json"
 STEP=0
 
@@ -65,7 +63,23 @@ RESULT=$(node dist/cli/index.js config get persona 2>&1) && {
     warn "Config get failed"
 }
 
-# ── 3. Fetch skill.md ──────────────────────────────────────────────
+# ── 3. List partners ────────────────────────────────────────────────
+step "List partners"
+RESULT=$($CLI partners list 2>&1) && {
+    pass "Listed partners"
+} || {
+    warn "Could not list partners"
+}
+
+# ── 4. List agents ──────────────────────────────────────────────────
+step "List agents"
+RESULT=$($CLI agents list 2>&1) && {
+    pass "Listed agents"
+} || {
+    warn "Could not list agents"
+}
+
+# ── 5. Fetch skill.md ──────────────────────────────────────────────
 step "Fetch partner skill.md from live API"
 RESULT=$(node -e "
 const { fetchSkillMd } = require('./dist/skill');
@@ -85,11 +99,10 @@ echo "=========================================="
 echo "  PARTNER WORKFLOW SUMMARY"
 echo "=========================================="
 echo ""
-echo "  The partner persona currently supports:"
-echo "    - Health check"
+echo "  The partner persona supports:"
+echo "    - Partner management (list, create, update, archive)"
+echo "    - Agent management (list, get, register, update)"
 echo "    - Config management"
 echo "    - skill.md fetching"
-echo ""
-echo "  More features coming soon."
 echo ""
 echo -e "${GREEN}Partner workflow test complete.${NC}"

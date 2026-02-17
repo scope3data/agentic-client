@@ -5,8 +5,8 @@
 import { type BaseAdapter, validateResourceId } from '../adapters/base';
 import type {
   Campaign,
-  CreateBundleCampaignInput,
-  UpdateBundleCampaignInput,
+  CreateDiscoveryCampaignInput,
+  UpdateDiscoveryCampaignInput,
   CreatePerformanceCampaignInput,
   UpdatePerformanceCampaignInput,
   CreateAudienceCampaignInput,
@@ -51,30 +51,33 @@ export class CampaignsResource {
   }
 
   /**
-   * Create a new bundle campaign
-   * @param data Bundle campaign creation data
+   * Create a discovery campaign
+   * @param data Discovery campaign creation data
    * @returns Created campaign
    */
-  async createBundle(data: CreateBundleCampaignInput): Promise<ApiResponse<Campaign>> {
-    return this.adapter.request<ApiResponse<Campaign>>('POST', '/campaigns/bundle', data);
+  async createDiscovery(data: CreateDiscoveryCampaignInput): Promise<ApiResponse<Campaign>> {
+    return this.adapter.request<ApiResponse<Campaign>>('POST', '/campaigns/discovery', data);
   }
 
   /**
-   * Update an existing bundle campaign
+   * Update an existing discovery campaign
    * @param id Campaign ID
-   * @param data Bundle campaign update data
+   * @param data Discovery campaign update data
    * @returns Updated campaign
    */
-  async updateBundle(id: string, data: UpdateBundleCampaignInput): Promise<ApiResponse<Campaign>> {
+  async updateDiscovery(
+    id: string,
+    data: UpdateDiscoveryCampaignInput
+  ): Promise<ApiResponse<Campaign>> {
     return this.adapter.request<ApiResponse<Campaign>>(
       'PUT',
-      `/campaigns/bundle/${validateResourceId(id)}`,
+      `/campaigns/discovery/${validateResourceId(id)}`,
       data
     );
   }
 
   /**
-   * Create a new performance campaign
+   * Create a performance campaign
    * @param data Performance campaign creation data
    * @returns Created campaign
    */
@@ -100,7 +103,7 @@ export class CampaignsResource {
   }
 
   /**
-   * Create a new audience campaign
+   * Create an audience campaign
    * @param data Audience campaign creation data
    * @returns Created campaign
    */

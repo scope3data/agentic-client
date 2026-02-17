@@ -1,6 +1,6 @@
 # Scope3 SDK
 
-TypeScript client for the Scope3 Agentic Platform. Supports three personas (buyer, brand, partner) with REST and MCP adapters.
+TypeScript client for the Scope3 Agentic Platform. Supports two personas (buyer, partner) with REST and MCP adapters.
 
 ## Installation
 
@@ -55,8 +55,8 @@ await client.bundles.products(bundle.data.bundleId).add({
   products: [{ productId: 'prod-1', salesAgentId: 'sa-1', groupId: 'g-1', groupName: 'Group 1' }],
 });
 
-// Create and execute a bundle campaign
-const campaign = await client.campaigns.createBundle({
+// Create and execute a discovery campaign
+const campaign = await client.campaigns.createDiscovery({
   advertiserId: 'adv-123',
   bundleId: bundle.data.bundleId,
   name: 'Q1 Campaign',
@@ -66,25 +66,9 @@ const campaign = await client.campaigns.createBundle({
 await client.campaigns.execute(campaign.data.id);
 ```
 
-### Brand Persona
-
-For brand identity management -- manage brand manifests and metadata.
-
-```typescript
-const brandClient = new Scope3Client({
-  apiKey: process.env.SCOPE3_API_KEY!,
-  persona: 'brand',
-});
-
-const brands = await brandClient.brands.list();
-await brandClient.brands.create({
-  manifestUrl: 'https://example.com/brand-manifest.json',
-});
-```
-
 ### Partner Persona
 
-For integration health monitoring.
+For partner and agent management.
 
 ```typescript
 const partnerClient = new Scope3Client({
@@ -92,7 +76,15 @@ const partnerClient = new Scope3Client({
   persona: 'partner',
 });
 
-const health = await partnerClient.health.check();
+// List partners
+const partners = await partnerClient.partners.list();
+
+// Register an agent
+const agent = await partnerClient.agents.register({
+  name: 'My Agent',
+  type: 'SALES',
+  partnerId: 'partner-123',
+});
 ```
 
 ## Configuration
@@ -100,7 +92,7 @@ const health = await partnerClient.health.check();
 ```typescript
 const client = new Scope3Client({
   apiKey: 'your-api-key',       // Required: Bearer token
-  persona: 'buyer',              // Required: 'buyer' | 'brand' | 'partner'
+  persona: 'buyer',              // Required: 'buyer' | 'partner'
   environment: 'production',     // Optional: 'production' (default) | 'staging'
   baseUrl: 'https://custom.com', // Optional: overrides environment
   adapter: 'rest',               // Optional: 'rest' (default) | 'mcp'
@@ -123,7 +115,7 @@ scope3 campaigns list --format json
 scope3 bundles create --advertiser-id adv-123 --channels display,video
 
 # Override persona per-command
-scope3 --persona brand brands list
+scope3 --persona partner partners list
 
 # See all commands
 scope3 commands
@@ -133,19 +125,17 @@ scope3 commands
 
 ### Buyer Resources
 
-- `client.advertisers` -- CRUD and sub-resources (brand, conversionEvents, creativeSets, testCohorts, reporting, mediaBuys)
-- `client.buyerBrands` -- List brands available to the buyer
-- `client.campaigns` -- list, get, createBundle, updateBundle, createPerformance, updatePerformance, createAudience, execute, pause
+- `client.advertisers` -- CRUD and sub-resources (conversionEvents, creativeSets, testCohorts)
+- `client.campaigns` -- list, get, createDiscovery, updateDiscovery, createPerformance, updatePerformance, createAudience, execute, pause
 - `client.bundles` -- create, discoverProducts, browseProducts, products(bundleId)
 - `client.signals` -- Discover signals
-
-### Brand Resources
-
-- `client.brands` -- list, get, create, update, delete
+- `client.reporting` -- Get reporting metrics
+- `client.salesAgents` -- List sales agents, register accounts
 
 ### Partner Resources
 
-- `client.health` -- Health check
+- `client.partners` -- list, create, update, archive
+- `client.agents` -- list, get, register, update
 
 ## skill.md Support
 
@@ -186,7 +176,6 @@ The SDK is manually maintained. When the Agentic API changes, update these files
 1. Check the latest skill.md for your persona:
    ```bash
    curl https://api.agentic.scope3.com/api/v2/buyer/skill.md
-   curl https://api.agentic.scope3.com/api/v2/brand/skill.md
    curl https://api.agentic.scope3.com/api/v2/partner/skill.md
    ```
 2. Compare against `src/skill/bundled.ts` and update if needed
@@ -194,15 +183,14 @@ The SDK is manually maintained. When the Agentic API changes, update these files
 4. Update resource methods in `src/resources/` for endpoint changes
 5. Update CLI commands in `src/cli/commands/` if applicable
 6. Run `npm test` and `npm run build` to verify
-7. Run manual workflow tests: `npm run test:buyer`, `npm run test:brand`
+7. Run manual workflow tests: `npm run test:buyer`, `npm run test:partner`
 
 ### Integration Tests
 
 ```bash
 export SCOPE3_API_KEY=your_key
-npm run test:buyer     # Buyer workflow against real API
-npm run test:brand     # Brand workflow against real API
-npm run test:partner   # Partner workflow against real API
+npm run test:buyer     # Buyer workflow
+npm run test:partner   # Partner workflow
 npm run test:all       # All workflows
 ```
 
@@ -210,7 +198,6 @@ npm run test:all       # All workflows
 
 - [Getting Started](docs/getting-started.md)
 - [Buyer Guide](docs/buyer-guide.md)
-- [Brand Guide](docs/brand-guide.md)
 - [Partner Guide](docs/partner-guide.md)
 - [CLI Reference](docs/cli-reference.md)
 

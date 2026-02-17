@@ -109,10 +109,6 @@ describe('resolvePersona', () => {
     expect(resolvePersona({ apiKey: 'k', persona: 'buyer' })).toBe('buyer');
   });
 
-  it('should return brand', () => {
-    expect(resolvePersona({ apiKey: 'k', persona: 'brand' })).toBe('brand');
-  });
-
   it('should return partner', () => {
     expect(resolvePersona({ apiKey: 'k', persona: 'partner' })).toBe('partner');
   });

@@ -29,7 +29,13 @@ describe('AdvertisersResource', () => {
       await resource.list();
 
       expect(mockAdapter.request).toHaveBeenCalledWith('GET', '/advertisers', undefined, {
-        params: { take: undefined, skip: undefined, status: undefined, name: undefined },
+        params: {
+          take: undefined,
+          skip: undefined,
+          status: undefined,
+          name: undefined,
+          includeBrand: undefined,
+        },
       });
     });
 
@@ -39,7 +45,7 @@ describe('AdvertisersResource', () => {
       await resource.list({ take: 10, skip: 20, status: 'ACTIVE', name: 'Acme' });
 
       expect(mockAdapter.request).toHaveBeenCalledWith('GET', '/advertisers', undefined, {
-        params: { take: 10, skip: 20, status: 'ACTIVE', name: 'Acme' },
+        params: { take: 10, skip: 20, status: 'ACTIVE', name: 'Acme', includeBrand: undefined },
       });
     });
   });
@@ -58,10 +64,15 @@ describe('AdvertisersResource', () => {
     it('should call adapter with correct path and body', async () => {
       mockAdapter.request.mockResolvedValue({ id: '123', name: 'New Advertiser' });
 
-      await resource.create({ name: 'New Advertiser', description: 'Test desc' });
+      await resource.create({
+        name: 'New Advertiser',
+        brandDomain: 'test.com',
+        description: 'Test desc',
+      });
 
       expect(mockAdapter.request).toHaveBeenCalledWith('POST', '/advertisers', {
         name: 'New Advertiser',
+        brandDomain: 'test.com',
         description: 'Test desc',
       });
     });
@@ -89,17 +100,6 @@ describe('AdvertisersResource', () => {
     });
   });
 
-  describe('brand', () => {
-    it('should return BuyerLinkedBrandResource for advertiser with get, link, unlink', () => {
-      const brand = resource.brand('adv-123');
-
-      expect(brand).toBeDefined();
-      expect(typeof brand.get).toBe('function');
-      expect(typeof brand.link).toBe('function');
-      expect(typeof brand.unlink).toBe('function');
-    });
-  });
-
   describe('sub-resources', () => {
     it('should return conversionEvents resource for advertiser', () => {
       const convEvents = resource.conversionEvents('adv-123');
@@ -114,16 +114,6 @@ describe('AdvertisersResource', () => {
     it('should return testCohorts resource for advertiser', () => {
       const testCohorts = resource.testCohorts('adv-123');
       expect(testCohorts).toBeDefined();
-    });
-
-    it('should return reporting resource for advertiser', () => {
-      const reporting = resource.reporting('adv-123');
-      expect(reporting).toBeDefined();
-    });
-
-    it('should return mediaBuys resource for advertiser', () => {
-      const mediaBuys = resource.mediaBuys('adv-123');
-      expect(mediaBuys).toBeDefined();
     });
   });
 });

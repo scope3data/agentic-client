@@ -1,10 +1,8 @@
 # Partner Persona Guide
 
-The partner persona is designed for integration partners working with the Scope3 SDK. This persona is currently in early development, with additional capabilities planned for future releases.
+The partner persona enables integration partners to manage their organization and register agents on the Scope3 Agentic Platform.
 
 ## Setup
-
-Configure the client with the `partner` persona:
 
 ```typescript
 import { Scope3Client } from 'scope3';
@@ -15,26 +13,92 @@ const client = new Scope3Client({
 });
 ```
 
-## Currently Available
+## Partners
 
-### Health Check
+Manage partner organizations.
 
-The health check endpoint allows partners to verify API connectivity and retrieve version information.
+### List Partners
 
 ```typescript
-const health = await client.health.check();
-console.log(`Status: ${health.data.status}`);
-console.log(`Version: ${health.data.version}`);
-console.log(`API Version: ${health.data.apiVersion}`);
+const partners = await client.partners.list();
 ```
 
-## Coming Soon
+### Create a Partner
 
-The following features are planned for the partner persona and are not yet available:
+```typescript
+const partner = await client.partners.create({
+  name: 'My Organization',
+  description: 'Ad tech partner',
+});
+```
 
-- **Agent Registration** - Register and manage AI agents that interact with the platform
-- **Media Products** - Access and manage media product inventory
-- **Webhooks** - Subscribe to real-time event notifications
-- **Notifications** - Receive and manage platform notifications
+### Update a Partner
 
-This guide will be updated as new partner capabilities are released.
+```typescript
+await client.partners.update('partner-123', {
+  name: 'Updated Name',
+});
+```
+
+### Archive a Partner
+
+```typescript
+await client.partners.archive('partner-123');
+```
+
+## Agents
+
+Register and manage agents that interact with the platform.
+
+### List Agents
+
+```typescript
+const agents = await client.agents.list();
+```
+
+### Get an Agent
+
+```typescript
+const agent = await client.agents.get('agent-123');
+```
+
+### Register an Agent
+
+```typescript
+const agent = await client.agents.register({
+  name: 'My Sales Agent',
+  type: 'SALES',
+  partnerId: 'partner-123',
+});
+```
+
+### Update an Agent
+
+```typescript
+await client.agents.update('agent-123', {
+  name: 'Updated Agent Name',
+});
+```
+
+## OAuth Authorization
+
+Agents can be authorized via OAuth flows.
+
+### Authorize an Agent
+
+```typescript
+const auth = await client.agents.authorizeOAuth('agent-123', {
+  redirectUri: 'https://myapp.com/callback',
+  scopes: ['read', 'write'],
+});
+// Redirect user to auth.authorizationUrl
+```
+
+### Exchange Authorization Code
+
+```typescript
+const tokens = await client.agents.exchangeOAuthCode('agent-123', {
+  code: 'auth-code-from-callback',
+  redirectUri: 'https://myapp.com/callback',
+});
+```

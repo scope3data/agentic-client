@@ -1,39 +1,32 @@
 /**
- * Reporting resource for retrieving advertiser campaign metrics
- * Scoped to a specific advertiser
+ * Reporting resource for retrieving campaign metrics
  */
 
 import type { BaseAdapter } from '../adapters/base';
-import type { ReportingResponse, ReportingParams, ApiResponse } from '../types';
+import type { ReportingParams } from '../types';
 
 /**
- * Resource for accessing reporting data (scoped to an advertiser)
+ * Resource for accessing reporting data (Buyer persona)
  */
 export class ReportingResource {
-  constructor(
-    private readonly adapter: BaseAdapter,
-    private readonly advertiserId: string
-  ) {}
+  constructor(private readonly adapter: BaseAdapter) {}
 
   /**
-   * Get reporting metrics for this advertiser
-   * @param params Reporting filter parameters (days, date range, campaign, media buy)
-   * @returns Reporting response with daily metrics and totals
+   * Get reporting metrics
+   * @param params Reporting filter parameters (view, days, date range, advertiser, campaign)
+   * @returns Reporting response (summary or timeseries depending on view param)
    */
-  async get(params?: ReportingParams): Promise<ApiResponse<ReportingResponse>> {
-    return this.adapter.request<ApiResponse<ReportingResponse>>(
-      'GET',
-      `/advertisers/${this.advertiserId}/reporting`,
-      undefined,
-      {
-        params: {
-          days: params?.days,
-          startDate: params?.startDate,
-          endDate: params?.endDate,
-          campaignId: params?.campaignId,
-          mediaBuyId: params?.mediaBuyId,
-        },
-      }
-    );
+  async get<T = unknown>(params?: ReportingParams): Promise<T> {
+    return this.adapter.request<T>('GET', '/reporting/metrics', undefined, {
+      params: {
+        view: params?.view,
+        days: params?.days,
+        startDate: params?.startDate,
+        endDate: params?.endDate,
+        advertiserId: params?.advertiserId,
+        campaignId: params?.campaignId,
+        demo: params?.demo,
+      },
+    });
   }
 }

@@ -40,9 +40,9 @@ configCommand
     }
 
     // Validate persona
-    if (key === 'persona' && !['buyer', 'brand', 'partner'].includes(value)) {
+    if (key === 'persona' && !['buyer', 'partner'].includes(value)) {
       console.error(chalk.red(`Invalid persona: ${value}`));
-      console.error('Valid personas: buyer, brand, partner');
+      console.error('Valid personas: buyer, partner');
       process.exit(1);
     }
 

@@ -3,15 +3,14 @@
  */
 
 export { AdvertisersResource } from './advertisers';
-export { BuyerBrandsResource, BuyerLinkedBrandResource } from './brands';
-export { BrandBrandsResource } from './brand-brands';
+export { AgentsResource } from './agents';
 export { BundlesResource } from './bundles';
 export { BundleProductsResource } from './products';
 export { CampaignsResource } from './campaigns';
 export { ConversionEventsResource } from './conversion-events';
 export { CreativeSetsResource } from './creative-sets';
-export { MediaBuysResource } from './media-buys';
-export { PartnerHealthResource } from './partner-health';
+export { PartnersResource } from './partners';
 export { ReportingResource } from './reporting';
+export { SalesAgentsResource } from './sales-agents';
 export { SignalsResource } from './signals';
 export { TestCohortsResource } from './test-cohorts';

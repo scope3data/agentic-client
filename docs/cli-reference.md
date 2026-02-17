@@ -22,8 +22,8 @@ scope3 config set apiKey your_api_key_here
 # List advertisers (buyer persona, default)
 scope3 advertisers list
 
-# List brands (brand persona)
-scope3 --persona brand brands list
+# List partners (partner persona)
+scope3 --persona partner partners list
 ```
 
 ## Configuration
@@ -62,7 +62,7 @@ export SCOPE3_PERSONA=buyer
 | Option | Description |
 |---|---|
 | `--api-key <key>` | API key (overrides config and environment variable) |
-| `--persona <persona>` | Persona to use: `buyer`, `brand`, `partner` (overrides config and environment variable) |
+| `--persona <persona>` | Persona to use: `buyer`, `partner` (overrides config and environment variable) |
 | `--environment <env>` | Target environment: `production`, `staging` |
 | `--base-url <url>` | Custom API base URL |
 | `--format <format>` | Output format: `table` (default), `json`, `yaml` |
@@ -102,8 +102,8 @@ scope3 campaigns list
 # Get a specific campaign
 scope3 campaigns get <id>
 
-# Create a bundle campaign
-scope3 campaigns create-bundle \
+# Create a discovery campaign
+scope3 campaigns create-discovery \
   --advertiser-id <id> \
   --bundle-id <id> \
   --name "Q1 Campaign" \
@@ -153,41 +153,24 @@ scope3 bundles products add <bundle-id> \
 scope3 bundles products remove <bundle-id> --product-ids prod-1,prod-2
 ```
 
-### Brands (Buyer Context)
+## Reporting Commands
 
 ```bash
-# List brands available to the buyer
-scope3 brands list
+# Get reporting metrics
+scope3 reporting get --days 30 --view summary
 
-# Link a brand to an advertiser
-scope3 brands link --advertiser-id <id> --brand-id <brand-id>
-
-# Get the brand linked to an advertiser
-scope3 brands get-linked --advertiser-id <id>
-
-# Unlink a brand from an advertiser
-scope3 brands unlink --advertiser-id <id>
+# With filters
+scope3 reporting get --advertiser-id <id> --campaign-id <id> --view timeseries
 ```
 
-## Brand Commands
-
-Brand commands require the `brand` persona. Use the `--persona brand` flag or set the persona in your configuration.
+## Sales Agent Commands
 
 ```bash
-# List all brands
-scope3 --persona brand brands list
+# List sales agents
+scope3 sales-agents list
 
-# Get a specific brand
-scope3 --persona brand brands get <id>
-
-# Create a brand with a manifest URL
-scope3 --persona brand brands create --manifest-url "https://example.com/brand-manifest.json"
-
-# Update a brand
-scope3 --persona brand brands update <id> --manifest-url "https://example.com/updated-manifest.json"
-
-# Delete a brand
-scope3 --persona brand brands delete <id>
+# Register an account for a sales agent
+scope3 sales-agents register-account <agent-id> --name "Account Name"
 ```
 
 ## Partner Commands
@@ -195,8 +178,26 @@ scope3 --persona brand brands delete <id>
 Partner commands require the `partner` persona.
 
 ```bash
-# Check API health
-scope3 --persona partner health
+# List partners
+scope3 --persona partner partners list
+
+# Create a partner
+scope3 --persona partner partners create --name "My Org"
+
+# Update a partner
+scope3 --persona partner partners update <id> --name "New Name"
+
+# Archive a partner
+scope3 --persona partner partners archive <id>
+
+# List agents
+scope3 --persona partner agents list
+
+# Get agent details
+scope3 --persona partner agents get <id>
+
+# Register an agent
+scope3 --persona partner agents register --name "My Agent" --type SALES --partner-id <id>
 ```
 
 ## Output Formats
@@ -258,16 +259,6 @@ advertisers
   update <id>               Update an advertiser
   delete <id>               Delete an advertiser
 
-brands
-  list                      List brands
-  get <id>                  Get brand by ID (brand persona)
-  create                    Create a new brand (brand persona)
-  update <id>               Update a brand (brand persona)
-  delete <id>               Delete a brand (brand persona)
-  link                      Link brand to advertiser (buyer persona)
-  unlink                    Unlink brand from advertiser (buyer persona)
-  get-linked                Get linked brand (buyer persona)
-
 bundles
   create                    Create a new media bundle
   discover-products <id>    Discover available products for a bundle
@@ -279,13 +270,32 @@ bundles
 campaigns
   list                      List all campaigns
   get <id>                  Get campaign by ID
-  create-bundle             Create a bundle campaign
+  create-discovery          Create a discovery campaign
   create-performance        Create a performance campaign
   create-audience           Create an audience campaign
-  update-bundle <id>        Update a bundle campaign
+  update-discovery <id>     Update a discovery campaign
   update-performance <id>   Update a performance campaign
   execute <id>              Execute a campaign (go live)
   pause <id>                Pause an active campaign
+
+reporting
+  get                       Get reporting metrics
+
+sales-agents
+  list                      List sales agents
+  register-account <id>     Register account for a sales agent
+
+partners (--persona partner)
+  list                      List partners
+  create                    Create a partner
+  update <id>               Update a partner
+  archive <id>              Archive a partner
+
+agents (--persona partner)
+  list                      List agents
+  get <id>                  Get agent by ID
+  register                  Register an agent
+  update <id>               Update an agent
 
 config
   set <key> <value>         Set a configuration value

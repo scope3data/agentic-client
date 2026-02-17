@@ -1,7 +1,7 @@
 /**
  * Scope3 SDK - REST and MCP client for the Agentic Platform
  *
- * Supports 3 personas: buyer, brand, and partner.
+ * Supports 2 personas: buyer and partner.
  *
  * @example
  * ```typescript
@@ -11,13 +11,9 @@
  * const buyer = new Scope3Client({ apiKey: 'sk_xxx', persona: 'buyer' });
  * const advertisers = await buyer.advertisers.list();
  *
- * // Brand persona
- * const brand = new Scope3Client({ apiKey: 'sk_xxx', persona: 'brand' });
- * const brands = await brand.brands.list();
- *
  * // Partner persona
  * const partner = new Scope3Client({ apiKey: 'sk_xxx', persona: 'partner' });
- * const health = await partner.health.check();
+ * const partners = await partner.partners.list();
  * ```
  */
 
@@ -33,17 +29,15 @@ export type { BaseAdapter } from './adapters/base';
 // Resources
 export {
   AdvertisersResource,
-  BuyerBrandsResource,
-  BuyerLinkedBrandResource,
-  BrandBrandsResource,
+  AgentsResource,
   BundlesResource,
   BundleProductsResource,
   CampaignsResource,
   ConversionEventsResource,
   CreativeSetsResource,
-  MediaBuysResource,
-  PartnerHealthResource,
+  PartnersResource,
   ReportingResource,
+  SalesAgentsResource,
   SignalsResource,
   TestCohortsResource,
 } from './resources';
@@ -77,19 +71,13 @@ export type {
   CreateAdvertiserInput,
   UpdateAdvertiserInput,
   ListAdvertisersParams,
-  // Brand (standalone - brand persona)
-  Brand,
-  CreateBrandInput,
-  UpdateBrandInput,
-  ListBrandsParams,
+  // Linked Brand (resolved from advertiser brandDomain)
+  LinkedBrand,
   BrandManifest,
   BrandLogo,
   BrandColors,
   BrandFonts,
   BrandAsset,
-  // Linked Brand (buyer persona)
-  LinkedBrand,
-  LinkBrandInput,
   // Campaign
   Campaign,
   CampaignStatus,
@@ -100,8 +88,8 @@ export type {
   CampaignConstraints,
   PerformanceObjective,
   PerformanceConfig,
-  CreateBundleCampaignInput,
-  UpdateBundleCampaignInput,
+  CreateDiscoveryCampaignInput,
+  UpdateDiscoveryCampaignInput,
   CreatePerformanceCampaignInput,
   UpdatePerformanceCampaignInput,
   CreateAudienceCampaignInput,
@@ -135,16 +123,38 @@ export type {
   TestCohort,
   CreateTestCohortInput,
   // Reporting
+  ReportingView,
   ReportingParams,
-  ReportingResponse,
-  DailyMetric,
-  MetricTotals,
-  // Media Buys
-  MediaBuy,
-  ListMediaBuysParams,
+  ReportingMetrics,
+  ReportingSummaryResponse,
+  ReportingAdvertiser,
+  ReportingCampaign,
+  ReportingMediaBuy,
+  ReportingPackage,
+  ReportingTimeseriesResponse,
+  ReportingTimeseriesEntry,
+  // Sales Agents
+  SalesAgent,
+  SalesAgentAccount,
+  ListSalesAgentsParams,
+  RegisterSalesAgentAccountInput,
   // Signals
   Signal,
   DiscoverSignalsInput,
   // Partner
-  HealthCheckResponse,
+  Partner,
+  CreatePartnerInput,
+  UpdatePartnerInput,
+  ListPartnersParams,
+  // Agent
+  Agent,
+  AgentType,
+  AgentStatus,
+  AgentAuthenticationType,
+  AgentProtocol,
+  RegisterAgentInput,
+  UpdateAgentInput,
+  ListAgentsParams,
+  OAuthAuthorizeResponse,
+  OAuthCallbackInput,
 } from './types';

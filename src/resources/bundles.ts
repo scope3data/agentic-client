@@ -47,16 +47,19 @@ export class BundlesResource {
           groupLimit: params?.groupLimit,
           groupOffset: params?.groupOffset,
           productsPerGroup: params?.productsPerGroup,
+          productOffset: params?.productOffset,
           publisherDomain: params?.publisherDomain,
+          salesAgentIds: params?.salesAgentIds,
+          salesAgentNames: params?.salesAgentNames,
         },
       }
     );
   }
 
   /**
-   * Browse products without an existing bundle
+   * Browse products without an existing bundle (auto-creates bundle)
    * @param data Browse criteria including advertiser, channels, and filters
-   * @returns Discovered product groups
+   * @returns Discovered product groups with auto-created bundleId
    */
   async browseProducts(data: BrowseProductsInput): Promise<ApiResponse<DiscoverProductsResponse>> {
     return this.adapter.request<ApiResponse<DiscoverProductsResponse>>(

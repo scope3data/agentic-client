@@ -202,15 +202,15 @@ describe('McpAdapter', () => {
       });
     });
 
-    it('should use brand persona in path', async () => {
-      const brandAdapter = new McpAdapter({ apiKey: 'test-key', persona: 'brand' });
+    it('should use partner persona in path', async () => {
+      const partnerAdapter = new McpAdapter({ apiKey: 'test-key', persona: 'partner' });
       mockCallTool.mockResolvedValue({ structuredContent: {} });
-      await brandAdapter.request('GET', '/brands');
+      await partnerAdapter.request('GET', '/partners');
       expect(mockCallTool).toHaveBeenCalledWith({
         name: 'api_call',
         arguments: {
           method: 'GET',
-          path: '/api/v2/brand/brands',
+          path: '/api/v2/partner/partners',
         },
       });
     });

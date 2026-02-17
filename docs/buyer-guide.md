@@ -6,8 +6,9 @@ The buyer persona enables AI-powered programmatic advertising with:
 
 - Advertiser management
 - Bundle-based inventory discovery
-- 3 campaign types (bundle, performance, audience)
+- 3 campaign types (discovery, performance, audience)
 - Reporting and analytics
+- Reporting and sales agents
 
 ## Setup
 
@@ -28,18 +29,12 @@ const client = new Scope3Client({
 const advertiser = await client.advertisers.create({
   name: 'Acme Corp',
   description: 'Leading widget manufacturer',
+  brandDomain: 'acme.com',
 });
 const advId = advertiser.data.id;
 ```
 
-### Step 2: Link a Brand
-
-```typescript
-const brand = client.advertisers.brand(advId);
-await brand.link({ brandId: 'brand-123' });
-```
-
-### Step 3: Create a Bundle for Inventory Discovery
+### Step 2: Create a Bundle for Inventory Discovery
 
 ```typescript
 const bundle = await client.bundles.create({
@@ -51,7 +46,7 @@ const bundle = await client.bundles.create({
 const bundleId = bundle.data.bundleId;
 ```
 
-### Step 4: Discover Products
+### Step 3: Discover Products
 
 ```typescript
 const discovery = await client.bundles.discoverProducts(bundleId, {
@@ -68,7 +63,7 @@ for (const group of discovery.data.productGroups) {
 }
 ```
 
-### Step 5: Add Products to Bundle
+### Step 4: Add Products to Bundle
 
 ```typescript
 const selectedProducts = discovery.data.productGroups[0].products.map(p => ({
@@ -81,19 +76,19 @@ const selectedProducts = discovery.data.productGroups[0].products.map(p => ({
 await client.bundles.products(bundleId).add({ products: selectedProducts });
 ```
 
-### Step 6: Create a Bundle Campaign
+### Step 5: Create a Discovery Campaign
 
 ```typescript
-const campaign = await client.campaigns.createBundle({
+const campaign = await client.campaigns.createDiscovery({
   advertiserId: advId,
   bundleId: bundleId,
   name: 'Q1 Display Campaign',
   flightDates: { startDate: '2025-01-15', endDate: '2025-03-31' },
-  budget: { total: 50000, currency: 'USD', pacing: 'EVEN' },
+  budget: { total: 50000, currency: 'USD' },
 });
 ```
 
-### Step 7: Execute the Campaign
+### Step 6: Execute the Campaign
 
 ```typescript
 await client.campaigns.execute(campaign.data.id);
@@ -101,13 +96,13 @@ await client.campaigns.execute(campaign.data.id);
 
 ## Campaign Types
 
-### Bundle Campaigns
+### Discovery Campaigns
 
 Standard campaigns with pre-selected inventory bundles.
 
 ```typescript
-await client.campaigns.createBundle({ ... });
-await client.campaigns.updateBundle(id, { ... });
+await client.campaigns.createDiscovery({ ... });
+await client.campaigns.updateDiscovery(id, { ... });
 ```
 
 ### Performance Campaigns
@@ -163,33 +158,34 @@ await cohorts.list();
 await cohorts.create({ name: 'A/B Test', splitPercentage: 50 });
 ```
 
-### Reporting
-
-```typescript
-const reporting = client.advertisers.reporting(advId);
-const report = await reporting.get({ days: 30 });
-console.log(`Total spend: $${report.data.totals.spend}`);
-```
-
-### Media Buys
-
-```typescript
-const buys = client.advertisers.mediaBuys(advId);
-const mediaBuys = await buys.list();
-```
-
 ## Signals
 
 ```typescript
 const signals = await client.signals.discover();
 ```
 
-## Buyer Brands
-
-List all brands available:
+## Reporting
 
 ```typescript
-const brands = await client.buyerBrands.list();
+const report = await client.reporting.get({ days: 30, view: 'summary' });
+
+// With filters
+const filtered = await client.reporting.get({
+  advertiserId: advId,
+  view: 'timeseries',
+  days: 7,
+});
+```
+
+## Sales Agents
+
+```typescript
+const agents = await client.salesAgents.list();
+
+// Register an account for an agent
+await client.salesAgents.registerAccount('agent-123', {
+  name: 'My Account',
+});
 ```
 
 ## Pagination

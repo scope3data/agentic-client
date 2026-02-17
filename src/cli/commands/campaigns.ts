@@ -1,15 +1,15 @@
 /**
- * Campaign commands - supports bundle, performance, and audience campaign types
+ * Campaign commands - supports discovery, performance, and audience campaign types
  */
 
 import { Command } from 'commander';
 import { createClient, GlobalOptions } from '../utils';
 import { formatOutput, printError, printSuccess, OutputFormat } from '../format';
 import type {
-  CreateBundleCampaignInput,
+  CreateDiscoveryCampaignInput,
   CreatePerformanceCampaignInput,
   CreateAudienceCampaignInput,
-  UpdateBundleCampaignInput,
+  UpdateDiscoveryCampaignInput,
   UpdatePerformanceCampaignInput,
   FlightDates,
   Budget,
@@ -31,7 +31,7 @@ campaignsCommand
   .option('--take <n>', 'Maximum number of results', '50')
   .option('--skip <n>', 'Number of results to skip', '0')
   .option('--advertiser-id <id>', 'Filter by advertiser ID')
-  .option('--type <type>', 'Filter by type (bundle, performance, audience)')
+  .option('--type <type>', 'Filter by type (discovery, performance, audience)')
   .option('--status <status>', 'Filter by status (DRAFT, ACTIVE, PAUSED, COMPLETED, ARCHIVED)')
   .action(async (options, cmd) => {
     try {
@@ -73,11 +73,11 @@ campaignsCommand
   });
 
 /**
- * Create a bundle campaign
+ * Create a discovery campaign
  */
 campaignsCommand
-  .command('create-bundle')
-  .description('Create a new bundle campaign')
+  .command('create-discovery')
+  .description('Create a discovery campaign')
   .requiredOption('--advertiser-id <id>', 'Advertiser ID')
   .requiredOption('--name <name>', 'Campaign name')
   .requiredOption('--bundle-id <id>', 'Bundle ID for inventory selection')
@@ -119,7 +119,7 @@ campaignsCommand
         constraints.countries = options.countries.split(',').map((c: string) => c.trim());
       }
 
-      const data: CreateBundleCampaignInput = {
+      const data: CreateDiscoveryCampaignInput = {
         advertiserId: options.advertiserId,
         name: options.name,
         bundleId: options.bundleId,
@@ -133,9 +133,9 @@ campaignsCommand
         data.productIds = options.productIds.split(',').map((id: string) => id.trim());
       }
 
-      const result = await client.campaigns.createBundle(data);
+      const result = await client.campaigns.createDiscovery(data);
       formatOutput(result, globalOpts.format as OutputFormat);
-      printSuccess(`Created bundle campaign: ${result.data.id}`);
+      printSuccess(`Created discovery campaign: ${result.data.id}`);
     } catch (error) {
       printError(error instanceof Error ? error.message : 'Unknown error');
       process.exit(1);
@@ -286,11 +286,11 @@ campaignsCommand
   });
 
 /**
- * Update a bundle campaign
+ * Update a discovery campaign
  */
 campaignsCommand
-  .command('update-bundle <id>')
-  .description('Update a bundle campaign')
+  .command('update-discovery <id>')
+  .description('Update a discovery campaign')
   .option('--name <name>', 'New name')
   .option('--start-date <date>', 'New start date')
   .option('--end-date <date>', 'New end date')
@@ -304,7 +304,7 @@ campaignsCommand
       const globalOpts = cmd.optsWithGlobals() as GlobalOptions;
       const client = createClient(globalOpts);
 
-      const data: UpdateBundleCampaignInput = {};
+      const data: UpdateDiscoveryCampaignInput = {};
 
       if (options.name) data.name = options.name;
       if (options.brief) data.brief = options.brief;
@@ -339,9 +339,9 @@ campaignsCommand
         process.exit(1);
       }
 
-      const result = await client.campaigns.updateBundle(id, data);
+      const result = await client.campaigns.updateDiscovery(id, data);
       formatOutput(result, globalOpts.format as OutputFormat);
-      printSuccess('Bundle campaign updated');
+      printSuccess('Discovery campaign updated');
     } catch (error) {
       printError(error instanceof Error ? error.message : 'Unknown error');
       process.exit(1);

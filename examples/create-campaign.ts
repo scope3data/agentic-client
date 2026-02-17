@@ -45,7 +45,7 @@ async function main() {
 
     // Step 4: Create campaign from bundle
     console.log('\nCreating campaign...');
-    const campaign = await client.campaigns.createBundle({
+    const campaign = await client.campaigns.createDiscovery({
       advertiserId: 'adv-123',
       bundleId,
       name: 'Tech Enthusiasts Video Campaign',
