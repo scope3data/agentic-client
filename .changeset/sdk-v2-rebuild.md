@@ -2,7 +2,7 @@
 "scope3": major
 ---
 
-SDK v2.0.0: Persona-based API architecture
+Persona-based API architecture for Agentic Platform v2
 
 Complete rebuild of the Scope3 SDK with persona-based design for the Agentic Platform v2 API.
 
@@ -10,7 +10,7 @@ Complete rebuild of the Scope3 SDK with persona-based design for the Agentic Pla
 - Unified `Scope3Client` with `persona` parameter: `buyer` or `partner`
 - Full CLI with `scope3` command for all API operations
 - REST and MCP adapter support
-- Buyer resources: advertisers, campaigns (discovery/performance/audience), bundles, signals, reporting, sales agents
+- Buyer resources: advertisers, campaigns (discovery/performance/audience), bundles, signals, reporting, sales agents, conversion events, creative sets
 - Partner resources: partners, agents (with OAuth flows)
 
 **CLI Highlights:**
@@ -25,7 +25,9 @@ Complete rebuild of the Scope3 SDK with persona-based design for the Agentic Pla
 - Campaign type `bundle` renamed to `discovery`
 - Reporting moved from advertiser sub-resource to top-level `client.reporting`
 - Removed auto-generated types from OpenAPI (now manually maintained)
-- New API surface matches Agentic Platform v2
+- Auth uses `Authorization: Bearer` header (was `x-scope3-api-key`)
+- Response envelope: `{ data, pagination, error }` (was flat)
+- MCP uses single `api_call` tool (was per-resource tools)
 
 **Migration Guide:**
 
@@ -43,8 +45,3 @@ const buyerClient = new Scope3Client({ apiKey: '...', persona: 'buyer' });
 // For partners (agent registration, OAuth):
 const partnerClient = new Scope3Client({ apiKey: '...', persona: 'partner' });
 ```
-
-**Testing:**
-- 211 tests passing
-- Verified with real API calls to staging environment
-- CLI tested for all major workflows
