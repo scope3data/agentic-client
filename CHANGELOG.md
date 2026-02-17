@@ -1,5 +1,11 @@
 # @scope3/agentic-client
 
+## 2.0.1
+
+### Patch Changes
+
+- [#116](https://github.com/scope3data/agentic-client/pull/116) [`b852335`](https://github.com/scope3data/agentic-client/commit/b8523352c5977b5e2026edf81dc9de213ccd3d84) Thanks [@nastassiafulconis](https://github.com/nastassiafulconis)! - Fix npm Trusted Publishing by adding registry-url to setup-node in release workflow
+
 ## 2.0.0
 
 ### Major Changes
