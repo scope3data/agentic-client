@@ -21,6 +21,8 @@ import {
   bundlesCommand,
   campaignsCommand,
   configCommand,
+  conversionEventsCommand,
+  creativeSetsCommand,
   partnersCommand,
   reportingCommand,
   salesAgentsCommand,
@@ -52,6 +54,8 @@ program.addCommand(advertisersCommand);
 program.addCommand(bundlesCommand);
 program.addCommand(campaignsCommand);
 program.addCommand(configCommand);
+program.addCommand(conversionEventsCommand);
+program.addCommand(creativeSetsCommand);
 program.addCommand(partnersCommand);
 program.addCommand(reportingCommand);
 program.addCommand(salesAgentsCommand);
@@ -102,6 +106,18 @@ const commandsCmd = new Command('commands')
     console.log(chalk.cyan('\n  sales-agents'));
     console.log('    list                      List available sales agents');
     console.log('    register-account <id>     Register an account for a sales agent');
+
+    console.log(chalk.cyan('\n  conversion-events'));
+    console.log('    list                      List conversion events for an advertiser');
+    console.log('    get <id>                  Get a conversion event by ID');
+    console.log('    create                    Create a conversion event');
+    console.log('    update <id>               Update a conversion event');
+
+    console.log(chalk.cyan('\n  creative-sets'));
+    console.log('    list                      List creative sets for an advertiser');
+    console.log('    create                    Create a creative set');
+    console.log('    add-asset <id>            Add an asset to a creative set');
+    console.log('    remove-asset <id> <assetId>  Remove an asset from a creative set');
 
     // Partner persona
     console.log(chalk.blue.bold('\n\nPARTNER PERSONA') + chalk.gray(' (use --persona partner)'));
