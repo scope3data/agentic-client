@@ -34,6 +34,13 @@ jest.mock('../../client', () => ({
   })),
 }));
 
+// Mock getDefaultBaseUrl
+jest.mock('../../adapters/base', () => ({
+  getDefaultBaseUrl: jest.fn((env: string) =>
+    env === 'staging' ? 'https://api.agentic.staging.scope3.com' : 'https://api.agentic.scope3.com'
+  ),
+}));
+
 const CONFIG_DIR = path.join('/mock/home', '.scope3');
 const CONFIG_FILE = path.join(CONFIG_DIR, 'config.json');
 
@@ -229,6 +236,26 @@ describe('createClient', () => {
     const client = createClient({ apiKey: 'cli-key' });
     expect(client).toBeDefined();
   });
+
+  it('should error when both config apiKey and oauthAccessToken are set', () => {
+    delete process.env.SCOPE3_API_KEY;
+    mockFs.existsSync.mockReturnValue(true);
+    mockFs.readFileSync.mockReturnValue(
+      JSON.stringify({ apiKey: 'config-key', oauthAccessToken: 'oauth-token' })
+    );
+
+    expect(() => createClient({})).toThrow('Both an API key and an OAuth session are configured.');
+  });
+
+  it('should use CLI flag when both config apiKey and oauthAccessToken are set', () => {
+    mockFs.existsSync.mockReturnValue(true);
+    mockFs.readFileSync.mockReturnValue(
+      JSON.stringify({ apiKey: 'config-key', oauthAccessToken: 'oauth-token' })
+    );
+
+    const client = createClient({ apiKey: 'cli-key' });
+    expect(client).toBeDefined();
+  });
 });
 
 describe('resolveBaseUrl', () => {
@@ -248,6 +275,12 @@ describe('resolveBaseUrl', () => {
 
   it('prefers explicit baseUrl over environment', () => {
     expect(resolveBaseUrl({ baseUrl: 'https://custom.example.com' })).toBe(
+      'https://custom.example.com'
+    );
+  });
+
+  it('strips trailing slash from baseUrl', () => {
+    expect(resolveBaseUrl({ baseUrl: 'https://custom.example.com/' })).toBe(
       'https://custom.example.com'
     );
   });

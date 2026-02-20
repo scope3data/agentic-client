@@ -76,6 +76,7 @@ export const loginCommand = new Command('login')
     }
 
     let serviceToken: string;
+    let tokenExpiry: number;
     try {
       const response = await fetch(`${baseUrl}/auth/token`, {
         method: 'POST',
@@ -92,6 +93,9 @@ export const loginCommand = new Command('login')
         throw new Error(`No token in response. Got keys: ${Object.keys(data).join(', ')}`);
       }
       serviceToken = token;
+      // Use server-provided expiry if available; default to 30 days for service tokens
+      const expiresIn = typeof data.expires_in === 'number' ? data.expires_in : 30 * 24 * 60 * 60;
+      tokenExpiry = Math.floor(Date.now() / 1000) + expiresIn;
     } catch (error) {
       console.error(
         chalk.red(
@@ -105,7 +109,7 @@ export const loginCommand = new Command('login')
     saveConfig({
       ...config,
       oauthAccessToken: serviceToken,
-      tokenExpiry: Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60,
+      tokenExpiry,
     });
 
     console.log(chalk.green('Logged in successfully.'));

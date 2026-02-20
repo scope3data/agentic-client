@@ -54,8 +54,11 @@ program
 
 // Warn if the OAuth session token is expired before running any command
 program.hook('preAction', (_thisCommand, actionCommand) => {
-  const skipCommands = ['login', 'logout', 'config'];
+  const skipCommands = ['login', 'logout', 'config', 'commands'];
   if (skipCommands.includes(actionCommand.name())) return;
+
+  // If an explicit key is provided, OAuth session state is irrelevant
+  if (_thisCommand.opts().apiKey || process.env.SCOPE3_API_KEY) return;
 
   const config = loadConfig();
   if (!config.oauthAccessToken || !config.tokenExpiry) return;

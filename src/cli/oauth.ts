@@ -16,12 +16,17 @@ export function openBrowser(url: string): void {
   if (!url.startsWith('https://')) {
     throw new Error('Authorization URL must use HTTPS');
   }
+  const onError = (err: Error | null) => {
+    if (err) {
+      console.error(`Warning: Could not open browser automatically: ${err.message}`);
+    }
+  };
   if (process.platform === 'darwin') {
-    execFile('open', [url]);
+    execFile('open', [url], onError);
   } else if (process.platform === 'win32') {
-    execFile('cmd', ['/c', 'start', '', url]);
+    execFile('cmd', ['/c', 'start', '', url], onError);
   } else {
-    execFile('xdg-open', [url]);
+    execFile('xdg-open', [url], onError);
   }
 }
 

@@ -6,6 +6,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
 import { Scope3Client } from '../client';
+import { getDefaultBaseUrl } from '../adapters/base';
 import type { Scope3ClientConfig, ApiVersion, Environment, Persona } from '../types';
 
 /**
@@ -97,12 +98,10 @@ export function getConfigForDisplay(config: CliConfig): Record<string, string | 
  */
 export function resolveBaseUrl(options?: { environment?: string; baseUrl?: string }): string {
   const config = loadConfig();
-  if (options?.baseUrl) return options.baseUrl;
-  if (config.baseUrl) return config.baseUrl;
+  if (options?.baseUrl) return options.baseUrl.replace(/\/$/, '');
+  if (config.baseUrl) return config.baseUrl.replace(/\/$/, '');
   const environment = options?.environment || config.environment || 'production';
-  return environment === 'staging'
-    ? 'https://api.agentic.staging.scope3.com'
-    : 'https://api.agentic.scope3.com';
+  return getDefaultBaseUrl(environment === 'staging' ? 'staging' : 'production');
 }
 
 /**
@@ -111,9 +110,21 @@ export function resolveBaseUrl(options?: { environment?: string; baseUrl?: strin
 export function createClient(options: GlobalOptions): Scope3Client {
   const config = loadConfig();
 
-  // Resolve API key (CLI flag > OAuth access token > saved API key > env var)
-  const apiKey =
-    options.apiKey || config.oauthAccessToken || config.apiKey || process.env.SCOPE3_API_KEY;
+  // Explicit overrides (CLI flag or env var) always win
+  const explicitKey = options.apiKey || process.env.SCOPE3_API_KEY;
+  let apiKey: string | undefined;
+
+  if (explicitKey) {
+    apiKey = explicitKey;
+  } else if (config.apiKey && config.oauthAccessToken) {
+    throw new Error(
+      'Both an API key and an OAuth session are configured.\n' +
+        '  - Run "scope3 logout" to remove the OAuth session, or\n' +
+        '  - Run "scope3 config clear" to start fresh'
+    );
+  } else {
+    apiKey = config.oauthAccessToken || config.apiKey;
+  }
 
   if (!apiKey) {
     throw new Error(
