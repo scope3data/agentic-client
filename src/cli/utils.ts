@@ -17,6 +17,9 @@ export interface CliConfig {
   environment?: Environment;
   baseUrl?: string;
   persona?: Persona;
+  oauthAccessToken?: string;
+  /** Unix timestamp (seconds) when oauthAccessToken expires */
+  tokenExpiry?: number;
 }
 
 /**
@@ -83,7 +86,23 @@ export function getConfigForDisplay(config: CliConfig): Record<string, string | 
     environment: config.environment,
     baseUrl: config.baseUrl,
     persona: config.persona,
+    oauthToken: config.oauthAccessToken ? '<saved>' : undefined,
+    tokenExpiry: config.tokenExpiry ? new Date(config.tokenExpiry * 1000).toISOString() : undefined,
   };
+}
+
+/**
+ * Resolve the API base URL from options and config, without a client.
+ * Used by auth flows that need to call the API before a client is available.
+ */
+export function resolveBaseUrl(options?: { environment?: string; baseUrl?: string }): string {
+  const config = loadConfig();
+  if (options?.baseUrl) return options.baseUrl;
+  if (config.baseUrl) return config.baseUrl;
+  const environment = options?.environment || config.environment || 'production';
+  return environment === 'staging'
+    ? 'https://api.agentic.staging.scope3.com'
+    : 'https://api.agentic.scope3.com';
 }
 
 /**
@@ -92,12 +111,14 @@ export function getConfigForDisplay(config: CliConfig): Record<string, string | 
 export function createClient(options: GlobalOptions): Scope3Client {
   const config = loadConfig();
 
-  // Resolve API key (CLI flag > config > env var)
-  const apiKey = options.apiKey || config.apiKey || process.env.SCOPE3_API_KEY;
+  // Resolve API key (CLI flag > OAuth access token > saved API key > env var)
+  const apiKey =
+    options.apiKey || config.oauthAccessToken || config.apiKey || process.env.SCOPE3_API_KEY;
 
   if (!apiKey) {
     throw new Error(
-      'API key required. Set via:\n' +
+      'Not authenticated. Log in via:\n' +
+        '  - Browser login: scope3 login\n' +
         '  - CLI flag: --api-key <key>\n' +
         '  - Config: scope3 config set apiKey <key>\n' +
         '  - Environment: SCOPE3_API_KEY=<key>'
