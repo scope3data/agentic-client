@@ -12,6 +12,7 @@ import {
   getConfigForDisplay,
   createClient,
   parseJsonArg,
+  resolveBaseUrl,
 } from '../../cli/utils';
 
 // Mock fs
@@ -31,6 +32,13 @@ jest.mock('../../client', () => ({
     advertisers: {},
     campaigns: {},
   })),
+}));
+
+// Mock getDefaultBaseUrl
+jest.mock('../../adapters/base', () => ({
+  getDefaultBaseUrl: jest.fn((env: string) =>
+    env === 'staging' ? 'https://api.agentic.staging.scope3.com' : 'https://api.agentic.scope3.com'
+  ),
 }));
 
 const CONFIG_DIR = path.join('/mock/home', '.scope3');
@@ -155,6 +163,17 @@ describe('getConfigForDisplay', () => {
     expect(display.environment).toBe('staging');
     expect(display.baseUrl).toBe('https://custom.com');
   });
+
+  it('shows oauthToken as <saved> when present', () => {
+    const display = getConfigForDisplay({ oauthAccessToken: 'scope3_abc_xyz' });
+    expect(display.oauthToken).toBe('<saved>');
+  });
+
+  it('shows tokenExpiry as ISO string when present', () => {
+    const expiry = Math.floor(Date.now() / 1000) + 3600;
+    const display = getConfigForDisplay({ tokenExpiry: expiry });
+    expect(display.tokenExpiry).toBe(new Date(expiry * 1000).toISOString());
+  });
 });
 
 describe('createClient', () => {
@@ -171,7 +190,7 @@ describe('createClient', () => {
 
   it('should throw when no API key is available', () => {
     delete process.env.SCOPE3_API_KEY;
-    expect(() => createClient({})).toThrow('API key required');
+    expect(() => createClient({})).toThrow('Not authenticated');
   });
 
   it('should use CLI flag API key first', () => {
@@ -197,6 +216,79 @@ describe('createClient', () => {
   it('should default version to v2', () => {
     const client = createClient({ apiKey: 'test-key' });
     expect(client).toBeDefined();
+  });
+
+  it('should use OAuth access token when no API key is provided', () => {
+    delete process.env.SCOPE3_API_KEY;
+    mockFs.existsSync.mockReturnValue(true);
+    mockFs.readFileSync.mockReturnValue(
+      JSON.stringify({ oauthAccessToken: 'eyJhbGci.test.token' })
+    );
+
+    const client = createClient({});
+    expect(client).toBeDefined();
+  });
+
+  it('should prefer CLI flag over OAuth token', () => {
+    mockFs.existsSync.mockReturnValue(true);
+    mockFs.readFileSync.mockReturnValue(JSON.stringify({ oauthAccessToken: 'oauth-token' }));
+
+    const client = createClient({ apiKey: 'cli-key' });
+    expect(client).toBeDefined();
+  });
+
+  it('should error when both config apiKey and oauthAccessToken are set', () => {
+    delete process.env.SCOPE3_API_KEY;
+    mockFs.existsSync.mockReturnValue(true);
+    mockFs.readFileSync.mockReturnValue(
+      JSON.stringify({ apiKey: 'config-key', oauthAccessToken: 'oauth-token' })
+    );
+
+    expect(() => createClient({})).toThrow('Both an API key and an OAuth session are configured.');
+  });
+
+  it('should use CLI flag when both config apiKey and oauthAccessToken are set', () => {
+    mockFs.existsSync.mockReturnValue(true);
+    mockFs.readFileSync.mockReturnValue(
+      JSON.stringify({ apiKey: 'config-key', oauthAccessToken: 'oauth-token' })
+    );
+
+    const client = createClient({ apiKey: 'cli-key' });
+    expect(client).toBeDefined();
+  });
+});
+
+describe('resolveBaseUrl', () => {
+  beforeEach(() => {
+    mockFs.existsSync.mockReturnValue(false);
+  });
+
+  it('defaults to production URL', () => {
+    expect(resolveBaseUrl()).toBe('https://api.agentic.scope3.com');
+  });
+
+  it('returns staging URL for staging environment', () => {
+    expect(resolveBaseUrl({ environment: 'staging' })).toBe(
+      'https://api.agentic.staging.scope3.com'
+    );
+  });
+
+  it('prefers explicit baseUrl over environment', () => {
+    expect(resolveBaseUrl({ baseUrl: 'https://custom.example.com' })).toBe(
+      'https://custom.example.com'
+    );
+  });
+
+  it('strips trailing slash from baseUrl', () => {
+    expect(resolveBaseUrl({ baseUrl: 'https://custom.example.com/' })).toBe(
+      'https://custom.example.com'
+    );
+  });
+
+  it('reads environment from config when not provided', () => {
+    mockFs.existsSync.mockReturnValue(true);
+    mockFs.readFileSync.mockReturnValue(JSON.stringify({ environment: 'staging' }));
+    expect(resolveBaseUrl()).toBe('https://api.agentic.staging.scope3.com');
   });
 });
 

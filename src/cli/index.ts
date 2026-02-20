@@ -23,10 +23,13 @@ import {
   configCommand,
   conversionEventsCommand,
   creativeSetsCommand,
+  loginCommand,
+  logoutCommand,
   partnersCommand,
   reportingCommand,
   salesAgentsCommand,
 } from './commands';
+import { loadConfig } from './utils';
 
 const program = new Command();
 
@@ -49,7 +52,27 @@ program
   .option('--debug', 'Enable debug mode')
   .option('--persona <persona>', 'API persona: buyer or partner (default: buyer)');
 
+// Warn if the OAuth session token is expired before running any command
+program.hook('preAction', (_thisCommand, actionCommand) => {
+  const skipCommands = ['login', 'logout', 'config', 'commands'];
+  if (skipCommands.includes(actionCommand.name())) return;
+
+  // If an explicit key is provided, OAuth session state is irrelevant
+  if (_thisCommand.opts().apiKey || process.env.SCOPE3_API_KEY) return;
+
+  const config = loadConfig();
+  if (!config.oauthAccessToken || !config.tokenExpiry) return;
+
+  const now = Math.floor(Date.now() / 1000);
+  if (now >= config.tokenExpiry) {
+    console.error(chalk.yellow('Your session has expired. Run "scope3 login" to log in again.'));
+    process.exit(1);
+  }
+});
+
 // Add commands
+program.addCommand(loginCommand);
+program.addCommand(logoutCommand);
 program.addCommand(advertisersCommand);
 program.addCommand(bundlesCommand);
 program.addCommand(campaignsCommand);
