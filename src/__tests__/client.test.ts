@@ -187,6 +187,24 @@ describe('Scope3Client', () => {
     });
   });
 
+  describe('publisher persona', () => {
+    it('should initialize without error', () => {
+      expect(() => new Scope3Client({ apiKey: 'test-key', persona: 'publisher' })).not.toThrow();
+    });
+
+    it('should throw when accessing buyer resources', () => {
+      const client = new Scope3Client({ apiKey: 'test-key', persona: 'publisher' });
+      expect(() => client.advertisers).toThrow(
+        'advertisers is only available with the buyer persona'
+      );
+    });
+
+    it('should throw when accessing partner resources', () => {
+      const client = new Scope3Client({ apiKey: 'test-key', persona: 'publisher' });
+      expect(() => client.partners).toThrow('partners is only available with the partner persona');
+    });
+  });
+
   describe('connect/disconnect', () => {
     it('should connect and disconnect without error for REST', async () => {
       const client = new Scope3Client({ apiKey: 'test-key', persona: 'buyer' });

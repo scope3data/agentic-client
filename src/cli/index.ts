@@ -50,7 +50,7 @@ program
   .option('--base-url <url>', 'Custom API base URL')
   .option('--format <format>', 'Output format: json, table, or yaml (default: table)')
   .option('--debug', 'Enable debug mode')
-  .option('--persona <persona>', 'API persona: buyer or partner (default: buyer)');
+  .option('--persona <persona>', 'API persona: buyer, partner, or publisher (default: buyer)');
 
 // Warn if the OAuth session token is expired before running any command
 program.hook('preAction', (_thisCommand, actionCommand) => {
@@ -160,6 +160,17 @@ const commandsCmd = new Command('commands')
     console.log('    oauth-authorize <id>      Start agent-level OAuth flow');
     console.log('    oauth-authorize-account <id>  Start per-account OAuth flow');
     console.log('    oauth-exchange <id>       Exchange OAuth code for tokens');
+
+    // Publisher persona
+    console.log(
+      chalk.magenta.bold('\n\nPUBLISHER PERSONA') + chalk.gray(' (use --persona publisher)')
+    );
+    console.log(
+      chalk.gray('For storefront publishers - manage agents on the Scope3 marketplace\n')
+    );
+    console.log(chalk.gray('  Uses the /api/v1 storefront API.'));
+    console.log(chalk.gray('  Run "scope3 login" to authenticate via WorkOS OAuth.'));
+    console.log(chalk.gray('  See skills/publisher.md for the full API reference.'));
 
     // Config (all personas)
     console.log(chalk.yellow.bold('\n\nCONFIGURATION') + chalk.gray(' (all personas)'));

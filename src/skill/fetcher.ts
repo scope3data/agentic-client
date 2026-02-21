@@ -23,9 +23,11 @@ export async function fetchSkillMd(options: FetchSkillOptions = {}): Promise<str
   const baseUrl = options.baseUrl ?? DEFAULT_BASE_URL;
   const timeout = options.timeout ?? DEFAULT_TIMEOUT;
 
-  // Build URL: /api/{version}/{persona}/skill.md
-  const versionPath = version === 'latest' ? 'v2' : version;
-  const url = `${baseUrl}/api/${versionPath}/${persona}/skill.md`;
+  // Build URL: publisher uses /api/v1/skill.md, others use /api/{version}/{persona}/skill.md
+  const url =
+    persona === 'publisher'
+      ? `${baseUrl}/api/v1/skill.md`
+      : `${baseUrl}/api/${version === 'latest' ? 'v2' : version}/${persona}/skill.md`;
 
   try {
     const response = await fetch(url, {

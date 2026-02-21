@@ -24,6 +24,7 @@ docs/
 examples/
 *.md
 !README.md
+!skills/*.md
 
 # Git
 .git/

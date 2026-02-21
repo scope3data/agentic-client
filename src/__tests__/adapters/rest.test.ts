@@ -255,6 +255,22 @@ describe('RestAdapter', () => {
         status: 408,
       });
     });
+
+    it('should use /api/v1 base path for publisher persona (no persona segment)', async () => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        headers: { get: (key: string) => (key === 'content-type' ? 'application/json' : null) },
+        json: () => Promise.resolve({ agents: [] }),
+      });
+
+      const adapter = new RestAdapter({ apiKey: 'test-key', persona: 'publisher' });
+      await adapter.request('GET', '/agents');
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://api.agentic.scope3.com/api/v1/agents',
+        expect.anything()
+      );
+    });
   });
 
   describe('connect/disconnect', () => {

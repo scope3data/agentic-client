@@ -57,9 +57,14 @@ export class RestAdapter implements BaseAdapter {
   ): Promise<T> {
     const startTime = Date.now();
 
-    // Build URL with version and persona prefix
-    const versionPath = this.version === 'latest' ? 'v2' : this.version;
-    let url = `${this.baseUrl}/api/${versionPath}/${this.persona}${path}`;
+    // Build URL: publisher uses /api/v1/{path}, others use /api/{version}/{persona}/{path}
+    let url: string;
+    if (this.persona === 'publisher') {
+      url = `${this.baseUrl}/api/v1${path}`;
+    } else {
+      const versionPath = this.version === 'latest' ? 'v2' : this.version;
+      url = `${this.baseUrl}/api/${versionPath}/${this.persona}${path}`;
+    }
 
     // Add query parameters
     if (options?.params) {
