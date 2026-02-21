@@ -64,7 +64,7 @@ export class Scope3Client {
       throw new Error('apiKey is required');
     }
     if (!config.persona) {
-      throw new Error('persona is required (buyer, partner, or publisher)');
+      throw new Error('persona is required (buyer, partner, or storefront)');
     }
 
     this.version = config.version ?? 'v2';
@@ -91,8 +91,8 @@ export class Scope3Client {
         this._partners = new PartnersResource(this.adapter);
         this._agents = new AgentsResource(this.adapter);
         break;
-      case 'publisher':
-        // Publisher persona: storefront management via /api/v1
+      case 'storefront':
+        // Storefront persona: seller/network management via /api/v1
         // Resources will be added as the storefront API stabilizes
         break;
     }

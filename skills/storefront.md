@@ -1,7 +1,7 @@
 ---
-name: scope3-agentic-publisher
+name: scope3-agentic-storefront
 version: "1.0.0"
-description: Scope3 Agentic Storefront API - Manage and publish agents to the Scope3 marketplace
+description: Scope3 Agentic Storefront API - Manage and list agents on the Scope3 marketplace
 api_base_url: https://api.agentic.scope3.com/api/v1
 auth:
   type: bearer
@@ -10,9 +10,9 @@ auth:
   obtain_url: https://agentic.scope3.com/user-api-keys
 ---
 
-# Scope3 Agentic Publisher API
+# Scope3 Agentic Storefront API
 
-This API enables publishers to manage their agents in the Scope3 Agentic Storefront. All endpoints are owner-scoped (JWT `sub` = WorkOS user ID).
+This API enables sellers (ad networks, sales houses, publishers, and other inventory owners) to manage their agents in the Scope3 Agentic Storefront. All endpoints are owner-scoped (JWT `sub` = WorkOS user ID).
 
 ## Authentication
 

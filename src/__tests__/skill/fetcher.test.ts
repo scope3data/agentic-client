@@ -137,26 +137,26 @@ describe('fetchSkillMd', () => {
     expect(result).toBe(getBundledSkillMdFromBundled('partner'));
   });
 
-  it('should fetch publisher skill.md from /api/v1/skill.md (no persona segment)', async () => {
+  it('should fetch storefront skill.md from /api/v1/skill.md (no persona segment)', async () => {
     mockFetch.mockResolvedValue({
       ok: true,
       text: () => Promise.resolve('# Publisher Skill'),
     });
 
-    await fetchSkillMd({ persona: 'publisher' });
+    await fetchSkillMd({ persona: 'storefront' });
 
     expect(mockFetch).toHaveBeenCalledWith(`${baseUrl}/api/v1/skill.md`, expect.anything());
   });
 
-  it('should fall back to bundled publisher skill on non-200', async () => {
+  it('should fall back to bundled storefront skill on non-200', async () => {
     mockFetch.mockResolvedValue({
       ok: false,
       status: 404,
     });
 
-    const result = await fetchSkillMd({ persona: 'publisher' });
+    const result = await fetchSkillMd({ persona: 'storefront' });
 
-    expect(result).toBe(getBundledSkillMdFromBundled('publisher'));
+    expect(result).toBe(getBundledSkillMdFromBundled('storefront'));
   });
 });
 
@@ -176,9 +176,9 @@ describe('getBundledSkillMd', () => {
     expect(result).toContain('scope3-agentic-partner');
   });
 
-  it('should return publisher skill.md content with publisher persona', () => {
-    const result = getBundledSkillMd('publisher');
-    expect(result).toContain('scope3-agentic-publisher');
+  it('should return storefront skill.md content with storefront persona', () => {
+    const result = getBundledSkillMd('storefront');
+    expect(result).toContain('scope3-agentic-storefront');
   });
 
   it('should contain expected version header', () => {

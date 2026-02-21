@@ -57,9 +57,9 @@ export class RestAdapter implements BaseAdapter {
   ): Promise<T> {
     const startTime = Date.now();
 
-    // Build URL: publisher uses /api/v1/{path}, others use /api/{version}/{persona}/{path}
+    // Build URL: storefront uses /api/v1/{path}, others use /api/{version}/{persona}/{path}
     let url: string;
-    if (this.persona === 'publisher') {
+    if (this.persona === 'storefront') {
       url = `${this.baseUrl}/api/v1${path}`;
     } else {
       const versionPath = this.version === 'latest' ? 'v2' : this.version;

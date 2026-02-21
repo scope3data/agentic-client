@@ -142,9 +142,9 @@ export class McpAdapter implements BaseAdapter {
 
     const startTime = Date.now();
 
-    // Build full API path: publisher uses /api/v1/{path}, others use /api/{version}/{persona}/{path}
-    if (this.persona === 'publisher') {
-      throw new Error('MCP adapter does not support the publisher persona. Use the REST adapter.');
+    // Build full API path: storefront uses /api/v1/{path}, others use /api/{version}/{persona}/{path}
+    if (this.persona === 'storefront') {
+      throw new Error('MCP adapter does not support the storefront persona. Use the REST adapter.');
     }
     const versionPath = this.version === 'latest' ? 'v2' : this.version;
     let fullPath = `/api/${versionPath}/${this.persona}${path}`;

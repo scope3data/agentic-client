@@ -10,7 +10,7 @@
 export type ApiVersion = 'v1' | 'v2' | 'latest';
 
 /** API persona - determines which API surface to use */
-export type Persona = 'buyer' | 'partner' | 'publisher';
+export type Persona = 'buyer' | 'partner' | 'storefront';
 
 /** Environment for API endpoints */
 export type Environment = 'production' | 'staging';
@@ -24,7 +24,7 @@ export type AdapterType = 'rest' | 'mcp';
 export interface Scope3ClientConfig {
   /** API key (Bearer token) for authentication */
   apiKey: string;
-  /** API persona - buyer, partner, or publisher */
+  /** API persona - buyer, partner, or storefront */
   persona: Persona;
   /** API version to use (default: 'v2') */
   version?: ApiVersion;
