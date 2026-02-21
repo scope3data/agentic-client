@@ -1,13 +1,10 @@
 ---
-name: scope3-agentic-buyer
-version: "2.0.0"
+name: scope3-buyer
 description: Scope3 Agentic Buyer API - AI-powered programmatic advertising
-api_base_url: https://api.agentic.scope3.com/api/v2/buyer
-auth:
-  type: bearer
-  header: Authorization
-  format: "Bearer {token}"
-  obtain_url: https://agentic.scope3.com/user-api-keys
+license: MIT
+metadata:
+  author: Scope3
+  version: "2.0.0"
 ---
 
 # Scope3 Agentic Buyer API
@@ -15,6 +12,8 @@ auth:
 This API enables AI-powered programmatic advertising with inventory discovery, campaign management, and creative orchestration.
 
 **Important**: This is a REST API accessed via the `api_call` tool. After reading this documentation, use `api_call` to make HTTP requests to the endpoints below.
+
+Base URL: `https://api.agentic.scope3.com/api/v2/buyer`
 
 ## ⚠️ CRITICAL: Exact Field Names Required
 

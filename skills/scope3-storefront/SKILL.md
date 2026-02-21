@@ -1,13 +1,10 @@
 ---
-name: scope3-agentic-storefront
-version: "1.0.0"
+name: scope3-storefront
 description: Scope3 Agentic Storefront API - Manage and list agents on the Scope3 marketplace
-api_base_url: https://api.agentic.scope3.com/api/v1
-auth:
-  type: bearer
-  header: Authorization
-  format: "Bearer {token}"
-  obtain_url: https://agentic.scope3.com/user-api-keys
+license: MIT
+metadata:
+  author: Scope3
+  version: "2.0.0"
 ---
 
 # Scope3 Agentic Storefront API
@@ -17,6 +14,8 @@ This API enables sellers (ad networks, sales houses, publishers, and other inven
 ## Authentication
 
 WorkOS OAuth — same flow as the builder MCP. Obtain a token via `scope3 login` and pass it as a Bearer token.
+
+Base URL: `https://api.agentic.scope3.com/api/v1`
 
 ## Public Endpoints (no auth)
 

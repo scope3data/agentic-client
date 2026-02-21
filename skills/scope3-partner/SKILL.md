@@ -1,13 +1,10 @@
 ---
-name: scope3-agentic-partner
-version: "2.0.0"
+name: scope3-partner
 description: Scope3 Agentic Partner API - Publisher and seller integrations
-api_base_url: https://api.agentic.scope3.com/api/v2/partner
-auth:
-  type: bearer
-  header: Authorization
-  format: "Bearer {token}"
-  obtain_url: https://agentic.scope3.com/user-api-keys
+license: MIT
+metadata:
+  author: Scope3
+  version: "2.0.0"
 ---
 
 # Scope3 Agentic Partner API
@@ -15,6 +12,8 @@ auth:
 This API enables partners to manage their activation partnerships and register agents with the Scope3 Agentic platform. Partners manage agents of different types (SALES, SIGNAL, CREATIVE, OUTCOME), configure authentication including OAuth, and buyers connect to agents via the Buyer API.
 
 **Important**: This is a REST API accessed via the `api_call` tool. After reading this documentation, use `api_call` to make HTTP requests to the endpoints below.
+
+Base URL: `https://api.agentic.scope3.com/api/v2/partner`
 
 ## ⚠️ CRITICAL: Always Ask for Account Policy
 

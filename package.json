@@ -59,6 +59,13 @@
     "url": "https://github.com/scope3data/agentic-client/issues"
   },
   "homepage": "https://github.com/scope3data/agentic-client#readme",
+  "agents": {
+    "skills": [
+      { "name": "scope3-buyer", "path": "./skills/scope3-buyer" },
+      { "name": "scope3-partner", "path": "./skills/scope3-partner" },
+      { "name": "scope3-storefront", "path": "./skills/scope3-storefront" }
+    ]
+  },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.20.1",
     "chalk": "^4.1.2",
