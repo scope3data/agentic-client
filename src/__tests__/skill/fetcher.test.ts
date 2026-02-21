@@ -178,7 +178,7 @@ describe('getBundledSkillMd', () => {
 
   it('should return storefront skill.md content with storefront persona', () => {
     const result = getBundledSkillMd('storefront');
-    expect(result).toContain('scope3-agentic-storefront');
+    expect(result).toContain('scope3-storefront-api');
   });
 
   it('should contain expected version header', () => {
