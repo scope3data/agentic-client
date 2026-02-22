@@ -7,9 +7,13 @@ import { Command } from 'commander';
 import { createClient, GlobalOptions } from '../utils';
 import { formatOutput, printError, printSuccess, OutputFormat } from '../format';
 
-export const storefrontAgentsCommand = new Command('agents').description(
-  'Manage storefront agents (storefront persona)'
+export const storefrontCommand = new Command('storefront').description(
+  'Manage your storefront agents on the Scope3 marketplace'
 );
+
+function createStorefrontClient(options: GlobalOptions) {
+  return createClient({ ...options, persona: 'storefront' });
+}
 
 function parseJson(value: string, flag: string): unknown {
   try {
@@ -22,13 +26,13 @@ function parseJson(value: string, flag: string): unknown {
 
 // ── Agent CRUD ────────────────────────────────────────────────────
 
-storefrontAgentsCommand
+storefrontCommand
   .command('list')
   .description('List all storefront agents')
   .action(async (_options: unknown, cmd: Command) => {
     try {
       const globalOpts = cmd.optsWithGlobals() as GlobalOptions;
-      const client = createClient(globalOpts);
+      const client = createStorefrontClient(globalOpts);
       formatOutput(await client.storefrontAgents.list(), globalOpts.format as OutputFormat);
     } catch (error) {
       printError(error instanceof Error ? error.message : 'Unknown error');
@@ -36,13 +40,13 @@ storefrontAgentsCommand
     }
   });
 
-storefrontAgentsCommand
+storefrontCommand
   .command('get <id>')
   .description('Get a storefront agent by platform ID')
   .action(async (id: string, _options: unknown, cmd: Command) => {
     try {
       const globalOpts = cmd.optsWithGlobals() as GlobalOptions;
-      const client = createClient(globalOpts);
+      const client = createStorefrontClient(globalOpts);
       formatOutput(await client.storefrontAgents.get(id), globalOpts.format as OutputFormat);
     } catch (error) {
       printError(error instanceof Error ? error.message : 'Unknown error');
@@ -50,7 +54,7 @@ storefrontAgentsCommand
     }
   });
 
-storefrontAgentsCommand
+storefrontCommand
   .command('create')
   .description('Create a new storefront agent')
   .requiredOption('--platform-id <id>', 'Platform ID (e.g. my-podcast-network)')
@@ -60,7 +64,7 @@ storefrontAgentsCommand
   .action(async (options, cmd) => {
     try {
       const globalOpts = cmd.optsWithGlobals() as GlobalOptions;
-      const client = createClient(globalOpts);
+      const client = createStorefrontClient(globalOpts);
       const result = await client.storefrontAgents.create({
         platformId: options.platformId,
         platformName: options.platformName,
@@ -76,7 +80,7 @@ storefrontAgentsCommand
     }
   });
 
-storefrontAgentsCommand
+storefrontCommand
   .command('update <id>')
   .description('Update a storefront agent')
   .option('--platform-name <name>', 'New display name')
@@ -86,7 +90,7 @@ storefrontAgentsCommand
   .action(async (id: string, options, cmd) => {
     try {
       const globalOpts = cmd.optsWithGlobals() as GlobalOptions;
-      const client = createClient(globalOpts);
+      const client = createStorefrontClient(globalOpts);
       const data: { platformName?: string; publisherDomain?: string; enabled?: boolean } = {};
       if (options.platformName) data.platformName = options.platformName;
       if (options.publisherDomain) data.publisherDomain = options.publisherDomain;
@@ -107,13 +111,13 @@ storefrontAgentsCommand
     }
   });
 
-storefrontAgentsCommand
+storefrontCommand
   .command('delete <id>')
   .description('Delete a storefront agent')
   .action(async (id: string, _options: unknown, cmd: Command) => {
     try {
       const globalOpts = cmd.optsWithGlobals() as GlobalOptions;
-      const client = createClient(globalOpts);
+      const client = createStorefrontClient(globalOpts);
       await client.storefrontAgents.delete(id);
       printSuccess(`Deleted agent: ${id}`);
     } catch (error) {
@@ -124,7 +128,7 @@ storefrontAgentsCommand
 
 // ── Product templates ─────────────────────────────────────────────
 
-storefrontAgentsCommand
+storefrontCommand
   .command('upload <id>')
   .description('Upload product templates from a CSV or JSON file')
   .option('--file <path>', 'Path to CSV or JSON file')
@@ -134,7 +138,7 @@ storefrontAgentsCommand
   .action(async (id: string, options, cmd) => {
     try {
       const globalOpts = cmd.optsWithGlobals() as GlobalOptions;
-      const client = createClient(globalOpts);
+      const client = createStorefrontClient(globalOpts);
       if (!options.file && !options.content) {
         printError('Either --file or --content is required');
         process.exit(1);
@@ -154,14 +158,14 @@ storefrontAgentsCommand
     }
   });
 
-storefrontAgentsCommand
+storefrontCommand
   .command('file-uploads <id>')
   .description('List product template file uploads for an agent')
   .option('--limit <n>', 'Maximum number of results', '20')
   .action(async (id: string, options, cmd) => {
     try {
       const globalOpts = cmd.optsWithGlobals() as GlobalOptions;
-      const client = createClient(globalOpts);
+      const client = createStorefrontClient(globalOpts);
       formatOutput(
         await client.storefrontAgents.fileUploads(id, parseInt(options.limit, 10)),
         globalOpts.format as OutputFormat
@@ -186,7 +190,7 @@ tracesCommand
   .action(async (id: string, options, cmd) => {
     try {
       const globalOpts = cmd.optsWithGlobals() as GlobalOptions;
-      const client = createClient(globalOpts);
+      const client = createStorefrontClient(globalOpts);
       formatOutput(
         await client.storefrontAgents.traces(id).list({
           capability: options.capability,
@@ -217,7 +221,7 @@ tracesCommand
   .action(async (id: string, options, cmd) => {
     try {
       const globalOpts = cmd.optsWithGlobals() as GlobalOptions;
-      const client = createClient(globalOpts);
+      const client = createStorefrontClient(globalOpts);
       const result = await client.storefrontAgents.traces(id).add({
         trace_type: options.traceType,
         capability: options.capability,
@@ -236,7 +240,7 @@ tracesCommand
     }
   });
 
-storefrontAgentsCommand.addCommand(tracesCommand);
+storefrontCommand.addCommand(tracesCommand);
 
 // ── Tasks (HITL) ──────────────────────────────────────────────────
 
@@ -251,7 +255,7 @@ tasksCommand
   .action(async (agentId: string, options, cmd) => {
     try {
       const globalOpts = cmd.optsWithGlobals() as GlobalOptions;
-      const client = createClient(globalOpts);
+      const client = createStorefrontClient(globalOpts);
       formatOutput(
         await client.storefrontAgents.tasks(agentId).list({
           status: options.status,
@@ -272,7 +276,7 @@ tasksCommand
   .action(async (agentId: string, taskId: string, _options: unknown, cmd: Command) => {
     try {
       const globalOpts = cmd.optsWithGlobals() as GlobalOptions;
-      const client = createClient(globalOpts);
+      const client = createStorefrontClient(globalOpts);
       formatOutput(
         await client.storefrontAgents.tasks(agentId).get(taskId),
         globalOpts.format as OutputFormat
@@ -290,7 +294,7 @@ tasksCommand
   .action(async (agentId: string, taskId: string, options, cmd) => {
     try {
       const globalOpts = cmd.optsWithGlobals() as GlobalOptions;
-      const client = createClient(globalOpts);
+      const client = createStorefrontClient(globalOpts);
       formatOutput(
         await client.storefrontAgents
           .tasks(agentId)
@@ -315,7 +319,7 @@ tasksCommand
   .action(async (agentId: string, taskId: string, options, cmd) => {
     try {
       const globalOpts = cmd.optsWithGlobals() as GlobalOptions;
-      const client = createClient(globalOpts);
+      const client = createStorefrontClient(globalOpts);
       const result = parseJson(options.result, '--result') as Record<string, unknown>;
       const correction = options.correction
         ? (parseJson(options.correction, '--correction') as {
@@ -335,7 +339,7 @@ tasksCommand
     }
   });
 
-storefrontAgentsCommand.addCommand(tasksCommand);
+storefrontCommand.addCommand(tasksCommand);
 
 // ── Capabilities ──────────────────────────────────────────────────
 
@@ -349,7 +353,7 @@ capabilitiesCommand
   .action(async (id: string, _options: unknown, cmd: Command) => {
     try {
       const globalOpts = cmd.optsWithGlobals() as GlobalOptions;
-      const client = createClient(globalOpts);
+      const client = createStorefrontClient(globalOpts);
       formatOutput(
         await client.storefrontAgents.getCapabilities(id),
         globalOpts.format as OutputFormat
@@ -370,7 +374,7 @@ capabilitiesCommand
   .action(async (id: string, options, cmd) => {
     try {
       const globalOpts = cmd.optsWithGlobals() as GlobalOptions;
-      const client = createClient(globalOpts);
+      const client = createStorefrontClient(globalOpts);
       const capabilities = parseJson(options.capabilities, '--capabilities') as Record<
         string,
         { mode: string }
@@ -386,11 +390,11 @@ capabilitiesCommand
     }
   });
 
-storefrontAgentsCommand.addCommand(capabilitiesCommand);
+storefrontCommand.addCommand(capabilitiesCommand);
 
 // ── Notifications ─────────────────────────────────────────────────
 
-storefrontAgentsCommand
+storefrontCommand
   .command('notifications <id>')
   .description('Configure HITL notification channels')
   .requiredOption(
@@ -400,7 +404,7 @@ storefrontAgentsCommand
   .action(async (id: string, options, cmd) => {
     try {
       const globalOpts = cmd.optsWithGlobals() as GlobalOptions;
-      const client = createClient(globalOpts);
+      const client = createStorefrontClient(globalOpts);
       const channels = parseJson(options.channels, '--channels') as {
         type: string;
         destination: string;
@@ -426,7 +430,7 @@ llmProviderCommand
   .action(async (id: string, _options: unknown, cmd: Command) => {
     try {
       const globalOpts = cmd.optsWithGlobals() as GlobalOptions;
-      const client = createClient(globalOpts);
+      const client = createStorefrontClient(globalOpts);
       formatOutput(
         await client.storefrontAgents.getLlmProvider(id),
         globalOpts.format as OutputFormat
@@ -446,7 +450,7 @@ llmProviderCommand
   .action(async (id: string, options, cmd) => {
     try {
       const globalOpts = cmd.optsWithGlobals() as GlobalOptions;
-      const client = createClient(globalOpts);
+      const client = createStorefrontClient(globalOpts);
       formatOutput(
         await client.storefrontAgents.setLlmProvider(id, {
           provider: options.provider,
@@ -462,7 +466,7 @@ llmProviderCommand
     }
   });
 
-storefrontAgentsCommand.addCommand(llmProviderCommand);
+storefrontCommand.addCommand(llmProviderCommand);
 
 // ── Inbound filters ───────────────────────────────────────────────
 
@@ -476,7 +480,7 @@ inboundFiltersCommand
   .action(async (id: string, _options: unknown, cmd: Command) => {
     try {
       const globalOpts = cmd.optsWithGlobals() as GlobalOptions;
-      const client = createClient(globalOpts);
+      const client = createStorefrontClient(globalOpts);
       formatOutput(
         await client.storefrontAgents.getInboundFilters(id),
         globalOpts.format as OutputFormat
@@ -497,7 +501,7 @@ inboundFiltersCommand
   .action(async (id: string, options, cmd) => {
     try {
       const globalOpts = cmd.optsWithGlobals() as GlobalOptions;
-      const client = createClient(globalOpts);
+      const client = createStorefrontClient(globalOpts);
       const filters = parseJson(options.filters, '--filters') as unknown[];
       formatOutput(
         await client.storefrontAgents.setInboundFilters(id, filters),
@@ -510,7 +514,7 @@ inboundFiltersCommand
     }
   });
 
-storefrontAgentsCommand.addCommand(inboundFiltersCommand);
+storefrontCommand.addCommand(inboundFiltersCommand);
 
 // ── Storefront sources ────────────────────────────────────────────
 
@@ -528,7 +532,7 @@ function makeGetSetCommand(
     .action(async (id: string, _opts: unknown, c: Command) => {
       try {
         const globalOpts = c.optsWithGlobals() as GlobalOptions;
-        const client = createClient(globalOpts);
+        const client = createStorefrontClient(globalOpts);
         formatOutput(
           await getFn.call(client.storefrontAgents, id),
           globalOpts.format as OutputFormat
@@ -545,7 +549,7 @@ function makeGetSetCommand(
     .action(async (id: string, opts: Record<string, string>, c: Command) => {
       try {
         const globalOpts = c.optsWithGlobals() as GlobalOptions;
-        const client = createClient(globalOpts);
+        const client = createStorefrontClient(globalOpts);
         const camelKey = optionName.replace(/-([a-z])/g, (_, l: string) => l.toUpperCase());
         const sources = parseJson(opts[camelKey], `--${optionName}`) as unknown[];
         formatOutput(
@@ -561,7 +565,7 @@ function makeGetSetCommand(
   return cmd;
 }
 
-storefrontAgentsCommand.addCommand(
+storefrontCommand.addCommand(
   makeGetSetCommand(
     'inventory-sources',
     'Manage inventory sources (ad servers, supply)',
@@ -581,7 +585,7 @@ storefrontAgentsCommand.addCommand(
     }
   )
 );
-storefrontAgentsCommand.addCommand(
+storefrontCommand.addCommand(
   makeGetSetCommand(
     'audience-sources',
     'Manage audience/identity sources',
@@ -601,7 +605,7 @@ storefrontAgentsCommand.addCommand(
     }
   )
 );
-storefrontAgentsCommand.addCommand(
+storefrontCommand.addCommand(
   makeGetSetCommand(
     'account-sources',
     'Manage CRM account sources',
@@ -621,7 +625,7 @@ storefrontAgentsCommand.addCommand(
     }
   )
 );
-storefrontAgentsCommand.addCommand(
+storefrontCommand.addCommand(
   makeGetSetCommand(
     'rate-cards',
     'Manage pricing rate cards',
@@ -644,14 +648,14 @@ storefrontAgentsCommand.addCommand(
 
 // ── Policy ────────────────────────────────────────────────────────
 
-storefrontAgentsCommand
+storefrontCommand
   .command('synthesize-policy <id>')
   .description('Synthesize and apply a decision policy from traces')
   .option('--dry-run', 'Preview policy without applying it')
   .action(async (id: string, options, cmd) => {
     try {
       const globalOpts = cmd.optsWithGlobals() as GlobalOptions;
-      const client = createClient(globalOpts);
+      const client = createStorefrontClient(globalOpts);
       formatOutput(
         await client.storefrontAgents.synthesizePolicy(id, !options.dryRun),
         globalOpts.format as OutputFormat
@@ -676,7 +680,7 @@ evalsCommand
   .action(async (id: string, options, cmd) => {
     try {
       const globalOpts = cmd.optsWithGlobals() as GlobalOptions;
-      const client = createClient(globalOpts);
+      const client = createStorefrontClient(globalOpts);
       const briefs = parseJson(options.briefs, '--briefs') as { brief: string }[];
       formatOutput(
         await client.storefrontAgents.evals.run(id, briefs),
@@ -694,7 +698,7 @@ evalsCommand
   .action(async (evalId: string, _options: unknown, cmd: Command) => {
     try {
       const globalOpts = cmd.optsWithGlobals() as GlobalOptions;
-      const client = createClient(globalOpts);
+      const client = createStorefrontClient(globalOpts);
       formatOutput(
         await client.storefrontAgents.evals.get(evalId),
         globalOpts.format as OutputFormat
@@ -713,7 +717,7 @@ evalsCommand
   .action(async (options, cmd) => {
     try {
       const globalOpts = cmd.optsWithGlobals() as GlobalOptions;
-      const client = createClient(globalOpts);
+      const client = createStorefrontClient(globalOpts);
       formatOutput(
         await client.storefrontAgents.evals.compare(options.evalA, options.evalB),
         globalOpts.format as OutputFormat
@@ -724,18 +728,18 @@ evalsCommand
     }
   });
 
-storefrontAgentsCommand.addCommand(evalsCommand);
+storefrontCommand.addCommand(evalsCommand);
 
 // ── Audit ─────────────────────────────────────────────────────────
 
-storefrontAgentsCommand
+storefrontCommand
   .command('audit <id>')
   .description('Show configuration change history for an agent')
   .option('--limit <n>', 'Maximum number of results', '50')
   .action(async (id: string, options, cmd) => {
     try {
       const globalOpts = cmd.optsWithGlobals() as GlobalOptions;
-      const client = createClient(globalOpts);
+      const client = createStorefrontClient(globalOpts);
       formatOutput(
         await client.storefrontAgents.audit(id, parseInt(options.limit, 10)),
         globalOpts.format as OutputFormat
@@ -746,4 +750,4 @@ storefrontAgentsCommand
     }
   });
 
-export { tasksCommand as storefrontTasksCommand };
+export { storefrontCommand as storefrontAgentsCommand, tasksCommand as storefrontTasksCommand };

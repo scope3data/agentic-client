@@ -28,7 +28,7 @@ import {
   partnersCommand,
   reportingCommand,
   salesAgentsCommand,
-  storefrontAgentsCommand,
+  storefrontCommand,
 } from './commands';
 import { loadConfig } from './utils';
 
@@ -83,7 +83,7 @@ program.addCommand(creativeSetsCommand);
 program.addCommand(partnersCommand);
 program.addCommand(reportingCommand);
 program.addCommand(salesAgentsCommand);
-program.addCommand(storefrontAgentsCommand);
+program.addCommand(storefrontCommand);
 
 // Add 'commands' command to list all available commands
 const commandsCmd = new Command('commands')
@@ -163,17 +163,15 @@ const commandsCmd = new Command('commands')
     console.log('    oauth-authorize-account <id>  Start per-account OAuth flow');
     console.log('    oauth-exchange <id>       Exchange OAuth code for tokens');
 
-    // Storefront persona
-    console.log(
-      chalk.magenta.bold('\n\nSTOREFRONT PERSONA') + chalk.gray(' (use --persona storefront)')
-    );
+    // Storefront commands
+    console.log(chalk.magenta.bold('\n\nSTOREFRONT'));
     console.log(
       chalk.gray(
         'For sellers (ad networks, sales houses, publishers) - manage agents on the Scope3 marketplace\n'
       )
     );
 
-    console.log(chalk.cyan('  agents'));
+    console.log(chalk.cyan('  storefront'));
     console.log('    list                      List all storefront agents');
     console.log('    get <id>                  Get agent by platform ID');
     console.log('    create                    Create a new storefront agent');
@@ -185,35 +183,37 @@ const commandsCmd = new Command('commands')
     console.log('    notifications <id>        Configure HITL notification channels');
     console.log('    audit <id>                Show config change history');
 
-    console.log(chalk.cyan('\n  agents traces'));
+    console.log(chalk.cyan('\n  storefront traces'));
     console.log('    list <id>                 List decision traces');
     console.log('    add <id>                  Add a decision or policy trace');
 
-    console.log(chalk.cyan('\n  agents tasks'));
+    console.log(chalk.cyan('\n  storefront tasks'));
     console.log('    list <agentId>            List HITL tasks');
     console.log('    get <agentId> <taskId>    Get a task by ID');
     console.log('    claim <agentId> <taskId>  Claim a pending task');
     console.log('    complete <agentId> <taskId>  Complete a claimed task');
 
-    console.log(chalk.cyan('\n  agents capabilities'));
+    console.log(chalk.cyan('\n  storefront capabilities'));
     console.log('    get <id>                  Get capability settings');
     console.log('    set <id>                  Update capability modes (automated/human/disabled)');
 
-    console.log(chalk.cyan('\n  agents llm-provider'));
+    console.log(chalk.cyan('\n  storefront llm-provider'));
     console.log('    get <id>                  Get LLM provider config');
     console.log('    set <id>                  Set LLM provider (openai, anthropic, gemini)');
 
-    console.log(chalk.cyan('\n  agents inbound-filters'));
+    console.log(chalk.cyan('\n  storefront inbound-filters'));
     console.log('    get <id>                  Get inbound brief filters');
     console.log('    set <id>                  Set inbound brief filters');
 
     console.log(
-      chalk.cyan('\n  agents inventory-sources | audience-sources | account-sources | rate-cards')
+      chalk.cyan(
+        '\n  storefront inventory-sources | audience-sources | account-sources | rate-cards'
+      )
     );
     console.log('    get <id>                  Get sources/rate cards');
     console.log('    set <id>                  Set sources/rate cards');
 
-    console.log(chalk.cyan('\n  agents evals'));
+    console.log(chalk.cyan('\n  storefront evals'));
     console.log('    run <id>                  Run eval briefs against an agent');
     console.log('    get <evalId>              Get eval result by ID');
     console.log('    compare                   Compare two eval results');
