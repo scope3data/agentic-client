@@ -39,6 +39,8 @@ export {
   ReportingResource,
   SalesAgentsResource,
   SignalsResource,
+  StorefrontAgentsResource,
+  StorefrontTasksResource,
   TestCohortsResource,
 } from './resources';
 
@@ -164,4 +166,18 @@ export type {
   ListAgentsParams,
   OAuthAuthorizeResponse,
   OAuthCallbackInput,
+  // Storefront
+  StorefrontAgent,
+  StorefrontAgentTemplate,
+  StorefrontAgentCounts,
+  CreateStorefrontAgentInput,
+  UpdateStorefrontAgentInput,
+  StorefrontTask,
+  StorefrontTaskStatus,
+  StorefrontTaskListParams,
+  ClaimTaskInput,
+  CompleteTaskInput,
+  StorefrontUploadInput,
+  StorefrontUploadResult,
+  StorefrontFileUpload,
 } from './types';

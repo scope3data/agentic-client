@@ -28,6 +28,7 @@ import {
   partnersCommand,
   reportingCommand,
   salesAgentsCommand,
+  storefrontAgentsCommand,
 } from './commands';
 import { loadConfig } from './utils';
 
@@ -82,6 +83,7 @@ program.addCommand(creativeSetsCommand);
 program.addCommand(partnersCommand);
 program.addCommand(reportingCommand);
 program.addCommand(salesAgentsCommand);
+program.addCommand(storefrontAgentsCommand);
 
 // Add 'commands' command to list all available commands
 const commandsCmd = new Command('commands')
@@ -170,9 +172,21 @@ const commandsCmd = new Command('commands')
         'For sellers (ad networks, sales houses, publishers) - manage agents on the Scope3 marketplace\n'
       )
     );
-    console.log(chalk.gray('  Uses the /api/v1 storefront API.'));
-    console.log(chalk.gray('  Run "scope3 login" to authenticate via WorkOS OAuth.'));
-    console.log(chalk.gray('  See skills/scope3-storefront/SKILL.md for the full API reference.'));
+
+    console.log(chalk.cyan('  storefront-agents'));
+    console.log('    list                      List all storefront agents');
+    console.log('    get <id>                  Get a storefront agent by platform ID');
+    console.log('    create                    Create a new storefront agent');
+    console.log('    update <id>               Update a storefront agent');
+    console.log('    delete <id>               Delete a storefront agent');
+    console.log('    upload <id>               Upload product templates (CSV or JSON)');
+    console.log('    file-uploads <id>         List product template file uploads');
+
+    console.log(chalk.cyan('\n  storefront-agents tasks'));
+    console.log('    list <agentId>            List HITL tasks for an agent');
+    console.log('    get <agentId> <taskId>    Get a task by ID');
+    console.log('    claim <agentId> <taskId>  Claim a pending task');
+    console.log('    complete <agentId> <taskId>  Complete a claimed task');
 
     // Config (all personas)
     console.log(chalk.yellow.bold('\n\nCONFIGURATION') + chalk.gray(' (all personas)'));

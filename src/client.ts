@@ -17,6 +17,7 @@ import { ReportingResource } from './resources/reporting';
 import { SalesAgentsResource } from './resources/sales-agents';
 import { PartnersResource } from './resources/partners';
 import { AgentsResource } from './resources/agents';
+import { StorefrontAgentsResource } from './resources/storefront-agents';
 import { fetchSkillMd, parseSkillMd, ParsedSkill } from './skill';
 
 /**
@@ -46,6 +47,9 @@ export class Scope3Client {
   // Partner persona resources
   private _partners?: PartnersResource;
   private _agents?: AgentsResource;
+
+  // Storefront persona resources
+  private _storefrontAgents?: StorefrontAgentsResource;
 
   /** The adapter used for API communication */
   private readonly adapter: BaseAdapter;
@@ -93,7 +97,7 @@ export class Scope3Client {
         break;
       case 'storefront':
         // Storefront persona: seller/network management via /api/v1
-        // Resources will be added as the storefront API stabilizes
+        this._storefrontAgents = new StorefrontAgentsResource(this.adapter);
         break;
     }
   }
@@ -146,6 +150,16 @@ export class Scope3Client {
       throw new Error('salesAgents is only available with the buyer persona');
     }
     return this._salesAgents;
+  }
+
+  // ── Storefront persona resources ─────────────────────────────────
+
+  /** Storefront agent management (storefront persona) */
+  get storefrontAgents(): StorefrontAgentsResource {
+    if (!this._storefrontAgents) {
+      throw new Error('storefrontAgents is only available with the storefront persona');
+    }
+    return this._storefrontAgents;
   }
 
   // ── Partner persona resources ────────────────────────────────────

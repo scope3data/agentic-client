@@ -11,4 +11,5 @@ export { creativeSetsCommand } from './creative-sets';
 export { partnersCommand, agentsCommand } from './partners';
 export { reportingCommand } from './reporting';
 export { salesAgentsCommand } from './sales-agents';
+export { storefrontAgentsCommand } from './storefront-agents';
 export { loginCommand, logoutCommand } from './login';

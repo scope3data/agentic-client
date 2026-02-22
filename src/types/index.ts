@@ -775,3 +775,107 @@ export interface OAuthCallbackInput {
   code: string;
   state: string;
 }
+
+// ============================================================================
+// Storefront Types (Storefront Persona)
+// ============================================================================
+
+export interface StorefrontAgentTemplate {
+  id: string;
+  name: string;
+  pricingModel: string;
+}
+
+export interface StorefrontAgentCounts {
+  templates: number;
+  formats: number;
+  creativeFormats: number;
+  targetingFields: number;
+  accounts: number;
+}
+
+export interface StorefrontAgent {
+  platformId: string;
+  platformName: string;
+  publisherDomain: string;
+  enabled: boolean;
+  templates?: StorefrontAgentTemplate[];
+  counts?: StorefrontAgentCounts;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateStorefrontAgentInput {
+  platformId: string;
+  platformName: string;
+  publisherDomain: string;
+  enabled?: boolean;
+}
+
+export interface UpdateStorefrontAgentInput {
+  platformName?: string;
+  publisherDomain?: string;
+  enabled?: boolean;
+}
+
+export type StorefrontTaskStatus = 'pending' | 'claimed' | 'completed';
+
+export interface StorefrontTask {
+  id: string;
+  capability: string;
+  status: StorefrontTaskStatus;
+  title: string;
+  description?: string;
+  claimedBy?: string;
+  claimedAt?: string;
+  completedAt?: string;
+  createdAt: string;
+  context?: Record<string, unknown>;
+  result?: Record<string, unknown>;
+  sessionId?: string;
+  expiresAt?: string;
+  updatedAt?: string;
+}
+
+export interface StorefrontTaskListParams {
+  status?: StorefrontTaskStatus;
+  capability?: string;
+  limit?: number;
+}
+
+export interface ClaimTaskInput {
+  claimed_by?: string;
+}
+
+export interface CompleteTaskInput {
+  result: Record<string, unknown>;
+  correction?: {
+    original: Record<string, unknown>;
+    corrected: Record<string, unknown>;
+    reason?: string;
+  };
+}
+
+export interface StorefrontUploadInput {
+  content: string;
+  file_type: 'csv' | 'json';
+  replace?: boolean;
+}
+
+export interface StorefrontUploadResult {
+  platformId: string;
+  templatesAdded: number;
+  templateIds: string[];
+  replaced: boolean;
+  traceId: string;
+  warnings: string[];
+}
+
+export interface StorefrontFileUpload {
+  id: string;
+  fileType: string;
+  templateCount: number;
+  traceId: string;
+  createdAt: string;
+  createdBy: string;
+}
