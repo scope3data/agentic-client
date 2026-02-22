@@ -7,9 +7,9 @@ import { Command } from 'commander';
 import { createClient, GlobalOptions } from '../utils';
 import { formatOutput, printError, printSuccess, OutputFormat } from '../format';
 
-export const storefrontCommand = new Command('storefront').description(
-  'Manage your storefront agents on the Scope3 marketplace'
-);
+export const storefrontCommand = new Command('storefront')
+  .alias('sf')
+  .description('Manage your storefront agents on the Scope3 marketplace');
 
 function createStorefrontClient(options: GlobalOptions) {
   return createClient({ ...options, persona: 'storefront' });
