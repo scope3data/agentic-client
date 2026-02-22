@@ -11,7 +11,8 @@
     "dist",
     "README.md",
     "LICENSE",
-    "skills"
+    "skills",
+    ".claude-plugin"
   ],
   "publishConfig": {
     "access": "public",
