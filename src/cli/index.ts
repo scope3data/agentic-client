@@ -172,7 +172,7 @@ const commandsCmd = new Command('commands')
     );
     console.log(chalk.gray('  Uses the /api/v1 storefront API.'));
     console.log(chalk.gray('  Run "scope3 login" to authenticate via WorkOS OAuth.'));
-    console.log(chalk.gray('  See skills/storefront.md for the full API reference.'));
+    console.log(chalk.gray('  See skills/scope3-storefront/SKILL.md for the full API reference.'));
 
     // Config (all personas)
     console.log(chalk.yellow.bold('\n\nCONFIGURATION') + chalk.gray(' (all personas)'));

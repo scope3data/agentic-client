@@ -2393,7 +2393,7 @@ When a brief arrives, the storefront automatically resolves the buyer's account,
 4. **Configure notifications** — \`PUT /agents/{id}/notifications\` for HITL alerts
 `;
 
-export const bundledAt = '2026-02-17T18:48:16.000Z';
+export const bundledAt = '2026-02-21T22:00:00.000Z';
 
 /**
  * Get bundled skill.md for a persona
