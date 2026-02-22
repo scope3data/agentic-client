@@ -7,7 +7,7 @@ import { Command } from 'commander';
 import { createClient, GlobalOptions } from '../utils';
 import { formatOutput, printError, printSuccess, OutputFormat } from '../format';
 
-export const storefrontAgentsCommand = new Command('storefront-agents').description(
+export const storefrontAgentsCommand = new Command('agents').description(
   'Manage storefront agents (storefront persona)'
 );
 

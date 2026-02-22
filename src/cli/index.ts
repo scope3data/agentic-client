@@ -173,7 +173,7 @@ const commandsCmd = new Command('commands')
       )
     );
 
-    console.log(chalk.cyan('  storefront-agents'));
+    console.log(chalk.cyan('  agents'));
     console.log('    list                      List all storefront agents');
     console.log('    get <id>                  Get a storefront agent by platform ID');
     console.log('    create                    Create a new storefront agent');
@@ -182,7 +182,7 @@ const commandsCmd = new Command('commands')
     console.log('    upload <id>               Upload product templates (CSV or JSON)');
     console.log('    file-uploads <id>         List product template file uploads');
 
-    console.log(chalk.cyan('\n  storefront-agents tasks'));
+    console.log(chalk.cyan('\n  agents tasks'));
     console.log('    list <agentId>            List HITL tasks for an agent');
     console.log('    get <agentId> <taskId>    Get a task by ID');
     console.log('    claim <agentId> <taskId>  Claim a pending task');
