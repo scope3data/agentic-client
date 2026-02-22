@@ -158,6 +158,17 @@ describe('fetchSkillMd', () => {
 
     expect(result).toBe(getBundledSkillMdFromBundled('storefront'));
   });
+
+  it('should ignore version option for storefront and still hit /api/v1/skill.md', async () => {
+    mockFetch.mockResolvedValue({
+      ok: true,
+      text: () => Promise.resolve('# Storefront Skill'),
+    });
+
+    await fetchSkillMd({ persona: 'storefront', version: 'v2' });
+
+    expect(mockFetch).toHaveBeenCalledWith(`${baseUrl}/api/v1/skill.md`, expect.anything());
+  });
 });
 
 describe('getBundledSkillMd', () => {

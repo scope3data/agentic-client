@@ -1,6 +1,5 @@
 {
   "name": "scope3",
-  "version": "2.0.0",
   "description": "AI-powered programmatic advertising — buyer, partner, and publisher/storefront APIs for the Scope3 Agentic Platform. Use for managing ad campaigns, discovering inventory, working with sales agents, and managing publisher storefronts.",
   "author": {
     "name": "Scope3",

@@ -1,7 +1,7 @@
 /**
  * Scope3 SDK - REST and MCP client for the Agentic Platform
  *
- * Supports 2 personas: buyer and partner.
+ * Supports 3 personas: buyer, partner, and storefront.
  *
  * @example
  * ```typescript

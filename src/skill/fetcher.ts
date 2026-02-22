@@ -24,6 +24,9 @@ export async function fetchSkillMd(options: FetchSkillOptions = {}): Promise<str
   const timeout = options.timeout ?? DEFAULT_TIMEOUT;
 
   // Build URL: storefront uses /api/v1/skill.md, others use /api/{version}/{persona}/skill.md
+  if (persona === 'storefront' && options.version !== undefined) {
+    logger.warn('version option has no effect for the storefront persona (always uses v1)');
+  }
   const url =
     persona === 'storefront'
       ? `${baseUrl}/api/v1/skill.md`
