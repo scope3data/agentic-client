@@ -43,7 +43,14 @@ export {
 } from './resources';
 
 // skill.md support
-export { fetchSkillMd, parseSkillMd, getBundledSkillMd } from './skill';
+export {
+  fetchSkillMd,
+  parseSkillMd,
+  getBundledSkillMd,
+  bundledBuyerSkillMd,
+  bundledPartnerSkillMd,
+  bundledStorefrontSkillMd,
+} from './skill';
 export type { ParsedSkill, SkillCommand, SkillParameter, SkillExample } from './skill';
 
 // Webhook server (optional)
