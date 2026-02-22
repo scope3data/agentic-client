@@ -40,7 +40,9 @@ export {
   SalesAgentsResource,
   SignalsResource,
   StorefrontAgentsResource,
+  StorefrontEvalsResource,
   StorefrontTasksResource,
+  StorefrontTracesResource,
   TestCohortsResource,
 } from './resources';
 

@@ -14,5 +14,7 @@ export { ReportingResource } from './reporting';
 export { SalesAgentsResource } from './sales-agents';
 export { SignalsResource } from './signals';
 export { StorefrontAgentsResource } from './storefront-agents';
+export { StorefrontEvalsResource } from './storefront-evals';
 export { StorefrontTasksResource } from './storefront-tasks';
+export { StorefrontTracesResource } from './storefront-traces';
 export { TestCohortsResource } from './test-cohorts';

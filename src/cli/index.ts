@@ -175,18 +175,48 @@ const commandsCmd = new Command('commands')
 
     console.log(chalk.cyan('  agents'));
     console.log('    list                      List all storefront agents');
-    console.log('    get <id>                  Get a storefront agent by platform ID');
+    console.log('    get <id>                  Get agent by platform ID');
     console.log('    create                    Create a new storefront agent');
     console.log('    update <id>               Update a storefront agent');
     console.log('    delete <id>               Delete a storefront agent');
     console.log('    upload <id>               Upload product templates (CSV or JSON)');
     console.log('    file-uploads <id>         List product template file uploads');
+    console.log('    synthesize-policy <id>    Synthesize policy from traces');
+    console.log('    notifications <id>        Configure HITL notification channels');
+    console.log('    audit <id>                Show config change history');
+
+    console.log(chalk.cyan('\n  agents traces'));
+    console.log('    list <id>                 List decision traces');
+    console.log('    add <id>                  Add a decision or policy trace');
 
     console.log(chalk.cyan('\n  agents tasks'));
-    console.log('    list <agentId>            List HITL tasks for an agent');
+    console.log('    list <agentId>            List HITL tasks');
     console.log('    get <agentId> <taskId>    Get a task by ID');
     console.log('    claim <agentId> <taskId>  Claim a pending task');
     console.log('    complete <agentId> <taskId>  Complete a claimed task');
+
+    console.log(chalk.cyan('\n  agents capabilities'));
+    console.log('    get <id>                  Get capability settings');
+    console.log('    set <id>                  Update capability modes (automated/human/disabled)');
+
+    console.log(chalk.cyan('\n  agents llm-provider'));
+    console.log('    get <id>                  Get LLM provider config');
+    console.log('    set <id>                  Set LLM provider (openai, anthropic, gemini)');
+
+    console.log(chalk.cyan('\n  agents inbound-filters'));
+    console.log('    get <id>                  Get inbound brief filters');
+    console.log('    set <id>                  Set inbound brief filters');
+
+    console.log(
+      chalk.cyan('\n  agents inventory-sources | audience-sources | account-sources | rate-cards')
+    );
+    console.log('    get <id>                  Get sources/rate cards');
+    console.log('    set <id>                  Set sources/rate cards');
+
+    console.log(chalk.cyan('\n  agents evals'));
+    console.log('    run <id>                  Run eval briefs against an agent');
+    console.log('    get <evalId>              Get eval result by ID');
+    console.log('    compare                   Compare two eval results');
 
     // Config (all personas)
     console.log(chalk.yellow.bold('\n\nCONFIGURATION') + chalk.gray(' (all personas)'));
