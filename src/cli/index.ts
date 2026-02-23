@@ -171,52 +171,78 @@ const commandsCmd = new Command('commands')
       )
     );
 
-    console.log(chalk.cyan('  storefront'));
-    console.log('    list                      List all storefront agents');
-    console.log('    get <id>                  Get agent by platform ID');
-    console.log('    create                    Create a new storefront agent');
-    console.log('    update <id>               Update a storefront agent');
-    console.log('    delete <id>               Delete a storefront agent');
-    console.log('    upload <id>               Upload product templates (CSV or JSON)');
-    console.log('    file-uploads <id>         List product template file uploads');
-    console.log('    synthesize-policy <id>    Synthesize policy from traces');
-    console.log('    notifications <id>        Configure HITL notification channels');
-    console.log('    audit <id>                Show config change history');
+    console.log(chalk.cyan('  storefront storefronts'));
+    console.log('    list                      List storefronts');
+    console.log('    get <id>                  Get storefront details');
+    console.log('    create                    Create a storefront');
+    console.log('    update [id]               Update storefront (or selected default)');
+    console.log('    delete [id]               Delete storefront (or selected default)');
+    console.log('    use <id>                  Set default storefront ID');
+    console.log('    current                   Show default storefront ID');
 
-    console.log(chalk.cyan('\n  storefront traces'));
-    console.log('    list <id>                 List decision traces');
-    console.log('    add <id>                  Add a decision or policy trace');
+    console.log(chalk.cyan('\n  storefront billing'));
+    console.log('    connect [storefrontId]    Provision Stripe Express account');
+    console.log('    get [storefrontId]        Get billing configuration');
+    console.log('    status [storefrontId]     Get Stripe status and balance');
+    console.log('    transactions [storefrontId]  List Stripe balance transactions');
+    console.log('    payouts [storefrontId]    List Stripe payouts');
+    console.log('    onboard [storefrontId]    Get fresh Stripe onboarding URL');
 
-    console.log(chalk.cyan('\n  storefront tasks'));
-    console.log('    list <agentId>            List HITL tasks');
-    console.log('    get <agentId> <taskId>    Get a task by ID');
-    console.log('    claim <agentId> <taskId>  Claim a pending task');
-    console.log('    complete <agentId> <taskId>  Complete a claimed task');
+    console.log(chalk.cyan('\n  storefront catalog'));
+    console.log('    upload [storefrontId]     Upload product templates');
+    console.log('    file-uploads [storefrontId]  List upload history');
 
-    console.log(chalk.cyan('\n  storefront capabilities'));
-    console.log('    get <id>                  Get capability settings');
-    console.log('    set <id>                  Update capability modes (automated/human/disabled)');
+    console.log(chalk.cyan('\n  storefront testing'));
+    console.log('    sandbox [storefrontId]    Provision/fetch sandbox account');
+    console.log('    test [storefrontId]       Run storefront test buyer suite');
+    console.log('    test-runs                 List/get historical test runs');
+    console.log('    evals                     Run/get/compare evals');
+    console.log('    sessions --session-id <id>  Get session tool-call thread');
 
-    console.log(chalk.cyan('\n  storefront llm-provider'));
-    console.log('    get <id>                  Get LLM provider config');
-    console.log('    set <id>                  Set LLM provider (openai, anthropic, gemini)');
+    console.log(chalk.cyan('\n  storefront diagnostics'));
+    console.log('    readiness [storefrontId]  Readiness checklist');
+    console.log('    coverage [storefrontId]   Capability coverage by source');
+    console.log('    health [storefrontId]     Operational health stats');
+    console.log('    doctor [storefrontId]     Combined readiness/health diagnostics');
+    console.log('    audit [storefrontId]      Show config change history');
 
-    console.log(chalk.cyan('\n  storefront inbound-filters'));
-    console.log('    get <id>                  Get inbound brief filters');
-    console.log('    set <id>                  Set inbound brief filters');
+    console.log(chalk.cyan('\n  storefront resale-program'));
+    console.log('    get [storefrontId]        Get resale program settings');
+    console.log('    set [storefrontId]        Set resale program settings');
+
+    console.log(chalk.cyan('\n  storefront hosted-sales-agent'));
+    console.log('    get [storefrontId]        Get hosted sales agent details');
+    console.log('    provision [storefrontId]  Provision hosted sales agent');
+
+    console.log(chalk.cyan('\n  storefront agents'));
+    console.log('    list [storefrontId]       List internal agents (hosted + external)');
+    console.log('    create [storefrontId]     Create an internal agent');
+    console.log('    connect [storefrontId]    Connect an existing external internal agent');
+    console.log('    disconnect [storefrontId] Disconnect an external internal agent');
+    console.log('    synthesize-policy [storefrontId]  Synthesize policy from traces');
+    console.log('    notifications [storefrontId]      Configure HITL notifications');
+
+    console.log(chalk.cyan('\n  storefront agents traces'));
+    console.log('    list [storefrontId]       List decision traces');
+    console.log('    add [storefrontId]        Add a decision or policy trace');
+
+    console.log(chalk.cyan('\n  storefront agents tasks'));
+    console.log('    list [storefrontId]       List HITL tasks');
+    console.log('    get <taskId> [storefrontId]      Get a task by ID');
+    console.log('    claim <taskId> [storefrontId]    Claim a pending task');
+    console.log('    complete <taskId> [storefrontId] Complete a claimed task');
+
+    console.log(chalk.cyan('\n  storefront agents capabilities | llm-provider | inbound-filters'));
+    console.log('    get [storefrontId]        Get configuration');
+    console.log('    set [storefrontId]        Set configuration');
 
     console.log(
       chalk.cyan(
-        '\n  storefront inventory-sources | audience-sources | account-sources | rate-cards'
+        '\n  storefront agents inventory-sources | audience-sources | account-sources | rate-cards | proposal-templates'
       )
     );
-    console.log('    get <id>                  Get sources/rate cards');
-    console.log('    set <id>                  Set sources/rate cards');
-
-    console.log(chalk.cyan('\n  storefront evals'));
-    console.log('    run <id>                  Run eval briefs against an agent');
-    console.log('    get <evalId>              Get eval result by ID');
-    console.log('    compare                   Compare two eval results');
+    console.log('    get [storefrontId]        Get source/pricing/template settings');
+    console.log('    set [storefrontId]        Set source/pricing/template settings');
 
     // Config (all personas)
     console.log(chalk.yellow.bold('\n\nCONFIGURATION') + chalk.gray(' (all personas)'));

@@ -18,6 +18,7 @@ export interface CliConfig {
   environment?: Environment;
   baseUrl?: string;
   persona?: Persona;
+  storefrontId?: string;
   oauthAccessToken?: string;
   /** Unix timestamp (seconds) when oauthAccessToken expires */
   tokenExpiry?: number;
@@ -34,6 +35,7 @@ export interface GlobalOptions {
   format?: string;
   debug?: boolean;
   persona?: string;
+  storefrontId?: string;
 }
 
 // Config file paths
@@ -87,6 +89,7 @@ export function getConfigForDisplay(config: CliConfig): Record<string, string | 
     environment: config.environment,
     baseUrl: config.baseUrl,
     persona: config.persona,
+    storefrontId: config.storefrontId,
     oauthToken: config.oauthAccessToken ? '<saved>' : undefined,
     tokenExpiry: config.tokenExpiry ? new Date(config.tokenExpiry * 1000).toISOString() : undefined,
   };

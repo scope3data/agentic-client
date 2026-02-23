@@ -1,5 +1,5 @@
 /**
- * Storefront agents resource for managing publisher agents
+ * Storefront agents resource for managing storefront agents
  */
 
 import { type BaseAdapter, validateResourceId } from '../adapters/base';
@@ -185,6 +185,154 @@ export class StorefrontAgentsResource {
     return this.adapter.request<unknown>('PUT', `/agents/${validateResourceId(id)}/rate-cards`, {
       rateCards,
     });
+  }
+
+  async getProposalTemplates(id: string): Promise<unknown> {
+    return this.adapter.request<unknown>(
+      'GET',
+      `/agents/${validateResourceId(id)}/proposal-templates`
+    );
+  }
+
+  async setProposalTemplates(id: string, proposalTemplates: unknown[]): Promise<unknown> {
+    return this.adapter.request<unknown>(
+      'PUT',
+      `/agents/${validateResourceId(id)}/proposal-templates`,
+      { proposalTemplates }
+    );
+  }
+
+  async getResaleProgram(id: string): Promise<unknown> {
+    return this.adapter.request<unknown>('GET', `/agents/${validateResourceId(id)}/resale-program`);
+  }
+
+  async setResaleProgram(id: string, resaleProgram: Record<string, unknown>): Promise<unknown> {
+    return this.adapter.request<unknown>(
+      'PUT',
+      `/agents/${validateResourceId(id)}/resale-program`,
+      { resaleProgram }
+    );
+  }
+
+  // ── Diagnostics ────────────────────────────────────────────────────────────
+
+  async getReadiness(id: string): Promise<unknown> {
+    return this.adapter.request<unknown>('GET', `/agents/${validateResourceId(id)}/readiness`);
+  }
+
+  async getCoverage(id: string): Promise<unknown> {
+    return this.adapter.request<unknown>('GET', `/agents/${validateResourceId(id)}/coverage`);
+  }
+
+  async getHealth(id: string): Promise<unknown> {
+    return this.adapter.request<unknown>('GET', `/agents/${validateResourceId(id)}/health`);
+  }
+
+  // ── Billing ────────────────────────────────────────────────────────────────
+
+  async connectBilling(id: string): Promise<unknown> {
+    return this.adapter.request<unknown>(
+      'POST',
+      `/agents/${validateResourceId(id)}/billing/connect`
+    );
+  }
+
+  async getBilling(id: string): Promise<unknown> {
+    return this.adapter.request<unknown>('GET', `/agents/${validateResourceId(id)}/billing`);
+  }
+
+  async getBillingStatus(id: string): Promise<unknown> {
+    return this.adapter.request<unknown>('GET', `/agents/${validateResourceId(id)}/billing/status`);
+  }
+
+  async listBillingTransactions(
+    id: string,
+    params?: { limit?: number; starting_after?: string }
+  ): Promise<unknown> {
+    return this.adapter.request<unknown>(
+      'GET',
+      `/agents/${validateResourceId(id)}/billing/transactions`,
+      undefined,
+      { params: { limit: params?.limit, starting_after: params?.starting_after } }
+    );
+  }
+
+  async listBillingPayouts(
+    id: string,
+    params?: { limit?: number; starting_after?: string }
+  ): Promise<unknown> {
+    return this.adapter.request<unknown>(
+      'GET',
+      `/agents/${validateResourceId(id)}/billing/payouts`,
+      undefined,
+      { params: { limit: params?.limit, starting_after: params?.starting_after } }
+    );
+  }
+
+  async getBillingOnboardingUrl(id: string): Promise<unknown> {
+    return this.adapter.request<unknown>(
+      'GET',
+      `/agents/${validateResourceId(id)}/billing/onboard`
+    );
+  }
+
+  // ── Hosted sales agent ─────────────────────────────────────────────────────
+
+  async provisionHostedSalesAgent(id: string): Promise<unknown> {
+    return this.adapter.request<unknown>(
+      'POST',
+      `/agents/${validateResourceId(id)}/hosted-sales-agent`
+    );
+  }
+
+  async getHostedSalesAgent(id: string): Promise<unknown> {
+    return this.adapter.request<unknown>(
+      'GET',
+      `/agents/${validateResourceId(id)}/hosted-sales-agent`
+    );
+  }
+
+  // ── Testing ────────────────────────────────────────────────────────────────
+
+  async provisionSandbox(id: string, data?: { advertiser_name?: string }): Promise<unknown> {
+    return this.adapter.request<unknown>(
+      'POST',
+      `/agents/${validateResourceId(id)}/sandbox`,
+      data ?? {}
+    );
+  }
+
+  async runTest(
+    id: string,
+    data?: { max_briefs?: number; scenarios?: string[] }
+  ): Promise<unknown> {
+    return this.adapter.request<unknown>(
+      'POST',
+      `/agents/${validateResourceId(id)}/test`,
+      data ?? {}
+    );
+  }
+
+  async listTestRuns(id: string, limit?: number): Promise<unknown> {
+    return this.adapter.request<unknown>(
+      'GET',
+      `/agents/${validateResourceId(id)}/test-runs`,
+      undefined,
+      { params: { limit } }
+    );
+  }
+
+  async getTestRun(testRunId: string): Promise<unknown> {
+    return this.adapter.request<unknown>('GET', `/test-runs/${validateResourceId(testRunId)}`);
+  }
+
+  async getSessionThread(id: string, sessionId: string): Promise<unknown> {
+    return this.adapter.request<unknown>(
+      'GET',
+      `/agents/${validateResourceId(id)}/sessions`,
+      undefined,
+      { params: { session_id: sessionId } }
+    );
   }
 
   // ── Policy and audit ──────────────────────────────────────────────

@@ -17,7 +17,7 @@ configCommand
   .command('set <key> <value>')
   .description('Set a configuration value')
   .action((key: string, value: string) => {
-    const validKeys = ['apiKey', 'version', 'environment', 'baseUrl', 'persona'];
+    const validKeys = ['apiKey', 'version', 'environment', 'baseUrl', 'persona', 'storefrontId'];
 
     if (!validKeys.includes(key)) {
       console.error(chalk.red(`Invalid config key: ${key}`));
