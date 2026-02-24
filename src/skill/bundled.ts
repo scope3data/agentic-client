@@ -2335,9 +2335,9 @@ Required: \`briefs\` (array, 1-50 items). Each must have a non-empty \`brief\` s
 }
 \`\`\`
 
-**Get eval** — \`GET /evals/{id}\`
+**Get eval** — \`GET /storefront/evals/{id}\`
 
-**Compare evals** — \`POST /evals/compare\`
+**Compare evals** — \`POST /storefront/evals/compare\`
 \`\`\`json
 { "eval_id_a": "uuid-1", "eval_id_b": "uuid-2" }
 \`\`\`

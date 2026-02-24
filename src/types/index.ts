@@ -799,6 +799,7 @@ export interface StorefrontAgent {
   platformName: string;
   publisherDomain: string;
   enabled: boolean;
+  role?: 'sales' | 'signals' | 'crm';
   templates?: StorefrontAgentTemplate[];
   counts?: StorefrontAgentCounts;
   createdAt: string;
@@ -806,16 +807,18 @@ export interface StorefrontAgent {
 }
 
 export interface CreateStorefrontAgentInput {
-  platformId: string;
+  platformId?: string;
   platformName: string;
   publisherDomain: string;
   enabled?: boolean;
+  role?: 'sales' | 'signals' | 'crm';
 }
 
 export interface UpdateStorefrontAgentInput {
   platformName?: string;
   publisherDomain?: string;
   enabled?: boolean;
+  role?: 'sales' | 'signals' | 'crm';
 }
 
 export type StorefrontTaskStatus = 'pending' | 'claimed' | 'completed';

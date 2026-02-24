@@ -13,32 +13,30 @@ import type {
 export class StorefrontTasksResource {
   constructor(
     private readonly adapter: BaseAdapter,
-    private readonly agentId: string
+    private readonly _agentId: string
   ) {}
 
   async list(params?: StorefrontTaskListParams): Promise<unknown> {
-    return this.adapter.request<unknown>(
-      'GET',
-      `/agents/${validateResourceId(this.agentId)}/tasks`,
-      undefined,
-      {
-        params: {
-          status: params?.status,
-          capability: params?.capability,
-          limit: params?.limit,
-        },
-      }
-    );
+    return this.adapter.request<unknown>('GET', '/storefront/tasks', undefined, {
+      params: {
+        status: params?.status,
+        capability: params?.capability,
+        limit: params?.limit,
+      },
+    });
   }
 
   async get(taskId: string): Promise<StorefrontTask> {
-    return this.adapter.request<StorefrontTask>('GET', `/tasks/${validateResourceId(taskId)}`);
+    return this.adapter.request<StorefrontTask>(
+      'GET',
+      `/storefront/tasks/${validateResourceId(taskId)}`
+    );
   }
 
   async claim(taskId: string, data?: ClaimTaskInput): Promise<unknown> {
     return this.adapter.request<unknown>(
       'POST',
-      `/tasks/${validateResourceId(taskId)}/claim`,
+      `/storefront/tasks/${validateResourceId(taskId)}/claim`,
       data ?? {}
     );
   }
@@ -46,7 +44,7 @@ export class StorefrontTasksResource {
   async complete(taskId: string, data: CompleteTaskInput): Promise<unknown> {
     return this.adapter.request<unknown>(
       'POST',
-      `/tasks/${validateResourceId(taskId)}/complete`,
+      `/storefront/tasks/${validateResourceId(taskId)}/complete`,
       data
     );
   }

@@ -2,12 +2,12 @@
  * Storefront traces resource for decision trace management
  */
 
-import { type BaseAdapter, validateResourceId } from '../adapters/base';
+import type { BaseAdapter } from '../adapters/base';
 
 export class StorefrontTracesResource {
   constructor(
     private readonly adapter: BaseAdapter,
-    private readonly agentId: string
+    private readonly _agentId: string
   ) {}
 
   async list(params?: {
@@ -16,19 +16,14 @@ export class StorefrontTracesResource {
     min_confidence?: number;
     limit?: number;
   }): Promise<unknown> {
-    return this.adapter.request<unknown>(
-      'GET',
-      `/agents/${validateResourceId(this.agentId)}/traces`,
-      undefined,
-      {
-        params: {
-          capability: params?.capability,
-          trace_type: params?.trace_type,
-          min_confidence: params?.min_confidence,
-          limit: params?.limit,
-        },
-      }
-    );
+    return this.adapter.request<unknown>('GET', '/storefront/traces', undefined, {
+      params: {
+        capability: params?.capability,
+        trace_type: params?.trace_type,
+        min_confidence: params?.min_confidence,
+        limit: params?.limit,
+      },
+    });
   }
 
   async add(data: {
@@ -39,10 +34,6 @@ export class StorefrontTracesResource {
     valid_until?: string;
     brief_context?: Record<string, unknown>;
   }): Promise<unknown> {
-    return this.adapter.request<unknown>(
-      'POST',
-      `/agents/${validateResourceId(this.agentId)}/traces`,
-      data
-    );
+    return this.adapter.request<unknown>('POST', '/storefront/traces', data);
   }
 }

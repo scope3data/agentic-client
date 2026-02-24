@@ -7,8 +7,9 @@ import { Command } from 'commander';
 import { createClient, GlobalOptions, loadConfig, saveConfig } from '../utils';
 import { formatOutput, printError, printSuccess, OutputFormat } from '../format';
 
-const STOREFRONT_ID_HINT =
-  'Use --storefront-id <id> or run "scope3 sf storefronts use <id>" to select a default storefront.';
+const SINGLETON_STOREFRONT_ID = 'storefront';
+
+const STOREFRONT_ID_HINT = 'Storefront is singleton-scoped. Use "storefront" if an ID is required.';
 
 export const storefrontCommand = new Command('storefront')
   .alias('sf')
@@ -43,6 +44,18 @@ function parseOptionalInt(value: string | undefined, flag: string): number | und
   return parsed;
 }
 
+function parseOptionalFloat(value: string | undefined, flag: string): number | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+  const parsed = Number(value);
+  if (Number.isNaN(parsed)) {
+    printError(`${flag} must be a valid number`);
+    process.exit(1);
+  }
+  return parsed;
+}
+
 function ensureArray(value: unknown, flag: string): unknown[] {
   if (!Array.isArray(value)) {
     printError(`${flag} must be a JSON array`);
@@ -59,81 +72,39 @@ function ensureObject(value: unknown, flag: string): Record<string, unknown> {
   return value as Record<string, unknown>;
 }
 
-function extractRecords(value: unknown): Record<string, unknown>[] {
-  if (Array.isArray(value)) {
-    return value.filter(
-      (item): item is Record<string, unknown> => !!item && typeof item === 'object'
-    );
-  }
-
-  if (value && typeof value === 'object') {
-    const record = value as Record<string, unknown>;
-
-    for (const key of ['agents', 'storefronts', 'items', 'data']) {
-      const nested = record[key];
-      if (Array.isArray(nested)) {
-        return extractRecords(nested);
-      }
-    }
-
-    return [record];
-  }
-
-  return [];
-}
-
-function extractStorefrontIds(listResult: unknown): string[] {
-  const ids = new Set<string>();
-  for (const record of extractRecords(listResult)) {
-    const platformId = record.platformId;
-    if (typeof platformId === 'string' && platformId.length > 0) {
-      ids.add(platformId);
-      continue;
-    }
-    const id = record.id;
-    if (typeof id === 'string' && id.length > 0) {
-      ids.add(id);
-    }
-  }
-  return [...ids];
-}
-
 async function resolveStorefrontId(
-  client: ReturnType<typeof createStorefrontClient>,
+  _client: ReturnType<typeof createStorefrontClient>,
   globalOpts: GlobalOptions,
   explicitId?: string
 ): Promise<string> {
   if (explicitId) {
-    return explicitId;
+    if (explicitId !== SINGLETON_STOREFRONT_ID) {
+      throw new Error(
+        `Only "${SINGLETON_STOREFRONT_ID}" is supported by the current storefront API. ${STOREFRONT_ID_HINT}`
+      );
+    }
+    return SINGLETON_STOREFRONT_ID;
   }
 
   if (globalOpts.storefrontId) {
-    return globalOpts.storefrontId;
+    if (globalOpts.storefrontId !== SINGLETON_STOREFRONT_ID) {
+      throw new Error(
+        `Only "${SINGLETON_STOREFRONT_ID}" is supported by the current storefront API. ${STOREFRONT_ID_HINT}`
+      );
+    }
+    return SINGLETON_STOREFRONT_ID;
   }
 
   const config = loadConfig();
   if (config.storefrontId) {
-    return config.storefrontId;
+    if (config.storefrontId !== SINGLETON_STOREFRONT_ID) {
+      throw new Error(
+        `Only "${SINGLETON_STOREFRONT_ID}" is supported by the current storefront API. ${STOREFRONT_ID_HINT}`
+      );
+    }
+    return SINGLETON_STOREFRONT_ID;
   }
-
-  const listResult = await client.storefrontAgents.list();
-  const storefrontIds = extractStorefrontIds(listResult);
-
-  if (storefrontIds.length === 1) {
-    config.storefrontId = storefrontIds[0];
-    saveConfig(config);
-    return storefrontIds[0];
-  }
-
-  if (storefrontIds.length === 0) {
-    throw new Error(
-      'No storefront found for your account. Create one with "scope3 sf storefronts create ...".'
-    );
-  }
-
-  throw new Error(
-    `Multiple storefronts found (${storefrontIds.join(', ')}). ${STOREFRONT_ID_HINT}`
-  );
+  return SINGLETON_STOREFRONT_ID;
 }
 
 async function getScopedContext(cmd: Command, explicitId?: string) {
@@ -152,7 +123,7 @@ function settledValue(result: PromiseSettledResult<unknown>): unknown {
   };
 }
 
-type SourceGroup = 'inventory' | 'audience' | 'account';
+type SourceGroup = 'inventory' | 'audience' | 'signals' | 'account';
 
 function isObjectRecord(value: unknown): value is Record<string, unknown> {
   return !!value && typeof value === 'object' && !Array.isArray(value);
@@ -169,6 +140,7 @@ function extractObjectArray(value: unknown): Record<string, unknown>[] {
   const candidates = [
     'inventorySources',
     'audienceSources',
+    'signalsSources',
     'accountSources',
     'sources',
     'items',
@@ -213,6 +185,12 @@ function getSourceGroupOps(
         set: (storefrontId: string, sources: unknown[]) =>
           client.storefrontAgents.setAudienceSources(storefrontId, sources),
       };
+    case 'signals':
+      return {
+        get: (storefrontId: string) => client.storefrontAgents.getSignalsSources(storefrontId),
+        set: (storefrontId: string, sources: unknown[]) =>
+          client.storefrontAgents.setSignalsSources(storefrontId, sources),
+      };
     case 'account':
       return {
         get: (storefrontId: string) => client.storefrontAgents.getAccountSources(storefrontId),
@@ -223,10 +201,10 @@ function getSourceGroupOps(
 }
 
 function asSourceGroup(value: string): SourceGroup {
-  if (value === 'inventory' || value === 'audience' || value === 'account') {
+  if (value === 'inventory' || value === 'audience' || value === 'signals' || value === 'account') {
     return value;
   }
-  printError('--source must be one of: inventory, audience, account');
+  printError('--source must be one of: inventory, audience, signals, account');
   process.exit(1);
 }
 
@@ -235,6 +213,19 @@ function asHostingMode(value: string): 'hosted' | 'external' {
     return value;
   }
   printError('--hosting must be one of: hosted, external');
+  process.exit(1);
+}
+
+type StorefrontRole = 'sales' | 'signals' | 'crm';
+
+function asStorefrontRole(value: string | undefined): StorefrontRole | undefined {
+  if (!value) {
+    return undefined;
+  }
+  if (value === 'sales' || value === 'signals' || value === 'crm') {
+    return value;
+  }
+  printError('--role must be one of: sales, signals, crm');
   process.exit(1);
 }
 
@@ -256,6 +247,7 @@ async function connectExternalAgent(
     agentUrl: string;
     agentType?: string;
     channels?: string;
+    domains?: string;
     activatesOn?: string;
     overwrite?: boolean;
   }
@@ -288,6 +280,18 @@ async function connectExternalAgent(
     const channels = parseCsv(options.channels);
     if (channels) {
       connection.channels = channels;
+    }
+  }
+
+  if (source === 'signals') {
+    const domains = parseCsv(options.domains);
+    if (!domains) {
+      throw new Error('--domains is required when --source signals');
+    }
+    connection.domains = domains;
+    const activatesOn = parseCsv(options.activatesOn);
+    if (activatesOn) {
+      connection.activatesOn = activatesOn;
     }
   }
 
@@ -339,9 +343,9 @@ storefrontsCommand
   });
 
 storefrontsCommand
-  .command('get <id>')
-  .description('Get storefront details by ID')
-  .action(async (id: string, _options: unknown, cmd: Command) => {
+  .command('get [id]')
+  .description('Get storefront details')
+  .action(async (id: string | undefined, _options: unknown, cmd: Command) => {
     try {
       const globalOpts = cmd.optsWithGlobals() as GlobalOptions;
       const client = createStorefrontClient(globalOpts);
@@ -354,10 +358,10 @@ storefrontsCommand
 
 storefrontsCommand
   .command('create')
-  .description('Create a new storefront')
-  .requiredOption('--platform-id <id>', 'Storefront ID (e.g. my-podcast-network)')
+  .description('Initialize storefront configuration')
   .requiredOption('--platform-name <name>', 'Display name')
   .requiredOption('--publisher-domain <domain>', 'Publisher domain (e.g. mypodcasts.com)')
+  .option('--role <role>', 'Storefront role: sales, signals, or crm')
   .option('--disabled', 'Create storefront in disabled state')
   .option('--use', 'Set this storefront as your default')
   .action(async (options, cmd) => {
@@ -365,18 +369,18 @@ storefrontsCommand
       const globalOpts = cmd.optsWithGlobals() as GlobalOptions;
       const client = createStorefrontClient(globalOpts);
       const result = await client.storefrontAgents.create({
-        platformId: options.platformId,
         platformName: options.platformName,
         publisherDomain: options.publisherDomain,
         enabled: !options.disabled,
+        role: asStorefrontRole(options.role),
       });
       formatOutput(result, globalOpts.format as OutputFormat);
       if (options.use) {
         const config = loadConfig();
-        config.storefrontId = options.platformId;
+        config.storefrontId = SINGLETON_STOREFRONT_ID;
         saveConfig(config);
       }
-      printSuccess(`Created storefront: ${options.platformId}`);
+      printSuccess('Storefront configured');
     } catch (error) {
       printError(error instanceof Error ? error.message : 'Unknown error');
       process.exit(1);
@@ -388,14 +392,21 @@ storefrontsCommand
   .description('Update a storefront (uses selected storefront if id omitted)')
   .option('--platform-name <name>', 'New display name')
   .option('--publisher-domain <domain>', 'New publisher domain')
+  .option('--role <role>', 'Storefront role: sales, signals, or crm')
   .option('--enabled', 'Enable storefront')
   .option('--disabled', 'Disable storefront')
   .action(async (id: string | undefined, options, cmd) => {
     try {
       const { globalOpts, client, storefrontId } = await getScopedContext(cmd, id);
-      const data: { platformName?: string; publisherDomain?: string; enabled?: boolean } = {};
+      const data: {
+        platformName?: string;
+        publisherDomain?: string;
+        enabled?: boolean;
+        role?: StorefrontRole;
+      } = {};
       if (options.platformName) data.platformName = options.platformName;
       if (options.publisherDomain) data.publisherDomain = options.publisherDomain;
+      if (options.role) data.role = asStorefrontRole(options.role);
       if (options.enabled) data.enabled = true;
       if (options.disabled) data.enabled = false;
       if (Object.keys(data).length === 0) {
@@ -416,19 +427,11 @@ storefrontsCommand
 
 storefrontsCommand
   .command('delete [id]')
-  .description('Delete a storefront (uses selected storefront if id omitted)')
+  .description('Delete a storefront (not supported by current API)')
   .action(async (id: string | undefined, _options: unknown, cmd: Command) => {
     try {
       const { client, storefrontId } = await getScopedContext(cmd, id);
       await client.storefrontAgents.delete(storefrontId);
-
-      const config = loadConfig();
-      if (config.storefrontId === storefrontId) {
-        delete config.storefrontId;
-        saveConfig(config);
-      }
-
-      printSuccess(`Deleted storefront: ${storefrontId}`);
     } catch (error) {
       printError(error instanceof Error ? error.message : 'Unknown error');
       process.exit(1);
@@ -437,9 +440,14 @@ storefrontsCommand
 
 storefrontsCommand
   .command('use <id>')
-  .description('Set default storefront ID for scoped storefront commands')
+  .description('Set default storefront ID for scoped storefront commands (must be "storefront")')
   .action(async (id: string, _options: unknown, cmd: Command) => {
     try {
+      if (id !== SINGLETON_STOREFRONT_ID) {
+        throw new Error(
+          `Only "${SINGLETON_STOREFRONT_ID}" is supported by the current storefront API`
+        );
+      }
       const globalOpts = cmd.optsWithGlobals() as GlobalOptions;
       const client = createStorefrontClient(globalOpts);
       await client.storefrontAgents.get(id);
@@ -485,9 +493,10 @@ agentsCommand
         client,
         storefrontId: resolvedId,
       } = await getScopedContext(cmd, storefrontId);
-      const [inventory, audience, accounts, hostedSales] = await Promise.allSettled([
+      const [inventory, audience, signals, accounts, hostedSales] = await Promise.allSettled([
         client.storefrontAgents.getInventorySources(resolvedId),
         client.storefrontAgents.getAudienceSources(resolvedId),
+        client.storefrontAgents.getSignalsSources(resolvedId),
         client.storefrontAgents.getAccountSources(resolvedId),
         client.storefrontAgents.getHostedSalesAgent(resolvedId),
       ]);
@@ -496,6 +505,8 @@ agentsCommand
         inventory.status === 'fulfilled' ? extractObjectArray(inventory.value) : [];
       const audienceSources =
         audience.status === 'fulfilled' ? extractObjectArray(audience.value) : [];
+      const signalsSources =
+        signals.status === 'fulfilled' ? extractObjectArray(signals.value) : [];
       const accountSources =
         accounts.status === 'fulfilled' ? extractObjectArray(accounts.value) : [];
 
@@ -536,6 +547,7 @@ agentsCommand
 
       addConnectedAgents('inventory', inventorySources);
       addConnectedAgents('audience', audienceSources);
+      addConnectedAgents('signals', signalsSources);
       addConnectedAgents('account', accountSources);
 
       if (hostedSales.status === 'fulfilled' && isObjectRecord(hostedSales.value)) {
@@ -569,6 +581,7 @@ agentsCommand
         response.raw = {
           inventorySources: settledValue(inventory),
           audienceSources: settledValue(audience),
+          signalsSources: settledValue(signals),
           accountSources: settledValue(accounts),
           hostedSalesAgent: settledValue(hostedSales),
         };
@@ -586,11 +599,15 @@ agentsCommand
   .description('Create an internal agent (hosted or externally connected)')
   .option('--hosting <hosting>', 'Hosting mode: hosted or external', 'external')
   .option('--agent-type <type>', 'Agent type (e.g. sales, signals, creative)', 'sales')
-  .option('--source <source>', 'Source type for external agents: inventory, audience, or account')
+  .option(
+    '--source <source>',
+    'Source type for external agents: inventory, audience, signals, or account'
+  )
   .option('--id <id>', 'Agent/connection ID (external)')
   .option('--name <name>', 'Connection display name (external)')
   .option('--agent-url <url>', 'Agent endpoint URL (external)')
   .option('--channels <csv>', 'Comma-separated channels (inventory sources)')
+  .option('--domains <csv>', 'Comma-separated domains (signals sources)')
   .option('--activates-on <csv>', 'Comma-separated inventory source IDs (audience sources)')
   .option('--overwrite', 'Overwrite an existing external connection with the same ID')
   .action(async (storefrontId: string | undefined, options, cmd: Command) => {
@@ -631,6 +648,7 @@ agentsCommand
           agentUrl,
           agentType: options.agentType,
           channels: options.channels,
+          domains: options.domains,
           activatesOn: options.activatesOn,
           overwrite: options.overwrite,
         }),
@@ -646,12 +664,16 @@ agentsCommand
 agentsCommand
   .command('connect [storefrontId]')
   .description('Connect an existing external internal agent via a source connector')
-  .requiredOption('--source <source>', 'Connection source type: inventory, audience, or account')
+  .requiredOption(
+    '--source <source>',
+    'Connection source type: inventory, audience, signals, or account'
+  )
   .requiredOption('--id <id>', 'Connection ID')
   .requiredOption('--name <name>', 'Connection display name')
   .requiredOption('--agent-url <url>', 'Agent endpoint URL')
   .option('--agent-type <type>', 'Agent type label (e.g. sales, signals, creative)')
   .option('--channels <csv>', 'Comma-separated channels (inventory sources)')
+  .option('--domains <csv>', 'Comma-separated domains (signals sources)')
   .option('--activates-on <csv>', 'Comma-separated inventory source IDs (audience sources)')
   .option('--overwrite', 'Overwrite an existing connection with the same ID')
   .action(async (storefrontId: string | undefined, options, cmd: Command) => {
@@ -669,6 +691,7 @@ agentsCommand
           agentUrl: options.agentUrl,
           agentType: options.agentType,
           channels: options.channels,
+          domains: options.domains,
           activatesOn: options.activatesOn,
           overwrite: options.overwrite,
         }),
@@ -684,7 +707,10 @@ agentsCommand
 agentsCommand
   .command('disconnect [storefrontId]')
   .description('Disconnect an external internal agent from a source connector')
-  .requiredOption('--source <source>', 'Connection source type: inventory, audience, or account')
+  .requiredOption(
+    '--source <source>',
+    'Connection source type: inventory, audience, signals, or account'
+  )
   .requiredOption('--id <id>', 'Connection ID to remove')
   .action(async (storefrontId: string | undefined, options, cmd: Command) => {
     try {
@@ -1255,6 +1281,27 @@ agentsCommand.addCommand(
 
 agentsCommand.addCommand(
   makeGetSetCommand(
+    'signals-sources',
+    'Manage signals provider sources',
+    'signals-sources',
+    function (
+      this: import('../../resources/storefront-agents').StorefrontAgentsResource,
+      id: string
+    ) {
+      return this.getSignalsSources(id);
+    },
+    function (
+      this: import('../../resources/storefront-agents').StorefrontAgentsResource,
+      id: string,
+      s: unknown[]
+    ) {
+      return this.setSignalsSources(id, s);
+    }
+  )
+);
+
+agentsCommand.addCommand(
+  makeGetSetCommand(
     'account-sources',
     'Manage CRM account sources',
     'account-sources',
@@ -1406,6 +1453,73 @@ billingCommand
         await client.storefrontAgents.getBilling(resolvedId),
         globalOpts.format as OutputFormat
       );
+    } catch (error) {
+      printError(error instanceof Error ? error.message : 'Unknown error');
+      process.exit(1);
+    }
+  });
+
+billingCommand
+  .command('set [storefrontId]')
+  .description('Update billing configuration')
+  .option('--platform-fee-percent <n>', 'Platform fee percent (0-100)')
+  .option(
+    '--fees <json>',
+    'JSON array of fee objects (e.g. \'[{"name":"DSP fee","feePercent":5}]\')'
+  )
+  .option('--currency <code>', 'Three-letter currency code (e.g. USD)')
+  .option('--default-net-days <days>', 'Default payout net terms in days')
+  .action(async (storefrontId: string | undefined, options, cmd: Command) => {
+    try {
+      const {
+        globalOpts,
+        client,
+        storefrontId: resolvedId,
+      } = await getScopedContext(cmd, storefrontId);
+      const payload: {
+        platformFeePercent?: number;
+        fees?: Array<{ name: string; description?: string; feePercent: number }>;
+        currency?: string;
+        defaultNetDays?: number;
+      } = {};
+
+      const platformFeePercent = parseOptionalFloat(
+        options.platformFeePercent,
+        '--platform-fee-percent'
+      );
+      if (platformFeePercent !== undefined) {
+        payload.platformFeePercent = platformFeePercent;
+      }
+
+      if (options.fees) {
+        payload.fees = ensureArray(parseJson(options.fees, '--fees'), '--fees') as Array<{
+          name: string;
+          description?: string;
+          feePercent: number;
+        }>;
+      }
+
+      if (options.currency) {
+        payload.currency = String(options.currency).toUpperCase();
+      }
+
+      const defaultNetDays = parseOptionalInt(options.defaultNetDays, '--default-net-days');
+      if (defaultNetDays !== undefined) {
+        payload.defaultNetDays = defaultNetDays;
+      }
+
+      if (Object.keys(payload).length === 0) {
+        printError(
+          'Provide at least one billing field: --platform-fee-percent, --fees, --currency, --default-net-days'
+        );
+        process.exit(1);
+      }
+
+      formatOutput(
+        await client.storefrontAgents.updateBilling(resolvedId, payload),
+        globalOpts.format as OutputFormat
+      );
+      printSuccess('Billing updated');
     } catch (error) {
       printError(error instanceof Error ? error.message : 'Unknown error');
       process.exit(1);

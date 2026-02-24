@@ -173,16 +173,17 @@ const commandsCmd = new Command('commands')
 
     console.log(chalk.cyan('  storefront storefronts'));
     console.log('    list                      List storefronts');
-    console.log('    get <id>                  Get storefront details');
-    console.log('    create                    Create a storefront');
+    console.log('    get [id]                  Get storefront details (singleton)');
+    console.log('    create                    Initialize storefront configuration');
     console.log('    update [id]               Update storefront (or selected default)');
-    console.log('    delete [id]               Delete storefront (or selected default)');
-    console.log('    use <id>                  Set default storefront ID');
+    console.log('    delete [id]               Delete storefront (not supported)');
+    console.log('    use <id>                  Set default storefront ID ("storefront" only)');
     console.log('    current                   Show default storefront ID');
 
     console.log(chalk.cyan('\n  storefront billing'));
     console.log('    connect [storefrontId]    Provision Stripe Express account');
     console.log('    get [storefrontId]        Get billing configuration');
+    console.log('    set [storefrontId]        Update billing configuration');
     console.log('    status [storefrontId]     Get Stripe status and balance');
     console.log('    transactions [storefrontId]  List Stripe balance transactions');
     console.log('    payouts [storefrontId]    List Stripe payouts');
@@ -238,7 +239,7 @@ const commandsCmd = new Command('commands')
 
     console.log(
       chalk.cyan(
-        '\n  storefront agents inventory-sources | audience-sources | account-sources | rate-cards | proposal-templates'
+        '\n  storefront agents inventory-sources | audience-sources | signals-sources | account-sources | rate-cards | proposal-templates'
       )
     );
     console.log('    get [storefrontId]        Get source/pricing/template settings');

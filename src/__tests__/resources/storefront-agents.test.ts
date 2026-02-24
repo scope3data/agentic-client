@@ -2,9 +2,9 @@
  * Tests for StorefrontAgentsResource and StorefrontTasksResource
  */
 
+import type { BaseAdapter } from '../../adapters/base';
 import { StorefrontAgentsResource } from '../../resources/storefront-agents';
 import { StorefrontTasksResource } from '../../resources/storefront-tasks';
-import type { BaseAdapter } from '../../adapters/base';
 
 describe('StorefrontAgentsResource', () => {
   let mockAdapter: jest.Mocked<BaseAdapter>;
@@ -23,348 +23,225 @@ describe('StorefrontAgentsResource', () => {
     resource = new StorefrontAgentsResource(mockAdapter);
   });
 
-  describe('list', () => {
-    it('should call GET /agents', async () => {
-      mockAdapter.request.mockResolvedValue({ agents: [] });
+  it('list should wrap GET /storefront response', async () => {
+    const storefront = { platformId: 'storefront' };
+    mockAdapter.request.mockResolvedValue(storefront);
 
-      await resource.list();
+    const result = await resource.list();
 
-      expect(mockAdapter.request).toHaveBeenCalledWith('GET', '/agents');
+    expect(mockAdapter.request).toHaveBeenCalledWith('GET', '/storefront');
+    expect(result).toEqual({ storefronts: [storefront] });
+  });
+
+  it('get should call GET /storefront', async () => {
+    mockAdapter.request.mockResolvedValue({ platformId: 'storefront' });
+
+    await resource.get('storefront');
+
+    expect(mockAdapter.request).toHaveBeenCalledWith('GET', '/storefront');
+  });
+
+  it('create should call PUT /storefront and omit platformId', async () => {
+    mockAdapter.request.mockResolvedValue({ platformId: 'storefront' });
+
+    await resource.create({
+      platformId: 'legacy-id',
+      platformName: 'My Storefront',
+      publisherDomain: 'example.com',
+      role: 'sales',
+    });
+
+    expect(mockAdapter.request).toHaveBeenCalledWith('PUT', '/storefront', {
+      platformName: 'My Storefront',
+      publisherDomain: 'example.com',
+      role: 'sales',
     });
   });
 
-  describe('get', () => {
-    it('should call GET /agents/{id}', async () => {
-      mockAdapter.request.mockResolvedValue({ platformId: 'my-network' });
+  it('update should call PUT /storefront', async () => {
+    mockAdapter.request.mockResolvedValue({ platformId: 'storefront' });
 
-      await resource.get('my-network');
+    await resource.update('storefront', { platformName: 'Updated Name' });
 
-      expect(mockAdapter.request).toHaveBeenCalledWith('GET', '/agents/my-network');
+    expect(mockAdapter.request).toHaveBeenCalledWith('PUT', '/storefront', {
+      platformName: 'Updated Name',
     });
   });
 
-  describe('create', () => {
-    it('should call POST /agents with body', async () => {
-      mockAdapter.request.mockResolvedValue({ platformId: 'my-network' });
+  it('delete should throw because storefront deletion is unsupported', async () => {
+    await expect(resource.delete('storefront')).rejects.toThrow(
+      'Storefront deletion is no longer supported by the Storefront API'
+    );
+    expect(mockAdapter.request).not.toHaveBeenCalled();
+  });
 
-      await resource.create({
-        platformId: 'my-network',
-        platformName: 'My Network',
-        publisherDomain: 'mynetwork.com',
-      });
+  it('upload should call POST /storefront/upload', async () => {
+    mockAdapter.request.mockResolvedValue({ templatesAdded: 1 });
 
-      expect(mockAdapter.request).toHaveBeenCalledWith('POST', '/agents', {
-        platformId: 'my-network',
-        platformName: 'My Network',
-        publisherDomain: 'mynetwork.com',
-      });
+    await resource.upload('storefront', {
+      content: 'name,description\nBanner,Display',
+      file_type: 'csv',
+      replace: true,
+    });
+
+    expect(mockAdapter.request).toHaveBeenCalledWith('POST', '/storefront/upload', {
+      content: 'name,description\nBanner,Display',
+      file_type: 'csv',
+      replace: true,
     });
   });
 
-  describe('update', () => {
-    it('should call PUT /agents/{id} with body', async () => {
-      mockAdapter.request.mockResolvedValue({ platformId: 'my-network' });
+  it('fileUploads should call GET /storefront/file-uploads', async () => {
+    mockAdapter.request.mockResolvedValue({ uploads: [] });
 
-      await resource.update('my-network', { platformName: 'Updated Name' });
+    await resource.fileUploads('storefront', 10);
 
-      expect(mockAdapter.request).toHaveBeenCalledWith('PUT', '/agents/my-network', {
-        platformName: 'Updated Name',
-      });
+    expect(mockAdapter.request).toHaveBeenCalledWith('GET', '/storefront/file-uploads', undefined, {
+      params: { limit: 10 },
     });
   });
 
-  describe('delete', () => {
-    it('should call DELETE /agents/{id}', async () => {
-      mockAdapter.request.mockResolvedValue(undefined);
+  it('signals sources should use /storefront/signals-sources', async () => {
+    mockAdapter.request.mockResolvedValue({ signalsSources: [] });
 
-      await resource.delete('my-network');
+    await resource.getSignalsSources('storefront');
+    await resource.setSignalsSources('storefront', [{ id: 'sig-1' }]);
 
-      expect(mockAdapter.request).toHaveBeenCalledWith('DELETE', '/agents/my-network');
+    expect(mockAdapter.request).toHaveBeenNthCalledWith(1, 'GET', '/storefront/signals-sources');
+    expect(mockAdapter.request).toHaveBeenNthCalledWith(2, 'PUT', '/storefront/signals-sources', {
+      signalsSources: [{ id: 'sig-1' }],
     });
   });
 
-  describe('upload', () => {
-    it('should call POST /agents/{id}/upload', async () => {
-      mockAdapter.request.mockResolvedValue({ templatesAdded: 1 });
+  it('proposal templates should use /storefront/proposal-templates', async () => {
+    mockAdapter.request.mockResolvedValue({ proposalTemplates: [] });
 
-      await resource.upload('my-network', {
-        content: 'name,description\nBanner,Display',
-        file_type: 'csv',
-        replace: true,
-      });
+    await resource.getProposalTemplates('storefront');
+    await resource.setProposalTemplates('storefront', [{ id: 'template-1' }]);
 
-      expect(mockAdapter.request).toHaveBeenCalledWith('POST', '/agents/my-network/upload', {
-        content: 'name,description\nBanner,Display',
-        file_type: 'csv',
-        replace: true,
-      });
-    });
+    expect(mockAdapter.request).toHaveBeenNthCalledWith(1, 'GET', '/storefront/proposal-templates');
+    expect(mockAdapter.request).toHaveBeenNthCalledWith(
+      2,
+      'PUT',
+      '/storefront/proposal-templates',
+      {
+        proposalTemplates: [{ id: 'template-1' }],
+      }
+    );
   });
 
-  describe('fileUploads', () => {
-    it('should call GET /agents/{id}/file-uploads with limit', async () => {
-      mockAdapter.request.mockResolvedValue({ uploads: [] });
+  it('diagnostics should use singleton storefront routes', async () => {
+    mockAdapter.request.mockResolvedValue({});
 
-      await resource.fileUploads('my-network', 10);
+    await resource.getReadiness('storefront');
+    await resource.getCoverage('storefront');
+    await resource.getHealth('storefront');
 
-      expect(mockAdapter.request).toHaveBeenCalledWith(
-        'GET',
-        '/agents/my-network/file-uploads',
-        undefined,
-        { params: { limit: 10 } }
-      );
-    });
+    expect(mockAdapter.request).toHaveBeenNthCalledWith(1, 'GET', '/storefront/readiness');
+    expect(mockAdapter.request).toHaveBeenNthCalledWith(2, 'GET', '/storefront/coverage');
+    expect(mockAdapter.request).toHaveBeenNthCalledWith(3, 'GET', '/storefront/health');
   });
 
-  describe('proposal templates', () => {
-    it('should call GET /agents/{id}/proposal-templates', async () => {
-      mockAdapter.request.mockResolvedValue({ proposalTemplates: [] });
+  it('billing routes should use /storefront/billing*', async () => {
+    mockAdapter.request.mockResolvedValue({});
 
-      await resource.getProposalTemplates('my-network');
+    await resource.connectBilling('storefront');
+    await resource.getBilling('storefront');
+    await resource.updateBilling('storefront', { platformFeePercent: 5.5 });
+    await resource.getBillingStatus('storefront');
+    await resource.listBillingTransactions('storefront', { limit: 25, starting_after: 'txn_123' });
+    await resource.listBillingPayouts('storefront', { limit: 10, starting_after: 'po_123' });
+    await resource.getBillingOnboardingUrl('storefront');
 
-      expect(mockAdapter.request).toHaveBeenCalledWith(
-        'GET',
-        '/agents/my-network/proposal-templates'
-      );
+    expect(mockAdapter.request).toHaveBeenNthCalledWith(1, 'POST', '/storefront/billing/connect');
+    expect(mockAdapter.request).toHaveBeenNthCalledWith(2, 'GET', '/storefront/billing');
+    expect(mockAdapter.request).toHaveBeenNthCalledWith(3, 'PUT', '/storefront/billing', {
+      platformFeePercent: 5.5,
     });
-
-    it('should call PUT /agents/{id}/proposal-templates with body', async () => {
-      mockAdapter.request.mockResolvedValue({ ok: true });
-
-      await resource.setProposalTemplates('my-network', [
-        {
-          id: 'template-1',
-          name: 'Q1 Standard',
-          description: 'Standard package',
-          lineItems: [{ templateId: 'prod-1' }],
-          price: { amount: 1000 },
-        },
-      ]);
-
-      expect(mockAdapter.request).toHaveBeenCalledWith(
-        'PUT',
-        '/agents/my-network/proposal-templates',
-        {
-          proposalTemplates: [
-            {
-              id: 'template-1',
-              name: 'Q1 Standard',
-              description: 'Standard package',
-              lineItems: [{ templateId: 'prod-1' }],
-              price: { amount: 1000 },
-            },
-          ],
-        }
-      );
-    });
+    expect(mockAdapter.request).toHaveBeenNthCalledWith(4, 'GET', '/storefront/billing/status');
+    expect(mockAdapter.request).toHaveBeenNthCalledWith(
+      5,
+      'GET',
+      '/storefront/billing/transactions',
+      undefined,
+      { params: { limit: 25, starting_after: 'txn_123' } }
+    );
+    expect(mockAdapter.request).toHaveBeenNthCalledWith(
+      6,
+      'GET',
+      '/storefront/billing/payouts',
+      undefined,
+      { params: { limit: 10, starting_after: 'po_123' } }
+    );
+    expect(mockAdapter.request).toHaveBeenNthCalledWith(7, 'GET', '/storefront/billing/onboard');
   });
 
-  describe('diagnostics', () => {
-    it('should call GET /agents/{id}/readiness', async () => {
-      mockAdapter.request.mockResolvedValue({ ready: true });
+  it('hosted sales agent routes should use /storefront/hosted-sales-agent', async () => {
+    mockAdapter.request.mockResolvedValue({});
 
-      await resource.getReadiness('my-network');
+    await resource.provisionHostedSalesAgent('storefront');
+    await resource.getHostedSalesAgent('storefront');
 
-      expect(mockAdapter.request).toHaveBeenCalledWith('GET', '/agents/my-network/readiness');
-    });
-
-    it('should call GET /agents/{id}/coverage', async () => {
-      mockAdapter.request.mockResolvedValue({ sources: [] });
-
-      await resource.getCoverage('my-network');
-
-      expect(mockAdapter.request).toHaveBeenCalledWith('GET', '/agents/my-network/coverage');
-    });
-
-    it('should call GET /agents/{id}/health', async () => {
-      mockAdapter.request.mockResolvedValue({ uptime: 1 });
-
-      await resource.getHealth('my-network');
-
-      expect(mockAdapter.request).toHaveBeenCalledWith('GET', '/agents/my-network/health');
-    });
+    expect(mockAdapter.request).toHaveBeenNthCalledWith(
+      1,
+      'POST',
+      '/storefront/hosted-sales-agent'
+    );
+    expect(mockAdapter.request).toHaveBeenNthCalledWith(2, 'GET', '/storefront/hosted-sales-agent');
   });
 
-  describe('resale program', () => {
-    it('should call GET /agents/{id}/resale-program', async () => {
-      mockAdapter.request.mockResolvedValue({ resaleProgram: { enabled: true } });
+  it('testing endpoints should use singleton storefront routes', async () => {
+    mockAdapter.request.mockResolvedValue({});
 
-      await resource.getResaleProgram('my-network');
+    await resource.provisionSandbox('storefront', { advertiser_name: 'Test Advertiser' });
+    await resource.runTest('storefront', { max_briefs: 5, scenarios: ['baseline'] });
+    await resource.listTestRuns('storefront', 20);
+    await resource.getTestRun('tr_1');
+    await resource.getSessionThread('storefront', 'session-123');
 
-      expect(mockAdapter.request).toHaveBeenCalledWith('GET', '/agents/my-network/resale-program');
+    expect(mockAdapter.request).toHaveBeenNthCalledWith(1, 'POST', '/storefront/sandbox', {
+      advertiser_name: 'Test Advertiser',
     });
-
-    it('should call PUT /agents/{id}/resale-program with body', async () => {
-      mockAdapter.request.mockResolvedValue({ ok: true });
-
-      await resource.setResaleProgram('my-network', {
-        enabled: true,
-        accessPolicy: 'approval_required',
-      });
-
-      expect(mockAdapter.request).toHaveBeenCalledWith('PUT', '/agents/my-network/resale-program', {
-        resaleProgram: {
-          enabled: true,
-          accessPolicy: 'approval_required',
-        },
-      });
+    expect(mockAdapter.request).toHaveBeenNthCalledWith(2, 'POST', '/storefront/test', {
+      max_briefs: 5,
+      scenarios: ['baseline'],
     });
+    expect(mockAdapter.request).toHaveBeenNthCalledWith(
+      3,
+      'GET',
+      '/storefront/test-runs',
+      undefined,
+      { params: { limit: 20 } }
+    );
+    expect(mockAdapter.request).toHaveBeenNthCalledWith(4, 'GET', '/storefront/test-runs/tr_1');
+    expect(mockAdapter.request).toHaveBeenNthCalledWith(
+      5,
+      'GET',
+      '/storefront/sessions',
+      undefined,
+      { params: { session_id: 'session-123' } }
+    );
   });
 
-  describe('billing', () => {
-    it('should call POST /agents/{id}/billing/connect', async () => {
-      mockAdapter.request.mockResolvedValue({ onboardingUrl: 'https://stripe.com/onboard' });
-
-      await resource.connectBilling('my-network');
-
-      expect(mockAdapter.request).toHaveBeenCalledWith(
-        'POST',
-        '/agents/my-network/billing/connect'
-      );
-    });
-
-    it('should call GET /agents/{id}/billing', async () => {
-      mockAdapter.request.mockResolvedValue({ provider: 'stripe' });
-
-      await resource.getBilling('my-network');
-
-      expect(mockAdapter.request).toHaveBeenCalledWith('GET', '/agents/my-network/billing');
-    });
-
-    it('should call GET /agents/{id}/billing/status', async () => {
-      mockAdapter.request.mockResolvedValue({ charges_enabled: true });
-
-      await resource.getBillingStatus('my-network');
-
-      expect(mockAdapter.request).toHaveBeenCalledWith('GET', '/agents/my-network/billing/status');
-    });
-
-    it('should call GET /agents/{id}/billing/transactions with params', async () => {
-      mockAdapter.request.mockResolvedValue({ data: [] });
-
-      await resource.listBillingTransactions('my-network', {
-        limit: 25,
-        starting_after: 'txn_123',
-      });
-
-      expect(mockAdapter.request).toHaveBeenCalledWith(
-        'GET',
-        '/agents/my-network/billing/transactions',
-        undefined,
-        { params: { limit: 25, starting_after: 'txn_123' } }
-      );
-    });
-
-    it('should call GET /agents/{id}/billing/payouts with params', async () => {
-      mockAdapter.request.mockResolvedValue({ data: [] });
-
-      await resource.listBillingPayouts('my-network', {
-        limit: 10,
-        starting_after: 'po_123',
-      });
-
-      expect(mockAdapter.request).toHaveBeenCalledWith(
-        'GET',
-        '/agents/my-network/billing/payouts',
-        undefined,
-        { params: { limit: 10, starting_after: 'po_123' } }
-      );
-    });
-
-    it('should call GET /agents/{id}/billing/onboard', async () => {
-      mockAdapter.request.mockResolvedValue({ onboardingUrl: 'https://stripe.com/onboard' });
-
-      await resource.getBillingOnboardingUrl('my-network');
-
-      expect(mockAdapter.request).toHaveBeenCalledWith('GET', '/agents/my-network/billing/onboard');
-    });
+  it('tasks() should return StorefrontTasksResource', () => {
+    const tasks = resource.tasks('storefront');
+    expect(tasks).toBeInstanceOf(StorefrontTasksResource);
   });
 
-  describe('hosted sales agent', () => {
-    it('should call POST /agents/{id}/hosted-sales-agent', async () => {
-      mockAdapter.request.mockResolvedValue({ mcpUrl: 'https://example.com/mcp' });
+  it('evals should use /storefront/evals* endpoints', async () => {
+    mockAdapter.request.mockResolvedValue({});
 
-      await resource.provisionHostedSalesAgent('my-network');
+    await resource.evals.run('storefront', [{ brief: 'Find podcast sponsorships' }]);
+    await resource.evals.get('ev_123');
+    await resource.evals.compare('ev_a', 'ev_b');
 
-      expect(mockAdapter.request).toHaveBeenCalledWith(
-        'POST',
-        '/agents/my-network/hosted-sales-agent'
-      );
+    expect(mockAdapter.request).toHaveBeenNthCalledWith(1, 'POST', '/storefront/evals', {
+      briefs: [{ brief: 'Find podcast sponsorships' }],
     });
-
-    it('should call GET /agents/{id}/hosted-sales-agent', async () => {
-      mockAdapter.request.mockResolvedValue({ mcpUrl: 'https://example.com/mcp' });
-
-      await resource.getHostedSalesAgent('my-network');
-
-      expect(mockAdapter.request).toHaveBeenCalledWith(
-        'GET',
-        '/agents/my-network/hosted-sales-agent'
-      );
-    });
-  });
-
-  describe('testing endpoints', () => {
-    it('should call POST /agents/{id}/sandbox with body', async () => {
-      mockAdapter.request.mockResolvedValue({ sandboxAccountId: 'acc_1' });
-
-      await resource.provisionSandbox('my-network', { advertiser_name: 'Test Advertiser' });
-
-      expect(mockAdapter.request).toHaveBeenCalledWith('POST', '/agents/my-network/sandbox', {
-        advertiser_name: 'Test Advertiser',
-      });
-    });
-
-    it('should call POST /agents/{id}/test with body', async () => {
-      mockAdapter.request.mockResolvedValue({ testRunId: 'tr_1' });
-
-      await resource.runTest('my-network', { max_briefs: 5, scenarios: ['baseline'] });
-
-      expect(mockAdapter.request).toHaveBeenCalledWith('POST', '/agents/my-network/test', {
-        max_briefs: 5,
-        scenarios: ['baseline'],
-      });
-    });
-
-    it('should call GET /agents/{id}/test-runs with limit', async () => {
-      mockAdapter.request.mockResolvedValue({ items: [] });
-
-      await resource.listTestRuns('my-network', 20);
-
-      expect(mockAdapter.request).toHaveBeenCalledWith(
-        'GET',
-        '/agents/my-network/test-runs',
-        undefined,
-        { params: { limit: 20 } }
-      );
-    });
-
-    it('should call GET /test-runs/{id}', async () => {
-      mockAdapter.request.mockResolvedValue({ id: 'tr_1' });
-
-      await resource.getTestRun('tr_1');
-
-      expect(mockAdapter.request).toHaveBeenCalledWith('GET', '/test-runs/tr_1');
-    });
-
-    it('should call GET /agents/{id}/sessions with session_id query param', async () => {
-      mockAdapter.request.mockResolvedValue({ events: [] });
-
-      await resource.getSessionThread('my-network', 'session-123');
-
-      expect(mockAdapter.request).toHaveBeenCalledWith(
-        'GET',
-        '/agents/my-network/sessions',
-        undefined,
-        { params: { session_id: 'session-123' } }
-      );
-    });
-  });
-
-  describe('tasks', () => {
-    it('should return a StorefrontTasksResource scoped to the agent', () => {
-      const tasks = resource.tasks('my-network');
-      expect(tasks).toBeInstanceOf(StorefrontTasksResource);
+    expect(mockAdapter.request).toHaveBeenNthCalledWith(2, 'GET', '/storefront/evals/ev_123');
+    expect(mockAdapter.request).toHaveBeenNthCalledWith(3, 'POST', '/storefront/evals/compare', {
+      eval_id_a: 'ev_a',
+      eval_id_b: 'ev_b',
     });
   });
 });
@@ -383,98 +260,56 @@ describe('StorefrontTasksResource', () => {
       connect: jest.fn(),
       disconnect: jest.fn(),
     };
-    resource = new StorefrontTasksResource(mockAdapter, 'my-network');
+    resource = new StorefrontTasksResource(mockAdapter, 'storefront');
   });
 
-  describe('list', () => {
-    it('should call GET /agents/{agentId}/tasks', async () => {
-      mockAdapter.request.mockResolvedValue({ tasks: [] });
+  it('list should call GET /storefront/tasks', async () => {
+    mockAdapter.request.mockResolvedValue({ tasks: [] });
 
-      await resource.list();
+    await resource.list({ status: 'pending', capability: 'get_products', limit: 5 });
 
-      expect(mockAdapter.request).toHaveBeenCalledWith(
-        'GET',
-        '/agents/my-network/tasks',
-        undefined,
-        { params: { status: undefined, capability: undefined, limit: undefined } }
-      );
-    });
-
-    it('should pass filter params', async () => {
-      mockAdapter.request.mockResolvedValue({ tasks: [] });
-
-      await resource.list({ status: 'pending', capability: 'get_products', limit: 5 });
-
-      expect(mockAdapter.request).toHaveBeenCalledWith(
-        'GET',
-        '/agents/my-network/tasks',
-        undefined,
-        { params: { status: 'pending', capability: 'get_products', limit: 5 } }
-      );
+    expect(mockAdapter.request).toHaveBeenCalledWith('GET', '/storefront/tasks', undefined, {
+      params: { status: 'pending', capability: 'get_products', limit: 5 },
     });
   });
 
-  describe('get', () => {
-    it('should call GET /tasks/{taskId}', async () => {
-      mockAdapter.request.mockResolvedValue({ id: 'task-1', status: 'pending' });
+  it('get should call GET /storefront/tasks/{id}', async () => {
+    mockAdapter.request.mockResolvedValue({ id: 'task-1', status: 'pending' });
 
-      await resource.get('task-1');
+    await resource.get('task-1');
 
-      expect(mockAdapter.request).toHaveBeenCalledWith('GET', '/tasks/task-1');
+    expect(mockAdapter.request).toHaveBeenCalledWith('GET', '/storefront/tasks/task-1');
+  });
+
+  it('claim should call POST /storefront/tasks/{id}/claim', async () => {
+    mockAdapter.request.mockResolvedValue({ id: 'task-1', status: 'claimed' });
+
+    await resource.claim('task-1', { claimed_by: 'reviewer' });
+
+    expect(mockAdapter.request).toHaveBeenCalledWith('POST', '/storefront/tasks/task-1/claim', {
+      claimed_by: 'reviewer',
     });
   });
 
-  describe('claim', () => {
-    it('should call POST /tasks/{taskId}/claim', async () => {
-      mockAdapter.request.mockResolvedValue({ id: 'task-1', status: 'claimed' });
+  it('complete should call POST /storefront/tasks/{id}/complete', async () => {
+    mockAdapter.request.mockResolvedValue({ id: 'task-1', status: 'completed' });
 
-      await resource.claim('task-1', { claimed_by: 'reviewer' });
-
-      expect(mockAdapter.request).toHaveBeenCalledWith('POST', '/tasks/task-1/claim', {
-        claimed_by: 'reviewer',
-      });
+    await resource.complete('task-1', {
+      result: { approved: true },
+      correction: {
+        original: { budget: 1000 },
+        corrected: { budget: 500 },
+        reason: 'Budget cap exceeded',
+      },
     });
 
-    it('should default to empty body when no input provided', async () => {
-      mockAdapter.request.mockResolvedValue({ id: 'task-1', status: 'claimed' });
-
-      await resource.claim('task-1');
-
-      expect(mockAdapter.request).toHaveBeenCalledWith('POST', '/tasks/task-1/claim', {});
-    });
-  });
-
-  describe('complete', () => {
-    it('should call POST /tasks/{taskId}/complete with result', async () => {
-      mockAdapter.request.mockResolvedValue({ id: 'task-1', status: 'completed' });
-
-      await resource.complete('task-1', { result: { approved: true } });
-
-      expect(mockAdapter.request).toHaveBeenCalledWith('POST', '/tasks/task-1/complete', {
-        result: { approved: true },
-      });
-    });
-
-    it('should include correction when provided', async () => {
-      mockAdapter.request.mockResolvedValue({ id: 'task-1', status: 'completed' });
-
-      await resource.complete('task-1', {
-        result: { approved: true },
-        correction: {
-          original: { budget: 1000 },
-          corrected: { budget: 500 },
-          reason: 'Budget cap exceeded',
-        },
-      });
-
-      expect(mockAdapter.request).toHaveBeenCalledWith('POST', '/tasks/task-1/complete', {
-        result: { approved: true },
-        correction: {
-          original: { budget: 1000 },
-          corrected: { budget: 500 },
-          reason: 'Budget cap exceeded',
-        },
-      });
+    expect(mockAdapter.request).toHaveBeenCalledWith('POST', '/storefront/tasks/task-1/complete', {
+      result: { approved: true },
+      correction: {
+        original: { budget: 1000 },
+        corrected: { budget: 500 },
+        reason: 'Budget cap exceeded',
+      },
     });
   });
 });
