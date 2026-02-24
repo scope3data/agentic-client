@@ -1,5 +1,11 @@
 # @scope3/agentic-client
 
+## 2.1.0
+
+### Minor Changes
+
+- [#120](https://github.com/scope3data/agentic-client/pull/120) [`dcda3ca`](https://github.com/scope3data/agentic-client/commit/dcda3caab2aceeefa1e6fd4b340754f43364c6a5) Thanks [@bokelley](https://github.com/bokelley)! - Add `scope3 login` and `scope3 logout` commands for browser-based OAuth authentication via WorkOS. Credentials are saved to `~/.scope3/config.json` and used automatically for subsequent API calls.
+
 ## 2.0.0
 
 ### Major Changes
