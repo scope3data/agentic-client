@@ -1,8 +1,9 @@
 name: API Drift Detection
 
 on:
+  schedule:
+    - cron: '0 8 * * 1-5' # 8am UTC, weekdays
   workflow_dispatch:
-    # Triggered externally via API call from platform-functions scheduler
 
 jobs:
   detect-drift:
