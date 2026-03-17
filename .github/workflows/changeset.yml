@@ -10,26 +10,33 @@ jobs:
     name: Check for Changeset
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - uses: scope3data/actions/node/install@node/install/v1
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci
 
       - name: Check for changeset
         run: |
           # Skip changeset check for release PRs created by changesets/action
           if [[ "${{ github.head_ref }}" == changeset-release/* ]] || [[ "${{ github.event.pull_request.title }}" == "chore: version packages" ]]; then
-            echo "Skipping changeset check for release PR"
+            echo "⏭️  Skipping changeset check for release PR"
             exit 0
           fi
 
           if [ -z "$(ls -A .changeset/*.md 2>/dev/null | grep -v README)" ]; then
-            echo "No changeset found. Please add a changeset by running 'npm run changeset'"
+            echo "❌ No changeset found. Please add a changeset by running 'npm run changeset'"
             echo ""
             echo "Changesets help track version changes and generate changelogs."
             echo "Run 'npm run changeset' and follow the prompts to create one."
             exit 1
           else
-            echo "Changeset found"
+            echo "✅ Changeset found"
           fi
