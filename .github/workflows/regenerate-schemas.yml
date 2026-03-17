@@ -72,6 +72,8 @@ jobs:
 
       - name: Notify Slack
         if: steps.changes.outputs.has_changes == 'true'
+        env:
+          SLACK_TOKEN: ${{ secrets.SLACK_NOTIF_BOT_TOKEN }}
         uses: scope3data/actions/slack/post@slack/post/v2
         with:
           channel: '#agentic-service-alerts'
