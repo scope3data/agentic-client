@@ -17,9 +17,15 @@ const BUYER_SPEC_PATH = join(__dirname, '../.context/attachments/buyer-api-v2.ya
 function postProcessSchemas(filePath: string) {
   let content = readFileSync(filePath, 'utf-8');
 
+  // Remove @zodios/core import - we only need the Zod schemas, not the Zodios client
+  content = content.replace(/^import\s+\{[^}]*\}\s+from\s+['"]@zodios\/core['"];?\s*\n/m, '');
+
+  // Remove the Zodios endpoints/api/client definitions at the end of the file
+  content = content.replace(/\n*const\s+endpoints\s*=\s*makeApi\([\s\S]*$/, '\n');
+
   if (!content.startsWith('/* eslint-disable */')) {
     content =
-      '/* eslint-disable */\n// @ts-nocheck\n// Auto-generated from OpenAPI spec - DO NOT EDIT\n\n' + content;
+      '/* eslint-disable */\n// Auto-generated from OpenAPI spec - DO NOT EDIT\n\n' + content;
   }
 
   content = content.replace(/z\.union\(\[\]\)/g, 'z.never()');

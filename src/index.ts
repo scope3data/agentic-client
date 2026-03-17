@@ -50,6 +50,9 @@ export type { ParsedSkill, SkillCommand, SkillParameter, SkillExample } from './
 export { WebhookServer } from './webhook-server';
 export type { WebhookEvent, WebhookHandler, WebhookServerConfig } from './webhook-server';
 
+// Schemas (auto-generated from OpenAPI spec)
+export * from './schemas';
+
 // Types
 export type {
   // Config
