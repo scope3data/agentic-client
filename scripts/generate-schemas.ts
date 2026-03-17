@@ -17,8 +17,9 @@ const BUYER_SPEC_PATH = join(__dirname, '../.context/attachments/buyer-api-v2.ya
 function postProcessSchemas(filePath: string) {
   let content = readFileSync(filePath, 'utf-8');
 
-  if (!content.startsWith('// @ts-nocheck')) {
-    content = '// @ts-nocheck\n// Auto-generated from OpenAPI spec - DO NOT EDIT\n\n' + content;
+  if (!content.startsWith('/* eslint-disable */')) {
+    content =
+      '/* eslint-disable */\n// @ts-nocheck\n// Auto-generated from OpenAPI spec - DO NOT EDIT\n\n' + content;
   }
 
   content = content.replace(/z\.union\(\[\]\)/g, 'z.never()');
@@ -42,6 +43,8 @@ function postProcessSchemas(filePath: string) {
     /\.regex\(\s*\/\^[^/]+\(\?:Z\)\)\$\/\s*\)\s*\.datetime\(\{ offset: true \}\)/g,
     '.datetime({ offset: true })'
   );
+
+  content = content.replace(/\\&/g, '&');
 
   writeFileSync(filePath, content);
 

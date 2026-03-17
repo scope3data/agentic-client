@@ -1,3 +1,4 @@
+/* eslint-disable */
 // @ts-nocheck
 // Auto-generated from OpenAPI spec - DO NOT EDIT
 
@@ -2219,7 +2220,7 @@ Send a JSON-RPC 2.0 request with:
     &quot;content&quot;: [
       {
         &quot;type&quot;: &quot;text&quot;,
-        &quot;text&quot;: &quot;{ \&quot;advertisers\&quot;: [...], \&quot;total\&quot;: 5 }&quot;
+        &quot;text&quot;: &quot;{ &quot;advertisers&quot;: [...], &quot;total&quot;: 5 }&quot;
       }
     ]
   }
