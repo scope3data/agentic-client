@@ -17,11 +17,15 @@ jobs:
         id: drift
         run: |
           set +e
-          OUTPUT=$(npm run --silent detect-drift -- --json 2>&1)
+          OUTPUT=$(npm run --silent detect-drift -- --json 2>/tmp/drift-stderr.log)
           EXIT_CODE=$?
           echo "exit_code=$EXIT_CODE" >> $GITHUB_OUTPUT
           echo "$OUTPUT" > drift-report.json
           cat drift-report.json
+          if [ -s /tmp/drift-stderr.log ]; then
+            echo "--- stderr ---"
+            cat /tmp/drift-stderr.log
+          fi
           exit 0
 
       - name: Parse drift report
