@@ -1,0 +1,95 @@
+name: Regenerate Schemas
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  regenerate:
+    name: Regenerate Schemas and Open PR
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ vars.SCOPE3_WIZARD_APP_ID }}
+          private-key: ${{ secrets.SCOPE3_WIZARD_APP_PRIVATE_KEY }}
+
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+
+      - uses: scope3data/actions/node/install@node/install/v1
+
+      - name: Regenerate schemas
+        run: npm run generate-schemas
+
+      - name: Check for changes
+        id: changes
+        run: |
+          if git diff --quiet src/schemas/; then
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+          else
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create PR
+        if: steps.changes.outputs.has_changes == 'true'
+        id: create-pr
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: |
+          BRANCH="chore/regenerate-schemas-$(date +%Y%m%d-%H%M%S)"
+
+          git config user.name "scope3-wizard[bot]"
+          git config user.email "${{ vars.SCOPE3_WIZARD_APP_ID }}+scope3-wizard[bot]@users.noreply.github.com"
+
+          git checkout -b "$BRANCH"
+          git add src/schemas/
+          git commit -m "chore: regenerate schemas from OpenAPI spec"
+          git push origin "$BRANCH"
+
+          PR_URL=$(gh pr create \
+            --title "chore: regenerate schemas from OpenAPI spec" \
+            --body "Auto-generated PR to update Zod schemas from the latest OpenAPI specification.
+
+          This PR was triggered by the drift detection workflow.
+
+          ## Changes
+          - Regenerated \`src/schemas/buyer.ts\` from OpenAPI spec
+
+          ## Review
+          Please review the schema changes before merging." \
+            --base main \
+            --head "$BRANCH")
+
+          echo "pr_url=$PR_URL" >> $GITHUB_OUTPUT
+
+      - name: Notify Slack
+        if: steps.changes.outputs.has_changes == 'true'
+        uses: scope3data/actions/slack/post@slack/post/v2
+        with:
+          channel: '#agentic-service-alerts'
+          header: 'SDK Schemas Regenerated'
+          content: |
+            [
+              {
+                "type": "section",
+                "text": {
+                  "type": "mrkdwn",
+                  "text": "A PR has been created to update Zod schemas from the latest OpenAPI specification."
+                }
+              },
+              {
+                "type": "section",
+                "text": {
+                  "type": "mrkdwn",
+                  "text": "<${{ steps.create-pr.outputs.pr_url }}|View Pull Request>"
+                }
+              }
+            ]

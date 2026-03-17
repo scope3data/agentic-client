@@ -21,6 +21,7 @@
     "node_modules",
     "dist",
     "**/*.test.ts",
-    "src/types/outcome-agent-api.ts"
+    "src/types/outcome-agent-api.ts",
+    "src/schemas/**/*"
   ]
 }

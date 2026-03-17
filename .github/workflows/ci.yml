@@ -12,11 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-      - run: npm ci
+      - uses: scope3data/actions/node/install@node/install/v1
       - run: npm run type-check
 
   lint:
@@ -24,11 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-      - run: npm ci
+      - uses: scope3data/actions/node/install@node/install/v1
       - run: npm run lint
 
   format-check:
@@ -36,11 +28,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-      - run: npm ci
+      - uses: scope3data/actions/node/install@node/install/v1
       - run: npx prettier --check "src/**/*.ts"
 
   test:
@@ -48,11 +36,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-      - run: npm ci
+      - uses: scope3data/actions/node/install@node/install/v1
       - run: npm test
 
   build:
@@ -60,9 +44,5 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-      - run: npm ci
+      - uses: scope3data/actions/node/install@node/install/v1
       - run: npm run build
