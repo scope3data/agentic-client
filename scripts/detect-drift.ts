@@ -1,6 +1,9 @@
 #!/usr/bin/env npx tsx
 /**
- * Detects drift between skill.md and SDK implementations for v2 Buyer API
+ * Three-way drift detection: OpenAPI spec vs skill.md vs SDK source code
+ *
+ * The OpenAPI spec is treated as the source of truth. The report shows
+ * where skill.md and SDK code each diverge from it.
  *
  * Usage:
  *   npx tsx scripts/detect-drift.ts [options]
@@ -9,99 +12,30 @@
  *   --json  Output JSON (auto-enabled in GitHub Actions)
  */
 
+import { readdirSync, readFileSync } from 'fs';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
+import { parse as parseYaml } from 'yaml';
 import { fetchSkillMd } from '../src/skill/fetcher';
 import { parseSkillMd } from '../src/skill/parser';
 
-interface SdkMethod {
-  method: string;
-  path: string;
-  sdk: string;
-}
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
-// Buyer SDK method inventory - maps endpoints to SDK methods
-const SDK_METHODS: SdkMethod[] = [
-  // Advertisers
-  { method: 'GET', path: '/advertisers', sdk: 'advertisers.list()' },
-  { method: 'GET', path: '/advertisers/{id}', sdk: 'advertisers.get()' },
-  { method: 'POST', path: '/advertisers', sdk: 'advertisers.create()' },
-  { method: 'PUT', path: '/advertisers/{id}', sdk: 'advertisers.update()' },
-  { method: 'DELETE', path: '/advertisers/{id}', sdk: 'advertisers.delete()' },
-  // Campaigns
-  { method: 'GET', path: '/campaigns', sdk: 'campaigns.list()' },
-  { method: 'GET', path: '/campaigns/{id}', sdk: 'campaigns.get()' },
-  { method: 'POST', path: '/campaigns/discovery', sdk: 'campaigns.createDiscovery()' },
-  { method: 'PUT', path: '/campaigns/discovery/{id}', sdk: 'campaigns.updateDiscovery()' },
-  { method: 'POST', path: '/campaigns/performance', sdk: 'campaigns.createPerformance()' },
-  { method: 'PUT', path: '/campaigns/performance/{id}', sdk: 'campaigns.updatePerformance()' },
-  { method: 'POST', path: '/campaigns/audience', sdk: 'campaigns.createAudience()' },
-  { method: 'POST', path: '/campaigns/{id}/execute', sdk: 'campaigns.execute()' },
-  { method: 'POST', path: '/campaigns/{id}/pause', sdk: 'campaigns.pause()' },
-  // Bundles
-  { method: 'POST', path: '/bundles', sdk: 'bundles.create()' },
-  { method: 'GET', path: '/bundles/{id}/discover-products', sdk: 'bundles.discoverProducts()' },
-  { method: 'POST', path: '/bundles/discover-products', sdk: 'bundles.browseProducts()' },
-  { method: 'GET', path: '/bundles/{id}/products', sdk: 'bundles.products().list()' },
-  { method: 'POST', path: '/bundles/{id}/products', sdk: 'bundles.products().add()' },
-  { method: 'DELETE', path: '/bundles/{id}/products', sdk: 'bundles.products().remove()' },
-  // Reporting
-  { method: 'GET', path: '/reporting/metrics', sdk: 'reporting.get()' },
-  // Sales Agents
-  { method: 'GET', path: '/sales-agents', sdk: 'salesAgents.list()' },
-  { method: 'POST', path: '/sales-agents/{id}/accounts', sdk: 'salesAgents.registerAccount()' },
-  // Signals
-  { method: 'GET', path: '/signals', sdk: 'signals.list()' },
-  { method: 'POST', path: '/campaign/signals/discover', sdk: 'signals.discover()' },
-  // Conversion Events (nested under advertisers)
-  {
-    method: 'GET',
-    path: '/advertisers/{id}/conversion-events',
-    sdk: 'advertisers.conversionEvents().list()',
-  },
-  {
-    method: 'GET',
-    path: '/advertisers/{id}/conversion-events/{eventId}',
-    sdk: 'advertisers.conversionEvents().get()',
-  },
-  {
-    method: 'POST',
-    path: '/advertisers/{id}/conversion-events',
-    sdk: 'advertisers.conversionEvents().create()',
-  },
-  {
-    method: 'PUT',
-    path: '/advertisers/{id}/conversion-events/{eventId}',
-    sdk: 'advertisers.conversionEvents().update()',
-  },
-  // Creative Sets (nested under advertisers)
-  {
-    method: 'GET',
-    path: '/advertisers/{id}/creative-sets',
-    sdk: 'advertisers.creativeSets().list()',
-  },
-  {
-    method: 'POST',
-    path: '/advertisers/{id}/creative-sets',
-    sdk: 'advertisers.creativeSets().create()',
-  },
-  // Test Cohorts (nested under advertisers)
-  {
-    method: 'GET',
-    path: '/advertisers/{id}/test-cohorts',
-    sdk: 'advertisers.testCohorts().list()',
-  },
-  {
-    method: 'POST',
-    path: '/advertisers/{id}/test-cohorts',
-    sdk: 'advertisers.testCohorts().create()',
-  },
-];
+const OPENAPI_SPEC_URL = 'https://api.agentic.staging.scope3.com/api/v2/buyer/openapi.yaml';
 
 interface DriftReport {
   timestamp: string;
-  skillCommands: number;
-  sdkMethods: number;
-  missing: string[];
-  extra: string[];
+  sources: {
+    spec: number;
+    skill: number;
+    sdk: number;
+  };
+  drift: {
+    inSpecNotSkill: string[];
+    inSkillNotSpec: string[];
+    inSpecNotSdk: string[];
+    inSdkNotSpec: string[];
+  };
   totalDrift: number;
   hasDrift: boolean;
 }
@@ -113,16 +47,54 @@ function normalizeEndpoint(endpoint: string): string {
     .replace(/\/$/, '');
 }
 
-async function detectDrift(): Promise<DriftReport> {
-  const skillMd = await fetchSkillMd({ persona: 'buyer', version: 'v2' });
-  const parsed = parseSkillMd(skillMd);
-
-  const sdkEndpoints = new Map<string, string>();
-  for (const m of SDK_METHODS) {
-    const key = `${m.method} ${normalizeEndpoint(m.path)}`;
-    sdkEndpoints.set(key, m.sdk);
+async function fetchSpecEndpoints(): Promise<Map<string, string>> {
+  const response = await fetch(OPENAPI_SPEC_URL);
+  if (!response.ok) {
+    throw new Error(`Failed to fetch OpenAPI spec: ${response.status} ${response.statusText}`);
   }
+  const spec = parseYaml(await response.text()) as Record<string, any>;
+  const endpoints = new Map<string, string>();
 
+  for (const [path, pathItem] of Object.entries(spec.paths ?? {})) {
+    for (const method of Object.keys(pathItem as object)) {
+      if (['get', 'post', 'put', 'patch', 'delete'].includes(method)) {
+        const key = `${method.toUpperCase()} ${normalizeEndpoint(path)}`;
+        endpoints.set(key, `${method.toUpperCase()} ${path}`);
+      }
+    }
+  }
+  return endpoints;
+}
+
+function extractSdkEndpoints(): Map<string, string> {
+  const resourcesDir = join(__dirname, '../src/resources');
+  const files = readdirSync(resourcesDir).filter((f) => f.endsWith('.ts') && f !== 'index.ts');
+  const endpoints = new Map<string, string>();
+  const pattern =
+    /adapter\.request[^(]*\(\s*'(GET|POST|PUT|PATCH|DELETE)'\s*,\s*(?:`([^`]+)`|'([^']+)')/gs;
+
+  for (const file of files) {
+    const content = readFileSync(join(resourcesDir, file), 'utf-8');
+    let match;
+    while ((match = pattern.exec(content)) !== null) {
+      const method = match[1];
+      let path = match[2] ?? match[3];
+      path = path.replace(/\$\{[^}]+\}/g, '{id}');
+      const key = `${method} ${normalizeEndpoint(path)}`;
+      endpoints.set(key, `${method} ${path}`);
+    }
+  }
+  return endpoints;
+}
+
+async function detectDrift(): Promise<DriftReport> {
+  const [specEndpoints, skillMd, sdkEndpoints] = await Promise.all([
+    fetchSpecEndpoints(),
+    fetchSkillMd({ persona: 'buyer', version: 'v2' }),
+    Promise.resolve(extractSdkEndpoints()),
+  ]);
+
+  const parsed = parseSkillMd(skillMd);
   const skillEndpoints = new Map<string, string>();
   for (const cmd of parsed.commands) {
     if (cmd.method && cmd.path) {
@@ -131,17 +103,33 @@ async function detectDrift(): Promise<DriftReport> {
     }
   }
 
-  const missing = [...skillEndpoints.keys()].filter((e) => !sdkEndpoints.has(e));
-  const extra = [...sdkEndpoints.keys()].filter((e) => !skillEndpoints.has(e));
+  const specKeys = new Set(specEndpoints.keys());
+  const skillKeys = new Set(skillEndpoints.keys());
+  const sdkKeys = new Set(sdkEndpoints.keys());
+
+  const drift = {
+    inSpecNotSkill: [...specKeys].filter((k) => !skillKeys.has(k)),
+    inSkillNotSpec: [...skillKeys].filter((k) => !specKeys.has(k)),
+    inSpecNotSdk: [...specKeys].filter((k) => !sdkKeys.has(k)),
+    inSdkNotSpec: [...sdkKeys].filter((k) => !specKeys.has(k)),
+  };
+
+  const totalDrift =
+    drift.inSpecNotSkill.length +
+    drift.inSkillNotSpec.length +
+    drift.inSpecNotSdk.length +
+    drift.inSdkNotSpec.length;
 
   return {
     timestamp: new Date().toISOString(),
-    skillCommands: skillEndpoints.size,
-    sdkMethods: sdkEndpoints.size,
-    missing,
-    extra,
-    totalDrift: missing.length + extra.length,
-    hasDrift: missing.length + extra.length > 0,
+    sources: {
+      spec: specEndpoints.size,
+      skill: skillEndpoints.size,
+      sdk: sdkEndpoints.size,
+    },
+    drift,
+    totalDrift,
+    hasDrift: totalDrift > 0,
   };
 }
 
@@ -149,21 +137,34 @@ function printHumanReadable(report: DriftReport) {
   console.log('DRIFT DETECTION REPORT (v2 Buyer API)');
   console.log('='.repeat(50));
   console.log(`Generated: ${report.timestamp}`);
-  console.log(`Skill commands: ${report.skillCommands}`);
-  console.log(`SDK methods: ${report.sdkMethods}`);
+  console.log(`OpenAPI spec endpoints: ${report.sources.spec}`);
+  console.log(`skill.md commands: ${report.sources.skill}`);
+  console.log(`SDK methods: ${report.sources.sdk}`);
 
-  if (report.missing.length) {
-    console.log(`\nMISSING IN SDK (${report.missing.length}):`);
-    report.missing.forEach((e) => console.log(`  - ${e}`));
+  console.log('\n--- skill.md vs OpenAPI spec ---');
+  if (report.drift.inSpecNotSkill.length) {
+    console.log(`\nIN SPEC, MISSING FROM skill.md (${report.drift.inSpecNotSkill.length}):`);
+    report.drift.inSpecNotSkill.forEach((e) => console.log(`  - ${e}`));
+  }
+  if (report.drift.inSkillNotSpec.length) {
+    console.log(`\nIN skill.md, NOT IN SPEC (${report.drift.inSkillNotSpec.length}):`);
+    report.drift.inSkillNotSpec.forEach((e) => console.log(`  - ${e}`));
+  }
+  if (!report.drift.inSpecNotSkill.length && !report.drift.inSkillNotSpec.length) {
+    console.log('No drift.');
   }
 
-  if (report.extra.length) {
-    console.log(`\nEXTRA IN SDK (${report.extra.length}):`);
-    report.extra.forEach((e) => console.log(`  - ${e}`));
+  console.log('\n--- SDK vs OpenAPI spec ---');
+  if (report.drift.inSpecNotSdk.length) {
+    console.log(`\nIN SPEC, MISSING FROM SDK (${report.drift.inSpecNotSdk.length}):`);
+    report.drift.inSpecNotSdk.forEach((e) => console.log(`  - ${e}`));
   }
-
-  if (!report.hasDrift) {
-    console.log('\nNo drift detected!');
+  if (report.drift.inSdkNotSpec.length) {
+    console.log(`\nIN SDK, NOT IN SPEC (${report.drift.inSdkNotSpec.length}):`);
+    report.drift.inSdkNotSpec.forEach((e) => console.log(`  - ${e}`));
+  }
+  if (!report.drift.inSpecNotSdk.length && !report.drift.inSdkNotSpec.length) {
+    console.log('No drift.');
   }
 
   console.log('\n' + '='.repeat(50));

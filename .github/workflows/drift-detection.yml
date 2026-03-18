@@ -37,11 +37,15 @@ jobs:
         run: |
           REPORT=$(cat drift-report.json)
           TOTAL=$(echo "$REPORT" | jq -r '.totalDrift')
-          MISSING=$(echo "$REPORT" | jq -r '.missing | length')
-          EXTRA=$(echo "$REPORT" | jq -r '.extra | length')
+          SKILL_MISSING=$(echo "$REPORT" | jq -r '.drift.inSpecNotSkill | length')
+          SKILL_EXTRA=$(echo "$REPORT" | jq -r '.drift.inSkillNotSpec | length')
+          SDK_MISSING=$(echo "$REPORT" | jq -r '.drift.inSpecNotSdk | length')
+          SDK_EXTRA=$(echo "$REPORT" | jq -r '.drift.inSdkNotSpec | length')
           echo "total=$TOTAL" >> $GITHUB_OUTPUT
-          echo "missing=$MISSING" >> $GITHUB_OUTPUT
-          echo "extra=$EXTRA" >> $GITHUB_OUTPUT
+          echo "skill_missing=$SKILL_MISSING" >> $GITHUB_OUTPUT
+          echo "skill_extra=$SKILL_EXTRA" >> $GITHUB_OUTPUT
+          echo "sdk_missing=$SDK_MISSING" >> $GITHUB_OUTPUT
+          echo "sdk_extra=$SDK_EXTRA" >> $GITHUB_OUTPUT
 
       - name: Alert on drift
         if: steps.drift.outputs.exit_code == '1'
@@ -57,7 +61,7 @@ jobs:
                 "type": "section",
                 "text": {
                   "type": "mrkdwn",
-                  "text": "*${{ steps.parse.outputs.total }} endpoint(s) out of sync*\n\n• Missing in SDK: ${{ steps.parse.outputs.missing }}\n• Extra in SDK: ${{ steps.parse.outputs.extra }}"
+                  "text": "*${{ steps.parse.outputs.total }} endpoint(s) out of sync*\n\n*skill.md vs spec:*\n• Missing from skill.md: ${{ steps.parse.outputs.skill_missing }}\n• Extra in skill.md: ${{ steps.parse.outputs.skill_extra }}\n\n*SDK vs spec:*\n• Missing from SDK: ${{ steps.parse.outputs.sdk_missing }}\n• Extra in SDK: ${{ steps.parse.outputs.sdk_extra }}"
                 }
               },
               {
