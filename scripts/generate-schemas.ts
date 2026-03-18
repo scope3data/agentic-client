@@ -52,6 +52,41 @@ function postProcessSchemas(filePath: string) {
 
   content = content.replace(/\\&/g, '&');
 
+  // Normalize schema names to PascalCase
+  const nameRenames: Array<[RegExp, string]> = [];
+  const namePattern = /^const ([a-z]\w*_\w+|[a-z]\w+) = /gm;
+  let nameMatch;
+  while ((nameMatch = namePattern.exec(content)) !== null) {
+    const original = nameMatch[1];
+    const pascal = original
+      .replace(/_/g, ' ')
+      .replace(/(?:^|\s)\w/g, (c) => c.trimStart().toUpperCase())
+      .replace(/\s/g, '');
+    if (pascal !== original) {
+      nameRenames.push([new RegExp(`\\b${original}\\b`, 'g'), pascal]);
+    }
+  }
+  for (const [pattern, replacement] of nameRenames) {
+    content = content.replace(pattern, replacement);
+  }
+
+  // Remove duplicate aliases that collapse to the same name after PascalCase normalization
+  // e.g. "const DiscoverProductsBody = DiscoverProductsBody;" becomes a self-reference
+  content = content.replace(/^const (\w+) = \1;\n/gm, '');
+  // Remove duplicate export keys
+  const exportLines = new Set<string>();
+  content = content.replace(
+    /(export const schemas = \{[\s\S]*?\};)/,
+    (exportBlock) => {
+      return exportBlock.replace(/^(\s+\w+,?)$/gm, (line) => {
+        const key = line.trim().replace(/,$/, '');
+        if (exportLines.has(key)) return '';
+        exportLines.add(key);
+        return line;
+      });
+    }
+  );
+
   writeFileSync(filePath, content);
 
   execSync(`npx prettier --write "${filePath}"`, { stdio: 'inherit' });
@@ -93,7 +128,6 @@ async function main() {
 // Regenerate with: npm run generate-schemas
 
 export * as buyer from './buyer';
-export { z } from 'zod';
 `;
   writeFileSync(join(schemasDir, 'index.ts'), indexContent);
 

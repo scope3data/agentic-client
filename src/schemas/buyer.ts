@@ -54,7 +54,7 @@ const DiscoverProductsBody = z
       .optional(),
     publisherDomain: z.string().min(1).optional(),
     pricingModel: z.enum(['cpm', 'vcpm', 'cpc', 'cpcv', 'cpv', 'cpp', 'flat_rate']).optional(),
-    salesAgentIds: z.array(z.string().max(255)).max(50).optional(),
+    SalesAgentIds: z.array(z.string().max(255)).max(50).optional(),
     salesAgentNames: z.array(z.string().max(255)).max(50).optional(),
     groupLimit: z.number().int().lte(10).optional().default(10),
     groupOffset: z.number().int().gte(0).lte(9007199254740991).optional().default(0),
@@ -62,7 +62,6 @@ const DiscoverProductsBody = z
     productOffset: z.number().int().gte(0).lte(1000).optional().default(0),
   })
   .passthrough();
-const discoverProducts_Body = DiscoverProductsBody;
 const ProductCardData = z.object({
   format_id: z.object({ agent_url: z.string(), id: z.string() }),
   manifest: z.object({}).partial().passthrough(),
@@ -162,7 +161,7 @@ const DiscoverProductsResponse = z.object({
   budgetContext: BudgetContextResponse.optional(),
   proposals: z.array(Proposal).optional(),
 });
-const salesAgentIds = z.union([z.array(z.string().max(255)), z.string()]).optional();
+const SalesAgentIds = z.union([z.array(z.string().max(255)), z.string()]).optional();
 const SelectedProduct = z.object({
   productId: z.string(),
   salesAgentId: z.string(),
@@ -829,7 +828,7 @@ const AvailableAccountListResponse = z.object({
     .object({ default: z.string().nullable(), supported: z.array(z.string()) })
     .optional(),
 });
-const syncCatalogs_Body = z
+const SyncCatalogsBody = z
   .object({
     account: z.object({ account_id: z.string().min(1) }).passthrough(),
     catalogs: z
@@ -932,7 +931,7 @@ const AgentList = z.object({
   total: z.number().int().gte(0).lte(9007199254740991),
   hasMore: z.boolean(),
 });
-const registerSalesAgentAccount_Body = z
+const RegisterSalesAgentAccountBody = z
   .object({
     accountIdentifier: z.string().min(1).max(255),
     auth: z
@@ -968,7 +967,7 @@ const AgentAccount = z.object({
   createdAt: z.string().datetime({ offset: true }),
   oauth: OAuthInfo.optional(),
 });
-const syndicate_Body = z
+const SyndicateBody = z
   .object({
     resource_type: z.enum(['AUDIENCE', 'EVENT_SOURCE', 'CATALOG']),
     resource_id: z.string().min(1),
@@ -1209,7 +1208,7 @@ export const schemas = {
   CreateAdvertiserBody,
   UpdateAdvertiserBody,
   DiscoverProductsBody,
-  discoverProducts_Body,
+
   ProductCardData,
   PricingOptionData,
   Product,
@@ -1219,7 +1218,7 @@ export const schemas = {
   ProductAllocation,
   Proposal,
   DiscoverProductsResponse,
-  salesAgentIds,
+  SalesAgentIds,
   SelectedProduct,
   SessionProductsResponse,
   ProductSelection,
@@ -1266,14 +1265,14 @@ export const schemas = {
   ReportingMetricsResponse,
   AvailableAccountOutput,
   AvailableAccountListResponse,
-  syncCatalogs_Body,
+  SyncCatalogsBody,
   CustomerAccountSummary,
   OAuthInfo,
   Agent,
   AgentList,
-  registerSalesAgentAccount_Body,
+  RegisterSalesAgentAccountBody,
   AgentAccount,
-  syndicate_Body,
+  SyndicateBody,
   SyndicationStatusOutput,
   SyndicateResponse,
   SyndicationStatusListResponse,
