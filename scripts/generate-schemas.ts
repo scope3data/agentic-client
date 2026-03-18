@@ -17,10 +17,8 @@ const BUYER_SPEC_PATH = join(__dirname, '../.context/attachments/buyer-api-v2.ya
 function postProcessSchemas(filePath: string) {
   let content = readFileSync(filePath, 'utf-8');
 
-  // Remove @zodios/core import - we only need the Zod schemas, not the Zodios client
+  // Strip Zodios-specific code (imports and endpoint definitions)
   content = content.replace(/^import\s+\{[^}]*\}\s+from\s+['"]@zodios\/core['"];?\s*\n/m, '');
-
-  // Remove the Zodios endpoints/api/client definitions at the end of the file
   content = content.replace(/\n*const\s+endpoints\s*=\s*makeApi\([\s\S]*$/, '\n');
 
   if (!content.startsWith('/* eslint-disable */')) {
@@ -31,8 +29,7 @@ function postProcessSchemas(filePath: string) {
   content = content.replace(/z\.union\(\[\]\)/g, 'z.never()');
   content = content.replace(/z\.array\(z\.never\(\)\)/g, 'z.array(z.unknown())');
 
-  // Fix path parameter names to match path tokens (e.g., :campaignId needs name: 'campaignId')
-  // The generator incorrectly uses 'id' for all path params
+  // Fix path params: generator always uses 'id', needs the specific param name
   const pathParamFixes: Array<[RegExp, string]> = [
     [/path: '\/campaigns\/:campaignId',([\s\S]*?)name: 'id',/g, "path: '/campaigns/:campaignId',$1name: 'campaignId',"],
     [/path: '\/advertisers\/:advertiserId',([\s\S]*?)name: 'id',/g, "path: '/advertisers/:advertiserId',$1name: 'advertiserId',"],
@@ -43,8 +40,7 @@ function postProcessSchemas(filePath: string) {
     content = content.replace(pattern, replacement);
   }
 
-  // Remove redundant regex validators that conflict with datetime({ offset: true })
-  // The regex only allows 'Z' suffix but datetime({ offset: true }) should allow offsets
+  // Remove regex validators that conflict with datetime({ offset: true })
   content = content.replace(
     /\.regex\(\s*\/\^[^/]+\(\?:Z\)\)\$\/\s*\)\s*\.datetime\(\{ offset: true \}\)/g,
     '.datetime({ offset: true })'

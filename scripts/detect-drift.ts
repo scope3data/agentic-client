@@ -1,16 +1,5 @@
 #!/usr/bin/env npx tsx
-/**
- * Three-way drift detection: OpenAPI spec vs skill.md vs SDK source code
- *
- * The OpenAPI spec is treated as the source of truth. The report shows
- * where skill.md and SDK code each diverge from it.
- *
- * Usage:
- *   npx tsx scripts/detect-drift.ts [options]
- *
- * Options:
- *   --json  Output JSON (auto-enabled in GitHub Actions)
- */
+// Three-way drift detection: OpenAPI spec vs skill.md vs SDK source
 
 import { readdirSync, readFileSync } from 'fs';
 import { join, dirname } from 'path';

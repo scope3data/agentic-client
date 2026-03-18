@@ -21,10 +21,9 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.PAT_TOKEN }}
 
-      # Note: Using setup-node directly (not internal action) because npm publishing
-      # requires registry-url which the internal action doesn't support
+      # setup-node used directly: internal action doesn't support registry-url
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v4
         with:
           node-version: '22'
           registry-url: 'https://registry.npmjs.org'
