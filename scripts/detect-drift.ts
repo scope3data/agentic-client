@@ -10,7 +10,7 @@ import { parseSkillMd } from '../src/skill/parser';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-const OPENAPI_SPEC_URL = 'https://api.agentic.staging.scope3.com/api/v2/buyer/openapi.yaml';
+const OPENAPI_SPEC_URL = 'https://api.agentic.scope3.com/api/v2/buyer/openapi.yaml';
 
 interface DriftReport {
   timestamp: string;
