@@ -3,7 +3,7 @@
 
 import { z } from 'zod';
 
-const Error = z.object({ error: z.string(), message: z.string().optional() });
+const ApiError = z.object({ error: z.string(), message: z.string().optional() });
 const LinkedAccountInput = z
   .object({
     partnerId: z.string().min(1),
@@ -1202,7 +1202,7 @@ const McpAskCapabilityRequest = z
   .passthrough();
 
 export const schemas = {
-  Error,
+  ApiError,
   LinkedAccountInput,
   OptimizationApplyMode,
   CreateAdvertiserBody,

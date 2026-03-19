@@ -48,6 +48,10 @@ function postProcessSchemas(filePath: string) {
 
   content = content.replace(/\\&/g, '&');
 
+  // Rename 'Error' to 'ApiError' to avoid shadowing the global
+  content = content.replace(/\bconst Error\b/g, 'const ApiError');
+  content = content.replace(/^\s+Error,$/m, '  ApiError,');
+
   // Normalize schema names to PascalCase
   const nameRenames: Array<[RegExp, string]> = [];
   const namePattern = /^const ([a-z]\w*_\w+|[a-z]\w+) = /gm;
