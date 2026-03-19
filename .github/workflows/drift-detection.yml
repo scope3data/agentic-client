@@ -1,0 +1,81 @@
+name: API Drift Detection
+
+on:
+  schedule:
+    - cron: '0 8 * * 1-5' # 8am UTC, weekdays
+  workflow_dispatch:
+
+jobs:
+  detect-drift:
+    name: Check for API Drift
+    runs-on: ubuntu-latest
+    outputs:
+      drift_detected: ${{ steps.drift.outputs.exit_code == '1' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: scope3data/actions/node/install@node/install/v1
+
+      - name: Run drift detection
+        id: drift
+        run: |
+          set +e
+          OUTPUT=$(npm run --silent detect-drift -- --json 2>/tmp/drift-stderr.log)
+          EXIT_CODE=$?
+          echo "exit_code=$EXIT_CODE" >> $GITHUB_OUTPUT
+          echo "$OUTPUT" > drift-report.json
+          cat drift-report.json
+          if [ -s /tmp/drift-stderr.log ]; then
+            echo "--- stderr ---"
+            cat /tmp/drift-stderr.log
+          fi
+          exit 0
+
+      - name: Parse drift report
+        if: steps.drift.outputs.exit_code == '1'
+        id: parse
+        run: |
+          REPORT=$(cat drift-report.json)
+          TOTAL=$(echo "$REPORT" | jq -r '.totalDrift')
+          SKILL_MISSING=$(echo "$REPORT" | jq -r '.drift.inSpecNotSkill | length')
+          SKILL_EXTRA=$(echo "$REPORT" | jq -r '.drift.inSkillNotSpec | length')
+          SDK_MISSING=$(echo "$REPORT" | jq -r '.drift.inSpecNotSdk | length')
+          SDK_EXTRA=$(echo "$REPORT" | jq -r '.drift.inSdkNotSpec | length')
+          echo "total=$TOTAL" >> $GITHUB_OUTPUT
+          echo "skill_missing=$SKILL_MISSING" >> $GITHUB_OUTPUT
+          echo "skill_extra=$SKILL_EXTRA" >> $GITHUB_OUTPUT
+          echo "sdk_missing=$SDK_MISSING" >> $GITHUB_OUTPUT
+          echo "sdk_extra=$SDK_EXTRA" >> $GITHUB_OUTPUT
+
+      - name: Alert on drift
+        if: steps.drift.outputs.exit_code == '1'
+        env:
+          SLACK_TOKEN: ${{ secrets.SLACK_NOTIF_BOT_TOKEN }}
+        uses: scope3data/actions/slack/post@slack/post/v2
+        with:
+          channel: '#agentic-service-alerts'
+          header: 'SDK API Drift Detected'
+          content: |
+            [
+              {
+                "type": "section",
+                "text": {
+                  "type": "mrkdwn",
+                  "text": "*${{ steps.parse.outputs.total }} endpoint(s) out of sync*\n\n*skill.md vs spec:*\n• Missing from skill.md: ${{ steps.parse.outputs.skill_missing }}\n• Extra in skill.md: ${{ steps.parse.outputs.skill_extra }}\n\n*SDK vs spec:*\n• Missing from SDK: ${{ steps.parse.outputs.sdk_missing }}\n• Extra in SDK: ${{ steps.parse.outputs.sdk_extra }}"
+                }
+              },
+              {
+                "type": "section",
+                "text": {
+                  "type": "mrkdwn",
+                  "text": "<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View full report>"
+                }
+              }
+            ]
+
+  regenerate:
+    name: Regenerate Schemas
+    needs: detect-drift
+    if: needs.detect-drift.outputs.drift_detected == 'true'
+    uses: ./.github/workflows/regenerate-schemas.yml
+    secrets: inherit
