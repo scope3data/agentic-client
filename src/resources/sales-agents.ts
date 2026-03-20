@@ -9,7 +9,12 @@ import type {
   RegisterSalesAgentAccountInput,
 } from '../types';
 import { salesAgentSchemas } from '../schemas/registry';
-import { shouldValidateInput, shouldValidateResponse, validateInput, validateResponse } from '../validation';
+import {
+  shouldValidateInput,
+  shouldValidateResponse,
+  validateInput,
+  validateResponse,
+} from '../validation';
 
 /**
  * Resource for managing sales agents (Buyer persona)

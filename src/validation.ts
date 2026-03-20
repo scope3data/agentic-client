@@ -24,11 +24,9 @@ export function validateInput<T>(schema: ZodSchema<T>, data: unknown): T {
 export function validateResponse<T>(schema: ZodSchema<T>, data: unknown): T {
   const result = schema.safeParse(data);
   if (!result.success) {
-    throw new Scope3ApiError(
-      502,
-      `Response validation failed: ${formatZodError(result.error)}`,
-      { validationErrors: result.error.issues }
-    );
+    throw new Scope3ApiError(502, `Response validation failed: ${formatZodError(result.error)}`, {
+      validationErrors: result.error.issues,
+    });
   }
   return result.data;
 }

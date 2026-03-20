@@ -11,7 +11,12 @@ import type {
   ApiResponse,
 } from '../types';
 import { discoverySchemas } from '../schemas/registry';
-import { shouldValidateInput, shouldValidateResponse, validateInput, validateResponse } from '../validation';
+import {
+  shouldValidateInput,
+  shouldValidateResponse,
+  validateInput,
+  validateResponse,
+} from '../validation';
 
 /**
  * Resource for managing products within a bundle
