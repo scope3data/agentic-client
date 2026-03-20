@@ -8,6 +8,8 @@ import type {
   ListSalesAgentsParams,
   RegisterSalesAgentAccountInput,
 } from '../types';
+import { salesAgentSchemas } from '../schemas/registry';
+import { shouldValidateInput, shouldValidateResponse, validateInput, validateResponse } from '../validation';
 
 /**
  * Resource for managing sales agents (Buyer persona)
@@ -21,7 +23,7 @@ export class SalesAgentsResource {
    * @returns Sales agents with account info
    */
   async list(params?: ListSalesAgentsParams): Promise<unknown> {
-    return this.adapter.request<unknown>('GET', '/sales-agents', undefined, {
+    const result = await this.adapter.request<unknown>('GET', '/sales-agents', undefined, {
       params: {
         status: params?.status,
         relationship: params?.relationship,
@@ -30,6 +32,10 @@ export class SalesAgentsResource {
         offset: params?.offset,
       },
     });
+    if (shouldValidateResponse(this.adapter.validate)) {
+      validateResponse(salesAgentSchemas.listResponse, result);
+    }
+    return result;
   }
 
   /**
@@ -42,10 +48,17 @@ export class SalesAgentsResource {
     agentId: string,
     data: RegisterSalesAgentAccountInput
   ): Promise<SalesAgentAccount> {
-    return this.adapter.request<SalesAgentAccount>(
+    if (shouldValidateInput(this.adapter.validate)) {
+      validateInput(salesAgentSchemas.registerAccountInput, data);
+    }
+    const result = await this.adapter.request<SalesAgentAccount>(
       'POST',
       `/sales-agents/${validateResourceId(agentId)}/accounts`,
       data
     );
+    if (shouldValidateResponse(this.adapter.validate)) {
+      validateResponse(salesAgentSchemas.accountResponse, result);
+    }
+    return result;
   }
 }

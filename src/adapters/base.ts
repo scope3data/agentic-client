@@ -3,6 +3,7 @@
  */
 
 import type { ApiVersion, Persona, Scope3ClientConfig } from '../types';
+import type { ValidateMode } from '../validation';
 
 /**
  * HTTP methods supported by the adapter
@@ -31,6 +32,8 @@ export interface BaseAdapter {
   readonly persona: Persona;
   /** Whether debug mode is enabled */
   readonly debug: boolean;
+  /** Validation mode */
+  readonly validate: ValidateMode | undefined;
 
   /**
    * Make an API request

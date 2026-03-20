@@ -10,6 +10,8 @@ import type {
   RemoveBundleProductsInput,
   ApiResponse,
 } from '../types';
+import { discoverySchemas } from '../schemas/registry';
+import { shouldValidateInput, shouldValidateResponse, validateInput, validateResponse } from '../validation';
 
 /**
  * Resource for managing products within a bundle
@@ -25,10 +27,14 @@ export class BundleProductsResource {
    * @returns Bundle products response with product list and budget context
    */
   async list(): Promise<ApiResponse<BundleProductsResponse>> {
-    return this.adapter.request<ApiResponse<BundleProductsResponse>>(
+    const result = await this.adapter.request<ApiResponse<BundleProductsResponse>>(
       'GET',
       `/bundles/${this.bundleId}/products`
     );
+    if (shouldValidateResponse(this.adapter.validate)) {
+      validateResponse(discoverySchemas.sessionProductsResponse, result.data);
+    }
+    return result;
   }
 
   /**
@@ -37,11 +43,18 @@ export class BundleProductsResource {
    * @returns Updated bundle products response
    */
   async add(data: AddBundleProductsInput): Promise<ApiResponse<BundleProductsResponse>> {
-    return this.adapter.request<ApiResponse<BundleProductsResponse>>(
+    if (shouldValidateInput(this.adapter.validate)) {
+      validateInput(discoverySchemas.addProductsInput, data);
+    }
+    const result = await this.adapter.request<ApiResponse<BundleProductsResponse>>(
       'POST',
       `/bundles/${this.bundleId}/products`,
       data
     );
+    if (shouldValidateResponse(this.adapter.validate)) {
+      validateResponse(discoverySchemas.sessionProductsResponse, result.data);
+    }
+    return result;
   }
 
   /**
@@ -49,6 +62,9 @@ export class BundleProductsResource {
    * @param data Product IDs to remove
    */
   async remove(data: RemoveBundleProductsInput): Promise<void> {
+    if (shouldValidateInput(this.adapter.validate)) {
+      validateInput(discoverySchemas.removeProductsInput, data);
+    }
     await this.adapter.request<void>('DELETE', `/bundles/${this.bundleId}/products`, data);
   }
 }

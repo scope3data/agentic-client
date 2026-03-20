@@ -11,6 +11,8 @@ import type {
   BrowseProductsInput,
   ApiResponse,
 } from '../types';
+import { discoverySchemas } from '../schemas/registry';
+import { shouldValidateInput, shouldValidateResponse, validateInput, validateResponse } from '../validation';
 import { BundleProductsResource } from './products';
 
 /**
@@ -25,6 +27,9 @@ export class BundlesResource {
    * @returns Created bundle with bundleId
    */
   async create(data: CreateBundleInput): Promise<ApiResponse<Bundle>> {
+    if (shouldValidateInput(this.adapter.validate)) {
+      validateInput(discoverySchemas.discoverInput, data);
+    }
     return this.adapter.request<ApiResponse<Bundle>>('POST', '/bundles', data);
   }
 
@@ -38,7 +43,7 @@ export class BundlesResource {
     bundleId: string,
     params?: DiscoverProductsParams
   ): Promise<ApiResponse<DiscoverProductsResponse>> {
-    return this.adapter.request<ApiResponse<DiscoverProductsResponse>>(
+    const result = await this.adapter.request<ApiResponse<DiscoverProductsResponse>>(
       'GET',
       `/bundles/${validateResourceId(bundleId)}/discover-products`,
       undefined,
@@ -54,6 +59,10 @@ export class BundlesResource {
         },
       }
     );
+    if (shouldValidateResponse(this.adapter.validate)) {
+      validateResponse(discoverySchemas.discoverResponse, result.data);
+    }
+    return result;
   }
 
   /**
@@ -62,11 +71,18 @@ export class BundlesResource {
    * @returns Discovered product groups with auto-created bundleId
    */
   async browseProducts(data: BrowseProductsInput): Promise<ApiResponse<DiscoverProductsResponse>> {
-    return this.adapter.request<ApiResponse<DiscoverProductsResponse>>(
+    if (shouldValidateInput(this.adapter.validate)) {
+      validateInput(discoverySchemas.discoverInput, data);
+    }
+    const result = await this.adapter.request<ApiResponse<DiscoverProductsResponse>>(
       'POST',
       '/bundles/discover-products',
       data
     );
+    if (shouldValidateResponse(this.adapter.validate)) {
+      validateResponse(discoverySchemas.discoverResponse, result.data);
+    }
+    return result;
   }
 
   /**

@@ -4,6 +4,7 @@
  */
 
 import type { ApiVersion, Persona, Scope3ClientConfig } from '../types';
+import type { ValidateMode } from '../validation';
 import {
   BaseAdapter,
   HttpMethod,
@@ -24,6 +25,7 @@ export class RestAdapter implements BaseAdapter {
   readonly version: ApiVersion;
   readonly persona: Persona;
   readonly debug: boolean;
+  readonly validate: ValidateMode | undefined;
 
   private readonly apiKey: string;
   private readonly timeout: number;
@@ -34,6 +36,7 @@ export class RestAdapter implements BaseAdapter {
     this.version = resolveVersion(config);
     this.persona = resolvePersona(config);
     this.debug = config.debug ?? false;
+    this.validate = config.validate;
     this.timeout = config.timeout ?? 30000;
 
     if (this.debug) {
