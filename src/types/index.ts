@@ -38,7 +38,7 @@ export interface Scope3ClientConfig {
   timeout?: number;
   /** Enable debug logging */
   debug?: boolean;
-  /** Enable runtime validation with Zod schemas: true (both), 'input', or 'response' */
+  /** Enable runtime validation with Zod schemas (default: true). Set false to disable. */
   validate?: boolean | 'input' | 'response';
 }
 

@@ -15,7 +15,7 @@ describe('BundleProductsResource', () => {
       version: 'v2',
       persona: 'buyer' as const,
       debug: false,
-      validate: undefined,
+      validate: false,
       request: jest.fn(),
       connect: jest.fn(),
       disconnect: jest.fn(),

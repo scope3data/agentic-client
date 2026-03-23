@@ -36,7 +36,7 @@ export class RestAdapter implements BaseAdapter {
     this.version = resolveVersion(config);
     this.persona = resolvePersona(config);
     this.debug = config.debug ?? false;
-    this.validate = config.validate;
+    this.validate = config.validate ?? true;
     this.timeout = config.timeout ?? 30000;
 
     if (this.debug) {

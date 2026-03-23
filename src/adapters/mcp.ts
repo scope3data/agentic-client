@@ -44,7 +44,7 @@ export class McpAdapter implements BaseAdapter {
     this.version = resolveVersion(config);
     this.persona = resolvePersona(config);
     this.debug = config.debug ?? false;
-    this.validate = config.validate;
+    this.validate = config.validate ?? true;
 
     // Initialize MCP client
     this.mcpClient = new Client(
