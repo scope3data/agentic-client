@@ -51,7 +51,7 @@ export class CampaignsResource {
       `/campaigns/${validateResourceId(id)}`
     );
     if (shouldValidateResponse(this.adapter.validate)) {
-      validateResponse(campaignSchemas.response, result.data);
+      result.data = validateResponse(campaignSchemas.response, result.data) as unknown as Campaign;
     }
     return result;
   }
@@ -68,7 +68,7 @@ export class CampaignsResource {
       data
     );
     if (shouldValidateResponse(this.adapter.validate)) {
-      validateResponse(campaignSchemas.response, result.data);
+      result.data = validateResponse(campaignSchemas.response, result.data) as unknown as Campaign;
     }
     return result;
   }
@@ -89,7 +89,7 @@ export class CampaignsResource {
       data
     );
     if (shouldValidateResponse(this.adapter.validate)) {
-      validateResponse(campaignSchemas.response, result.data);
+      result.data = validateResponse(campaignSchemas.response, result.data) as unknown as Campaign;
     }
     return result;
   }
@@ -106,7 +106,7 @@ export class CampaignsResource {
       data
     );
     if (shouldValidateResponse(this.adapter.validate)) {
-      validateResponse(campaignSchemas.response, result.data);
+      result.data = validateResponse(campaignSchemas.response, result.data) as unknown as Campaign;
     }
     return result;
   }
@@ -127,7 +127,7 @@ export class CampaignsResource {
       data
     );
     if (shouldValidateResponse(this.adapter.validate)) {
-      validateResponse(campaignSchemas.response, result.data);
+      result.data = validateResponse(campaignSchemas.response, result.data) as unknown as Campaign;
     }
     return result;
   }
@@ -144,7 +144,7 @@ export class CampaignsResource {
       data
     );
     if (shouldValidateResponse(this.adapter.validate)) {
-      validateResponse(campaignSchemas.response, result.data);
+      result.data = validateResponse(campaignSchemas.response, result.data) as unknown as Campaign;
     }
     return result;
   }

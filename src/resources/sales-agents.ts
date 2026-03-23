@@ -28,7 +28,7 @@ export class SalesAgentsResource {
    * @returns Sales agents with account info
    */
   async list(params?: ListSalesAgentsParams): Promise<unknown> {
-    const result = await this.adapter.request<unknown>('GET', '/sales-agents', undefined, {
+    let result = await this.adapter.request<unknown>('GET', '/sales-agents', undefined, {
       params: {
         status: params?.status,
         relationship: params?.relationship,
@@ -38,7 +38,7 @@ export class SalesAgentsResource {
       },
     });
     if (shouldValidateResponse(this.adapter.validate)) {
-      validateResponse(salesAgentSchemas.listResponse, result);
+      result = validateResponse(salesAgentSchemas.listResponse, result);
     }
     return result;
   }
@@ -54,15 +54,21 @@ export class SalesAgentsResource {
     data: RegisterSalesAgentAccountInput
   ): Promise<SalesAgentAccount> {
     if (shouldValidateInput(this.adapter.validate)) {
-      validateInput(salesAgentSchemas.registerAccountInput, data);
+      data = validateInput(
+        salesAgentSchemas.registerAccountInput,
+        data
+      ) as unknown as RegisterSalesAgentAccountInput;
     }
-    const result = await this.adapter.request<SalesAgentAccount>(
+    let result = await this.adapter.request<SalesAgentAccount>(
       'POST',
       `/sales-agents/${validateResourceId(agentId)}/accounts`,
       data
     );
     if (shouldValidateResponse(this.adapter.validate)) {
-      validateResponse(salesAgentSchemas.accountResponse, result);
+      result = validateResponse(
+        salesAgentSchemas.accountResponse,
+        result
+      ) as unknown as SalesAgentAccount;
     }
     return result;
   }

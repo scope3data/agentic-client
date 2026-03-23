@@ -37,7 +37,10 @@ export class BundleProductsResource {
       `/bundles/${this.bundleId}/products`
     );
     if (shouldValidateResponse(this.adapter.validate)) {
-      validateResponse(discoverySchemas.sessionProductsResponse, result.data);
+      result.data = validateResponse(
+        discoverySchemas.sessionProductsResponse,
+        result.data
+      ) as unknown as BundleProductsResponse;
     }
     return result;
   }
@@ -49,7 +52,10 @@ export class BundleProductsResource {
    */
   async add(data: AddBundleProductsInput): Promise<ApiResponse<BundleProductsResponse>> {
     if (shouldValidateInput(this.adapter.validate)) {
-      validateInput(discoverySchemas.addProductsInput, data);
+      data = validateInput(
+        discoverySchemas.addProductsInput,
+        data
+      ) as unknown as AddBundleProductsInput;
     }
     const result = await this.adapter.request<ApiResponse<BundleProductsResponse>>(
       'POST',
@@ -57,7 +63,10 @@ export class BundleProductsResource {
       data
     );
     if (shouldValidateResponse(this.adapter.validate)) {
-      validateResponse(discoverySchemas.sessionProductsResponse, result.data);
+      result.data = validateResponse(
+        discoverySchemas.sessionProductsResponse,
+        result.data
+      ) as unknown as BundleProductsResponse;
     }
     return result;
   }
@@ -68,7 +77,10 @@ export class BundleProductsResource {
    */
   async remove(data: RemoveBundleProductsInput): Promise<void> {
     if (shouldValidateInput(this.adapter.validate)) {
-      validateInput(discoverySchemas.removeProductsInput, data);
+      data = validateInput(
+        discoverySchemas.removeProductsInput,
+        data
+      ) as unknown as RemoveBundleProductsInput;
     }
     await this.adapter.request<void>('DELETE', `/bundles/${this.bundleId}/products`, data);
   }
