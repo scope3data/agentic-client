@@ -10,6 +10,13 @@ import type {
   RemoveBundleProductsInput,
   ApiResponse,
 } from '../types';
+import { discoverySchemas } from '../schemas/registry';
+import {
+  shouldValidateInput,
+  shouldValidateResponse,
+  validateInput,
+  validateResponse,
+} from '../validation';
 
 /**
  * Resource for managing products within a bundle
@@ -25,10 +32,17 @@ export class BundleProductsResource {
    * @returns Bundle products response with product list and budget context
    */
   async list(): Promise<ApiResponse<BundleProductsResponse>> {
-    return this.adapter.request<ApiResponse<BundleProductsResponse>>(
+    const result = await this.adapter.request<ApiResponse<BundleProductsResponse>>(
       'GET',
       `/bundles/${this.bundleId}/products`
     );
+    if (shouldValidateResponse(this.adapter.validate)) {
+      result.data = validateResponse(
+        discoverySchemas.sessionProductsResponse,
+        result.data
+      ) as unknown as BundleProductsResponse;
+    }
+    return result;
   }
 
   /**
@@ -37,11 +51,24 @@ export class BundleProductsResource {
    * @returns Updated bundle products response
    */
   async add(data: AddBundleProductsInput): Promise<ApiResponse<BundleProductsResponse>> {
-    return this.adapter.request<ApiResponse<BundleProductsResponse>>(
+    if (shouldValidateInput(this.adapter.validate)) {
+      data = validateInput(
+        discoverySchemas.addProductsInput,
+        data
+      ) as unknown as AddBundleProductsInput;
+    }
+    const result = await this.adapter.request<ApiResponse<BundleProductsResponse>>(
       'POST',
       `/bundles/${this.bundleId}/products`,
       data
     );
+    if (shouldValidateResponse(this.adapter.validate)) {
+      result.data = validateResponse(
+        discoverySchemas.sessionProductsResponse,
+        result.data
+      ) as unknown as BundleProductsResponse;
+    }
+    return result;
   }
 
   /**
@@ -49,6 +76,12 @@ export class BundleProductsResource {
    * @param data Product IDs to remove
    */
   async remove(data: RemoveBundleProductsInput): Promise<void> {
+    if (shouldValidateInput(this.adapter.validate)) {
+      data = validateInput(
+        discoverySchemas.removeProductsInput,
+        data
+      ) as unknown as RemoveBundleProductsInput;
+    }
     await this.adapter.request<void>('DELETE', `/bundles/${this.bundleId}/products`, data);
   }
 }

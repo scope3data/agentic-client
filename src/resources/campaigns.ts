@@ -14,6 +14,8 @@ import type {
   PaginatedApiResponse,
   ApiResponse,
 } from '../types';
+import { campaignSchemas } from '../schemas/registry';
+import { shouldValidateResponse, validateResponse } from '../validation';
 
 /**
  * Resource for managing campaigns (Buyer persona)
@@ -44,10 +46,14 @@ export class CampaignsResource {
    * @returns Campaign details
    */
   async get(id: string): Promise<ApiResponse<Campaign>> {
-    return this.adapter.request<ApiResponse<Campaign>>(
+    const result = await this.adapter.request<ApiResponse<Campaign>>(
       'GET',
       `/campaigns/${validateResourceId(id)}`
     );
+    if (shouldValidateResponse(this.adapter.validate)) {
+      result.data = validateResponse(campaignSchemas.response, result.data) as unknown as Campaign;
+    }
+    return result;
   }
 
   /**
@@ -56,7 +62,15 @@ export class CampaignsResource {
    * @returns Created campaign
    */
   async createDiscovery(data: CreateDiscoveryCampaignInput): Promise<ApiResponse<Campaign>> {
-    return this.adapter.request<ApiResponse<Campaign>>('POST', '/campaigns/discovery', data);
+    const result = await this.adapter.request<ApiResponse<Campaign>>(
+      'POST',
+      '/campaigns/discovery',
+      data
+    );
+    if (shouldValidateResponse(this.adapter.validate)) {
+      result.data = validateResponse(campaignSchemas.response, result.data) as unknown as Campaign;
+    }
+    return result;
   }
 
   /**
@@ -69,11 +83,15 @@ export class CampaignsResource {
     id: string,
     data: UpdateDiscoveryCampaignInput
   ): Promise<ApiResponse<Campaign>> {
-    return this.adapter.request<ApiResponse<Campaign>>(
+    const result = await this.adapter.request<ApiResponse<Campaign>>(
       'PUT',
       `/campaigns/discovery/${validateResourceId(id)}`,
       data
     );
+    if (shouldValidateResponse(this.adapter.validate)) {
+      result.data = validateResponse(campaignSchemas.response, result.data) as unknown as Campaign;
+    }
+    return result;
   }
 
   /**
@@ -82,7 +100,15 @@ export class CampaignsResource {
    * @returns Created campaign
    */
   async createPerformance(data: CreatePerformanceCampaignInput): Promise<ApiResponse<Campaign>> {
-    return this.adapter.request<ApiResponse<Campaign>>('POST', '/campaigns/performance', data);
+    const result = await this.adapter.request<ApiResponse<Campaign>>(
+      'POST',
+      '/campaigns/performance',
+      data
+    );
+    if (shouldValidateResponse(this.adapter.validate)) {
+      result.data = validateResponse(campaignSchemas.response, result.data) as unknown as Campaign;
+    }
+    return result;
   }
 
   /**
@@ -95,11 +121,15 @@ export class CampaignsResource {
     id: string,
     data: UpdatePerformanceCampaignInput
   ): Promise<ApiResponse<Campaign>> {
-    return this.adapter.request<ApiResponse<Campaign>>(
+    const result = await this.adapter.request<ApiResponse<Campaign>>(
       'PUT',
       `/campaigns/performance/${validateResourceId(id)}`,
       data
     );
+    if (shouldValidateResponse(this.adapter.validate)) {
+      result.data = validateResponse(campaignSchemas.response, result.data) as unknown as Campaign;
+    }
+    return result;
   }
 
   /**
@@ -108,7 +138,15 @@ export class CampaignsResource {
    * @returns Created campaign
    */
   async createAudience(data: CreateAudienceCampaignInput): Promise<ApiResponse<Campaign>> {
-    return this.adapter.request<ApiResponse<Campaign>>('POST', '/campaigns/audience', data);
+    const result = await this.adapter.request<ApiResponse<Campaign>>(
+      'POST',
+      '/campaigns/audience',
+      data
+    );
+    if (shouldValidateResponse(this.adapter.validate)) {
+      result.data = validateResponse(campaignSchemas.response, result.data) as unknown as Campaign;
+    }
+    return result;
   }
 
   /**

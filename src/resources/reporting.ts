@@ -4,6 +4,8 @@
 
 import type { BaseAdapter } from '../adapters/base';
 import type { ReportingParams } from '../types';
+import { reportingSchemas } from '../schemas/registry';
+import { shouldValidateResponse, validateResponse } from '../validation';
 
 /**
  * Resource for accessing reporting data (Buyer persona)
@@ -17,7 +19,7 @@ export class ReportingResource {
    * @returns Reporting response (summary or timeseries depending on view param)
    */
   async get<T = unknown>(params?: ReportingParams): Promise<T> {
-    return this.adapter.request<T>('GET', '/reporting/metrics', undefined, {
+    const result = await this.adapter.request<T>('GET', '/reporting/metrics', undefined, {
       params: {
         view: params?.view,
         days: params?.days,
@@ -28,5 +30,9 @@ export class ReportingResource {
         demo: params?.demo,
       },
     });
+    if (shouldValidateResponse(this.adapter.validate)) {
+      validateResponse(reportingSchemas.response, result);
+    }
+    return result;
   }
 }

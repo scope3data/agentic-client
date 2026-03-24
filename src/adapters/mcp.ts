@@ -6,6 +6,7 @@
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 import type { ApiVersion, Persona, Scope3ClientConfig } from '../types';
+import type { ValidateMode } from '../validation';
 import {
   BaseAdapter,
   HttpMethod,
@@ -29,6 +30,7 @@ export class McpAdapter implements BaseAdapter {
   readonly version: ApiVersion;
   readonly persona: Persona;
   readonly debug: boolean;
+  readonly validate: ValidateMode | undefined;
 
   private readonly apiKey: string;
   private mcpClient: Client;
@@ -42,6 +44,7 @@ export class McpAdapter implements BaseAdapter {
     this.version = resolveVersion(config);
     this.persona = resolvePersona(config);
     this.debug = config.debug ?? false;
+    this.validate = config.validate ?? true;
 
     // Initialize MCP client
     this.mcpClient = new Client(
