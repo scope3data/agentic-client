@@ -33,7 +33,12 @@ export { Scope3Client } from './client';
 
 // MCP client — thin connection helper for AI agents
 export { Scope3McpClient } from './mcp-client';
-export type { Scope3McpClientConfig, CallToolResult, ReadResourceResult } from './mcp-client';
+export type {
+  Scope3McpClientConfig,
+  CallToolResult,
+  ReadResourceResult,
+  ListToolsResult,
+} from './mcp-client';
 
 // ── REST Adapter (for advanced use) ────────────────────────────────
 

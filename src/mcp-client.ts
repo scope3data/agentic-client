@@ -37,23 +37,23 @@
 
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
-import type { CallToolResult, ReadResourceResult } from '@modelcontextprotocol/sdk/types.js';
-import type { ApiVersion, Persona, Environment } from './types';
-import { Scope3ApiError, getDefaultBaseUrl } from './adapters/base';
+import type {
+  CallToolResult,
+  ReadResourceResult,
+  ListToolsResult,
+} from '@modelcontextprotocol/sdk/types.js';
+import type { Environment } from './types';
+import { Scope3ApiError, getDefaultBaseUrl, sanitizeForLogging } from './adapters/base';
 import { logger } from './utils/logger';
 
 // Re-export MCP types for consumers
-export type { CallToolResult, ReadResourceResult };
+export type { CallToolResult, ReadResourceResult, ListToolsResult };
 
 const SDK_VERSION = '2.1.0';
 
 export interface Scope3McpClientConfig {
   /** API key (Bearer token) for authentication */
   apiKey: string;
-  /** API persona — determines which MCP surface to connect to */
-  persona?: Persona;
-  /** API version (default: 'v2') */
-  version?: ApiVersion;
   /** Environment (default: 'production') */
   environment?: Environment;
   /** Custom base URL (overrides environment) */
@@ -72,33 +72,22 @@ export interface Scope3McpClientConfig {
 export class Scope3McpClient {
   readonly baseUrl: string;
 
-  private readonly mcpClient: Client;
-  private readonly transport: StreamableHTTPClientTransport;
+  private mcpClient: Client | null = null;
+  private transport: StreamableHTTPClientTransport | null = null;
   private connected = false;
   private connectPromise: Promise<void> | null = null;
   private readonly debugMode: boolean;
+  private readonly apiKey: string;
 
   constructor(config: Scope3McpClientConfig) {
-    if (!config.apiKey) {
+    const trimmedKey = config.apiKey?.trim();
+    if (!trimmedKey) {
       throw new Error('apiKey is required');
     }
 
+    this.apiKey = trimmedKey;
     this.debugMode = config.debug ?? false;
     this.baseUrl = config.baseUrl?.replace(/\/$/, '') ?? getDefaultBaseUrl(config.environment);
-
-    this.mcpClient = new Client(
-      { name: 'scope3-sdk', version: SDK_VERSION },
-      { capabilities: { tools: {} } }
-    );
-
-    // Build MCP endpoint URL — the server routes based on auth token
-    this.transport = new StreamableHTTPClientTransport(new URL(`${this.baseUrl}/mcp`), {
-      requestInit: {
-        headers: {
-          Authorization: `Bearer ${config.apiKey}`,
-        },
-      },
-    });
 
     if (this.debugMode) {
       logger.setDebug(true);
@@ -119,6 +108,19 @@ export class Scope3McpClient {
 
   private async doConnect(): Promise<void> {
     try {
+      this.mcpClient = new Client(
+        { name: 'scope3-sdk', version: SDK_VERSION },
+        { capabilities: { tools: {} } }
+      );
+
+      this.transport = new StreamableHTTPClientTransport(new URL(`${this.baseUrl}/mcp`), {
+        requestInit: {
+          headers: {
+            Authorization: `Bearer ${this.apiKey}`,
+          },
+        },
+      });
+
       await this.mcpClient.connect(this.transport);
       this.connected = true;
       if (this.debugMode) {
@@ -126,6 +128,8 @@ export class Scope3McpClient {
       }
     } catch (error) {
       this.connectPromise = null;
+      this.mcpClient = null;
+      this.transport = null;
       throw new Scope3ApiError(
         0,
         `Failed to connect to MCP server: ${error instanceof Error ? error.message : 'Unknown error'}`
@@ -139,15 +143,26 @@ export class Scope3McpClient {
   async disconnect(): Promise<void> {
     if (!this.connected) return;
     try {
-      await this.mcpClient.close();
-      await this.transport.close();
+      await this.mcpClient?.close();
+      await this.transport?.close();
+    } catch (error) {
+      logger.error('Error disconnecting from MCP', error);
+    } finally {
       this.connected = false;
+      this.connectPromise = null;
+      this.mcpClient = null;
+      this.transport = null;
       if (this.debugMode) {
         logger.debug('MCP disconnected');
       }
-    } catch (error) {
-      logger.error('Error disconnecting from MCP', error);
     }
+  }
+
+  private getClient(): Client {
+    if (!this.mcpClient) {
+      throw new Scope3ApiError(0, 'MCP client is not connected');
+    }
+    return this.mcpClient;
   }
 
   /**
@@ -159,10 +174,10 @@ export class Scope3McpClient {
     if (!this.connected) await this.connect();
 
     if (this.debugMode) {
-      logger.debug('callTool', { name, args });
+      logger.debug('callTool', { name, args: sanitizeForLogging(args) });
     }
 
-    const result = await this.mcpClient.callTool({
+    const result = await this.getClient().callTool({
       name,
       arguments: args,
     });
@@ -180,17 +195,15 @@ export class Scope3McpClient {
       logger.debug('readResource', { uri });
     }
 
-    return this.mcpClient.readResource({ uri });
+    return this.getClient().readResource({ uri });
   }
 
   /**
    * List all available MCP tools. Auto-connects on first call.
    */
-  async listTools(): Promise<{
-    tools: Array<{ name: string; description?: string; inputSchema?: unknown }>;
-  }> {
+  async listTools(): Promise<ListToolsResult> {
     if (!this.connected) await this.connect();
-    return this.mcpClient.listTools();
+    return this.getClient().listTools();
   }
 
   /** Whether the client is currently connected */

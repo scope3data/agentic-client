@@ -1,6 +1,6 @@
 # Getting Started with the Scope3 SDK
 
-The `scope3` npm package provides a TypeScript/JavaScript client for the Scope3 Agentic Platform. It supports REST and MCP (Model Context Protocol) adapters, and organizes functionality around two personas: buyer and partner.
+The `scope3` npm package provides a TypeScript/JavaScript client for the Scope3 Agentic Platform. It provides two clients -- `Scope3Client` for REST consumers and `Scope3McpClient` for AI agents using MCP -- and organizes functionality around two personas: buyer and partner.
 
 ## Installation
 
@@ -41,7 +41,7 @@ const client = new Scope3Client({
 
 ## Configuration Options
 
-The full configuration interface:
+### Scope3Client (REST)
 
 ```typescript
 interface Scope3ClientConfig {
@@ -60,15 +60,33 @@ interface Scope3ClientConfig {
   /** Custom base URL. Overrides the environment setting. */
   baseUrl?: string;
 
-  /** Adapter type: 'rest' for HTTP, 'mcp' for AI agents. Default: 'rest'. */
-  adapter?: 'rest' | 'mcp';
-
   /** Request timeout in milliseconds. Default: 30000. */
   timeout?: number;
 
   /** Enable debug logging. Default: false. */
   debug?: boolean;
 }
+```
+
+### Scope3McpClient (AI Agents)
+
+For AI agents using MCP, use `Scope3McpClient` instead. It connects to the MCP server and gives you direct access to `callTool()`, `readResource()`, and `listTools()`.
+
+```typescript
+import { Scope3McpClient } from 'scope3';
+
+const mcp = new Scope3McpClient({
+  apiKey: process.env.SCOPE3_API_KEY!,
+  // environment?: 'production' | 'staging'
+  // baseUrl?: string
+  // debug?: boolean
+});
+await mcp.connect();
+
+const result = await mcp.callTool('api_call', {
+  method: 'GET',
+  path: '/api/v2/buyer/advertisers',
+});
 ```
 
 ## Environment Setup

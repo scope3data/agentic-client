@@ -1,6 +1,9 @@
 # Scope3 SDK
 
-TypeScript client for the Scope3 Agentic Platform. Supports two personas (buyer, partner) with REST and MCP adapters.
+TypeScript client for the Scope3 Agentic Platform. Two entry points for two audiences:
+
+- **REST consumers** (humans, CLI, programmatic) → `Scope3Client` with typed resource methods
+- **MCP consumers** (AI agents) → `Scope3McpClient` — thin connection helper with direct `callTool`/`readResource`
 
 ## Installation
 
@@ -24,11 +27,11 @@ Obtain your API key from the Scope3 dashboard:
 
 ## Quick Start
 
-The SDK uses a unified `Scope3Client` with a `persona` parameter to determine available resources.
+### REST Client (Humans / CLI / Programmatic)
 
-### Buyer Persona
+The `Scope3Client` provides typed resource methods and requires a `persona` parameter.
 
-For programmatic advertising -- manage advertisers, bundles, campaigns, and signals.
+#### Buyer Persona
 
 ```typescript
 import { Scope3Client } from 'scope3';
@@ -66,9 +69,7 @@ const campaign = await client.campaigns.createDiscovery({
 await client.campaigns.execute(campaign.data.id);
 ```
 
-### Partner Persona
-
-For partner and agent management.
+#### Partner Persona
 
 ```typescript
 const partnerClient = new Scope3Client({
@@ -87,7 +88,39 @@ const agent = await partnerClient.agents.register({
 });
 ```
 
+### MCP Client (AI Agents)
+
+The `Scope3McpClient` is a thin connection helper for AI agents. It wires up auth and the MCP URL, then exposes `callTool()`, `readResource()`, and `listTools()` as direct passthroughs. The MCP server handles routing and validation — no typed resource wrappers needed.
+
+```typescript
+import { Scope3McpClient } from 'scope3';
+
+const mcp = new Scope3McpClient({
+  apiKey: process.env.SCOPE3_API_KEY!,
+});
+await mcp.connect();
+
+// Call tools directly — the v2 buyer surface exposes:
+// api_call, ask_about_capability, help, health
+const result = await mcp.callTool('api_call', {
+  method: 'GET',
+  path: '/api/v2/buyer/advertisers',
+});
+
+// Ask what the API can do
+const capabilities = await mcp.callTool('ask_about_capability', {
+  question: 'How do I create a campaign?',
+});
+
+// List available tools
+const tools = await mcp.listTools();
+
+await mcp.disconnect();
+```
+
 ## Configuration
+
+### Scope3Client (REST)
 
 ```typescript
 const client = new Scope3Client({
@@ -95,8 +128,18 @@ const client = new Scope3Client({
   persona: 'buyer',              // Required: 'buyer' | 'partner'
   environment: 'production',     // Optional: 'production' (default) | 'staging'
   baseUrl: 'https://custom.com', // Optional: overrides environment
-  adapter: 'rest',               // Optional: 'rest' (default) | 'mcp'
   timeout: 30000,                // Optional: request timeout in ms
+  debug: false,                  // Optional: enable debug logging
+});
+```
+
+### Scope3McpClient (MCP)
+
+```typescript
+const mcp = new Scope3McpClient({
+  apiKey: 'your-api-key',       // Required: Bearer token
+  environment: 'production',     // Optional: 'production' (default) | 'staging'
+  baseUrl: 'https://custom.com', // Optional: overrides environment
   debug: false,                  // Optional: enable debug logging
 });
 ```

@@ -43,6 +43,10 @@ describe('Scope3McpClient', () => {
       expect(() => new Scope3McpClient({ apiKey: '' } as any)).toThrow('apiKey is required');
     });
 
+    it('should reject whitespace-only apiKey', () => {
+      expect(() => new Scope3McpClient({ apiKey: '   ' })).toThrow('apiKey is required');
+    });
+
     it('should default to production URL', () => {
       const client = new Scope3McpClient({ apiKey: 'test-key' });
       expect(client.baseUrl).toBe('https://api.agentic.scope3.com');
@@ -99,6 +103,12 @@ describe('Scope3McpClient', () => {
       await client.connect();
       expect(client.isConnected).toBe(true);
     });
+
+    it('should deduplicate concurrent connect calls', async () => {
+      const client = new Scope3McpClient({ apiKey: 'test-key' });
+      await Promise.all([client.connect(), client.connect(), client.connect()]);
+      expect(mockConnect).toHaveBeenCalledTimes(1);
+    });
   });
 
   describe('disconnect', () => {
@@ -114,6 +124,44 @@ describe('Scope3McpClient', () => {
       const client = new Scope3McpClient({ apiKey: 'test-key' });
       await client.disconnect();
       expect(mockClose).not.toHaveBeenCalled();
+    });
+
+    it('should handle disconnect errors gracefully', async () => {
+      const client = new Scope3McpClient({ apiKey: 'test-key' });
+      await client.connect();
+      mockClose.mockRejectedValueOnce(new Error('close failed'));
+      await client.disconnect();
+      // Should still mark as disconnected even on error
+      expect(client.isConnected).toBe(false);
+    });
+  });
+
+  describe('reconnect lifecycle', () => {
+    it('should reconnect after disconnect via callTool auto-connect', async () => {
+      const client = new Scope3McpClient({ apiKey: 'test-key' });
+      mockCallTool.mockResolvedValue({ content: [{ type: 'text', text: 'ok' }] });
+
+      // Connect then disconnect
+      await client.connect();
+      expect(mockConnect).toHaveBeenCalledTimes(1);
+      await client.disconnect();
+      expect(client.isConnected).toBe(false);
+
+      // callTool should auto-reconnect
+      await client.callTool('health');
+      expect(mockConnect).toHaveBeenCalledTimes(2);
+      expect(client.isConnected).toBe(true);
+    });
+
+    it('should reconnect after disconnect via explicit connect', async () => {
+      const client = new Scope3McpClient({ apiKey: 'test-key' });
+
+      await client.connect();
+      await client.disconnect();
+      await client.connect();
+
+      expect(mockConnect).toHaveBeenCalledTimes(2);
+      expect(client.isConnected).toBe(true);
     });
   });
 
@@ -170,6 +218,24 @@ describe('Scope3McpClient', () => {
       });
 
       expect(result).toEqual(expected);
+    });
+
+    it('should propagate callTool errors', async () => {
+      const client = new Scope3McpClient({ apiKey: 'test-key' });
+      mockCallTool.mockRejectedValue(new Error('MCP tool error'));
+
+      await expect(
+        client.callTool('api_call', { method: 'GET', path: '/api/v2/buyer/advertisers' })
+      ).rejects.toThrow('MCP tool error');
+    });
+
+    it('should deduplicate concurrent auto-connect from parallel callTool', async () => {
+      const client = new Scope3McpClient({ apiKey: 'test-key' });
+      mockCallTool.mockResolvedValue({ content: [] });
+
+      await Promise.all([client.callTool('health'), client.callTool('health')]);
+
+      expect(mockConnect).toHaveBeenCalledTimes(1);
     });
   });
 
