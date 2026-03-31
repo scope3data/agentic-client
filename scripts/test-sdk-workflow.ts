@@ -170,24 +170,24 @@ async function testBuyer() {
   }
 }
 
-async function testPartner() {
+async function testStorefront() {
   console.log('\n==========================================');
-  console.log('  PARTNER PERSONA');
+  console.log('  STOREFRONT PERSONA');
   console.log('==========================================');
 
-  const client = makeClient('partner');
+  const client = makeClient('storefront');
 
-  // List partners
-  log('List partners');
+  // Get storefront
+  log('Get storefront');
   try {
-    await client.partners.list();
-    pass('Listed partners');
+    await client.storefront.get();
+    pass('Got storefront');
   } catch (e: unknown) {
     fail((e as Error).message);
   }
 
   // List agents
-  log('List agents');
+  log('List storefront agents');
   try {
     await client.agents.list();
     pass('Listed agents');
@@ -196,7 +196,7 @@ async function testPartner() {
   }
 
   // Get skill.md
-  log('Get partner skill.md');
+  log('Get storefront skill.md');
   try {
     const skill = await client.getSkill();
     pass(`${skill.name} v${skill.version} - ${skill.commands.length} commands`);
@@ -212,15 +212,15 @@ async function testPersonaGuards() {
 
   const buyer = makeClient('buyer');
 
-  log('Buyer cannot access partners (partner persona)');
+  log('Buyer cannot access storefront (storefront persona)');
   try {
-    buyer.partners; // eslint-disable-line @typescript-eslint/no-unused-expressions
+    buyer.storefront; // eslint-disable-line @typescript-eslint/no-unused-expressions
     fail('Should have thrown');
   } catch (e: unknown) {
     pass(`Threw: ${(e as Error).message}`);
   }
 
-  log('Buyer cannot access agents (partner persona)');
+  log('Buyer cannot access agents (storefront persona)');
   try {
     buyer.agents; // eslint-disable-line @typescript-eslint/no-unused-expressions
     fail('Should have thrown');
@@ -228,11 +228,11 @@ async function testPersonaGuards() {
     pass(`Threw: ${(e as Error).message}`);
   }
 
-  const partner = makeClient('partner');
+  const storefront = makeClient('storefront');
 
-  log('Partner cannot access advertisers (buyer persona)');
+  log('Storefront cannot access advertisers (buyer persona)');
   try {
-    partner.advertisers; // eslint-disable-line @typescript-eslint/no-unused-expressions
+    storefront.advertisers; // eslint-disable-line @typescript-eslint/no-unused-expressions
     fail('Should have thrown');
   } catch (e: unknown) {
     pass(`Threw: ${(e as Error).message}`);
@@ -246,7 +246,7 @@ async function main() {
   console.log('==========================================');
 
   await testBuyer();
-  await testPartner();
+  await testStorefront();
   await testPersonaGuards();
 
   console.log('\n==========================================');

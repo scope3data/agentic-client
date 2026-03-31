@@ -23,7 +23,7 @@ export type Environment = 'production' | 'staging';
 export interface Scope3ClientConfig {
   /** API key (Bearer token) for authentication */
   apiKey: string;
-  /** API persona - buyer or partner */
+  /** API persona - buyer or storefront */
   persona: Persona;
   /** API version to use (default: 'v2') */
   version?: ApiVersion;
