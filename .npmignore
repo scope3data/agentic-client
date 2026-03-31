@@ -43,7 +43,7 @@ jest.config.js
 openapi.yaml
 media-agent-openapi.yaml
 outcome-agent-openapi.yaml
-partner-api.yaml
+storefront-api.yaml
 platform-api.yaml
 
 # Test files

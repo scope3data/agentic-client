@@ -20,8 +20,8 @@ export class InventorySourcesResource {
    * List all inventory sources
    * @returns List of inventory sources
    */
-  async list(): Promise<unknown> {
-    return this.adapter.request<unknown>('GET', '/inventory-sources');
+  async list(): Promise<ApiResponse<InventorySource[]>> {
+    return this.adapter.request<ApiResponse<InventorySource[]>>('GET', '/inventory-sources');
   }
 
   /**

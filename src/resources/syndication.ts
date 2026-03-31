@@ -4,6 +4,7 @@
  */
 
 import { type BaseAdapter, validateResourceId } from '../adapters/base';
+import type { ApiResponse, SyndicationRequest, SyndicationStatus } from '../types';
 
 /**
  * Resource for managing syndication (scoped to an advertiser)
@@ -19,8 +20,8 @@ export class SyndicationResource {
    * @param data Syndication request payload
    * @returns Syndication result
    */
-  async syndicate(data: unknown): Promise<unknown> {
-    return this.adapter.request(
+  async syndicate(data: SyndicationRequest): Promise<ApiResponse<SyndicationStatus>> {
+    return this.adapter.request<ApiResponse<SyndicationStatus>>(
       'POST',
       `/advertisers/${validateResourceId(this.advertiserId)}/syndicate`,
       data
@@ -40,8 +41,8 @@ export class SyndicationResource {
     status?: string;
     limit?: number;
     offset?: number;
-  }): Promise<unknown> {
-    return this.adapter.request(
+  }): Promise<ApiResponse<SyndicationStatus[]>> {
+    return this.adapter.request<ApiResponse<SyndicationStatus[]>>(
       'GET',
       `/advertisers/${validateResourceId(this.advertiserId)}/syndication-status`,
       undefined,

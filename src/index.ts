@@ -216,4 +216,36 @@ export type {
   ListAgentsParams,
   OAuthAuthorizeResponse,
   OAuthCallbackInput,
+  // Event Sources
+  EventSource,
+  CreateEventSourceInput,
+  UpdateEventSourceInput,
+  // Measurement Data
+  MeasurementDataSync,
+  // Catalogs
+  Catalog,
+  CatalogSync,
+  // Audiences
+  Audience,
+  AudienceSync,
+  // Syndication
+  SyndicationRequest,
+  SyndicationStatus,
+  // Creatives
+  Creative,
+  CreateCreativeInput,
+  UpdateCreativeInput,
+  // Tasks
+  Task,
+  // Property Lists
+  PropertyList,
+  CreatePropertyListInput,
+  UpdatePropertyListInput,
+  PropertyListCheck,
+  PropertyListReport,
+  // Billing
+  BillingStatus,
+  BillingTransaction,
+  BillingPayout,
+  ListBillingParams,
 } from './types';

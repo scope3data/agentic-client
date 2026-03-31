@@ -27,8 +27,8 @@ const sf = await client.storefront.get();
 
 ```typescript
 const sf = await client.storefront.create({
+  platformId: 'my-platform',
   name: 'My Storefront',
-  description: 'Ad tech storefront',
 });
 ```
 

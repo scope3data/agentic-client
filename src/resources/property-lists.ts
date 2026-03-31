@@ -4,6 +4,14 @@
  */
 
 import { type BaseAdapter, validateResourceId } from '../adapters/base';
+import type {
+  ApiResponse,
+  PropertyList,
+  CreatePropertyListInput,
+  UpdatePropertyListInput,
+  PropertyListCheck,
+  PropertyListReport,
+} from '../types';
 
 /**
  * Resource for managing property lists (scoped to an advertiser)
@@ -19,8 +27,8 @@ export class PropertyListsResource {
    * @param data Property list creation data
    * @returns Created property list
    */
-  async create(data: unknown): Promise<unknown> {
-    return this.adapter.request(
+  async create(data: CreatePropertyListInput): Promise<ApiResponse<PropertyList>> {
+    return this.adapter.request<ApiResponse<PropertyList>>(
       'POST',
       `/advertisers/${validateResourceId(this.advertiserId)}/property-lists`,
       data
@@ -32,8 +40,8 @@ export class PropertyListsResource {
    * @param params Optional filter parameters
    * @returns List of property lists
    */
-  async list(params?: { purpose?: string }): Promise<unknown> {
-    return this.adapter.request(
+  async list(params?: { purpose?: string }): Promise<ApiResponse<PropertyList[]>> {
+    return this.adapter.request<ApiResponse<PropertyList[]>>(
       'GET',
       `/advertisers/${validateResourceId(this.advertiserId)}/property-lists`,
       undefined,
@@ -48,8 +56,8 @@ export class PropertyListsResource {
    * @param listId Property list ID
    * @returns Property list details
    */
-  async get(listId: string): Promise<unknown> {
-    return this.adapter.request(
+  async get(listId: string): Promise<ApiResponse<PropertyList>> {
+    return this.adapter.request<ApiResponse<PropertyList>>(
       'GET',
       `/advertisers/${validateResourceId(this.advertiserId)}/property-lists/${validateResourceId(listId)}`
     );
@@ -61,8 +69,8 @@ export class PropertyListsResource {
    * @param data Update data
    * @returns Updated property list
    */
-  async update(listId: string, data: unknown): Promise<unknown> {
-    return this.adapter.request(
+  async update(listId: string, data: UpdatePropertyListInput): Promise<ApiResponse<PropertyList>> {
+    return this.adapter.request<ApiResponse<PropertyList>>(
       'PUT',
       `/advertisers/${validateResourceId(this.advertiserId)}/property-lists/${validateResourceId(listId)}`,
       data
@@ -74,7 +82,7 @@ export class PropertyListsResource {
    * @param listId Property list ID
    */
   async delete(listId: string): Promise<void> {
-    await this.adapter.request(
+    await this.adapter.request<void>(
       'DELETE',
       `/advertisers/${validateResourceId(this.advertiserId)}/property-lists/${validateResourceId(listId)}`
     );
@@ -92,8 +100,12 @@ export class PropertyListChecksResource {
    * @param data Domains to check
    * @returns Check result
    */
-  async check(data: { domains: string[] }): Promise<unknown> {
-    return this.adapter.request('POST', '/property-lists/check', data);
+  async check(data: { domains: string[] }): Promise<ApiResponse<PropertyListCheck>> {
+    return this.adapter.request<ApiResponse<PropertyListCheck>>(
+      'POST',
+      '/property-lists/check',
+      data
+    );
   }
 
   /**
@@ -101,7 +113,10 @@ export class PropertyListChecksResource {
    * @param reportId Report ID
    * @returns Check report details
    */
-  async getReport(reportId: string): Promise<unknown> {
-    return this.adapter.request('GET', `/property-lists/reports/${validateResourceId(reportId)}`);
+  async getReport(reportId: string): Promise<ApiResponse<PropertyListReport>> {
+    return this.adapter.request<ApiResponse<PropertyListReport>>(
+      'GET',
+      `/property-lists/reports/${validateResourceId(reportId)}`
+    );
   }
 }

@@ -240,7 +240,7 @@ The SDK is manually maintained. When the Agentic API changes, update these files
 4. Update resource methods in `src/resources/` for endpoint changes
 5. Update CLI commands in `src/cli/commands/` if applicable
 6. Run `npm test` and `npm run build` to verify
-7. Run manual workflow tests: `npm run test:buyer`, `npm run test:partner`
+7. Run manual workflow tests: `npm run test:buyer`, `npm run test:storefront`
 
 ### Integration Tests
 

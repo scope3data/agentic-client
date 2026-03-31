@@ -3,7 +3,14 @@
  */
 
 import { type BaseAdapter } from '../adapters/base';
-import type { StorefrontBillingConfig, StripeConnectResponse } from '../types';
+import type {
+  StorefrontBillingConfig,
+  StripeConnectResponse,
+  BillingStatus,
+  BillingTransaction,
+  BillingPayout,
+  ApiResponse,
+} from '../types';
 
 /**
  * Resource for managing billing (Storefront persona)
@@ -31,8 +38,8 @@ export class BillingResource {
    * Get billing status
    * @returns Billing status
    */
-  async status(): Promise<unknown> {
-    return this.adapter.request<unknown>('GET', '/billing/status');
+  async status(): Promise<BillingStatus> {
+    return this.adapter.request<BillingStatus>('GET', '/billing/status');
   }
 
   /**
@@ -40,13 +47,21 @@ export class BillingResource {
    * @param params Pagination parameters
    * @returns List of transactions
    */
-  async transactions(params?: { limit?: number; starting_after?: string }): Promise<unknown> {
-    return this.adapter.request<unknown>('GET', '/billing/transactions', undefined, {
-      params: {
-        limit: params?.limit,
-        starting_after: params?.starting_after,
-      },
-    });
+  async transactions(params?: {
+    limit?: number;
+    starting_after?: string;
+  }): Promise<ApiResponse<BillingTransaction[]>> {
+    return this.adapter.request<ApiResponse<BillingTransaction[]>>(
+      'GET',
+      '/billing/transactions',
+      undefined,
+      {
+        params: {
+          limit: params?.limit,
+          starting_after: params?.starting_after,
+        },
+      }
+    );
   }
 
   /**
@@ -54,20 +69,28 @@ export class BillingResource {
    * @param params Pagination parameters
    * @returns List of payouts
    */
-  async payouts(params?: { limit?: number; starting_after?: string }): Promise<unknown> {
-    return this.adapter.request<unknown>('GET', '/billing/payouts', undefined, {
-      params: {
-        limit: params?.limit,
-        starting_after: params?.starting_after,
-      },
-    });
+  async payouts(params?: {
+    limit?: number;
+    starting_after?: string;
+  }): Promise<ApiResponse<BillingPayout[]>> {
+    return this.adapter.request<ApiResponse<BillingPayout[]>>(
+      'GET',
+      '/billing/payouts',
+      undefined,
+      {
+        params: {
+          limit: params?.limit,
+          starting_after: params?.starting_after,
+        },
+      }
+    );
   }
 
   /**
    * Get Stripe onboarding URL
    * @returns Onboarding URL details
    */
-  async onboardingUrl(): Promise<unknown> {
-    return this.adapter.request<unknown>('GET', '/billing/onboard');
+  async onboardingUrl(): Promise<StripeConnectResponse> {
+    return this.adapter.request<StripeConnectResponse>('GET', '/billing/onboard');
   }
 }

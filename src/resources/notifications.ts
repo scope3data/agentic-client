@@ -3,7 +3,7 @@
  */
 
 import { type BaseAdapter, validateResourceId } from '../adapters/base';
-import type { ListNotificationsParams } from '../types';
+import type { ApiResponse, Notification, ListNotificationsParams } from '../types';
 
 /**
  * Resource for managing notifications (Storefront persona)
@@ -16,8 +16,8 @@ export class NotificationsResource {
    * @param params Filter and pagination parameters
    * @returns List of notifications
    */
-  async list(params?: ListNotificationsParams): Promise<unknown> {
-    return this.adapter.request<unknown>('GET', '/notifications', undefined, {
+  async list(params?: ListNotificationsParams): Promise<ApiResponse<Notification[]>> {
+    return this.adapter.request<ApiResponse<Notification[]>>('GET', '/notifications', undefined, {
       params: {
         unreadOnly: params?.unreadOnly,
         brandAgentId: params?.brandAgentId,

@@ -4,6 +4,7 @@
  */
 
 import { type BaseAdapter, validateResourceId } from '../adapters/base';
+import type { ApiResponse, Creative, UpdateCreativeInput } from '../types';
 
 /**
  * Resource for managing creatives (scoped to a campaign)
@@ -24,8 +25,8 @@ export class CreativesResource {
     search?: string;
     take?: number;
     skip?: number;
-  }): Promise<unknown> {
-    return this.adapter.request(
+  }): Promise<ApiResponse<Creative[]>> {
+    return this.adapter.request<ApiResponse<Creative[]>>(
       'GET',
       `/campaigns/${validateResourceId(this.campaignId)}/creatives`,
       undefined,
@@ -46,8 +47,8 @@ export class CreativesResource {
    * @param preview Whether to include preview data
    * @returns Creative details
    */
-  async get(creativeId: string, preview?: boolean): Promise<unknown> {
-    return this.adapter.request(
+  async get(creativeId: string, preview?: boolean): Promise<ApiResponse<Creative>> {
+    return this.adapter.request<ApiResponse<Creative>>(
       'GET',
       `/campaigns/${validateResourceId(this.campaignId)}/creatives/${validateResourceId(creativeId)}`,
       undefined,
@@ -63,8 +64,8 @@ export class CreativesResource {
    * @param data Update data
    * @returns Updated creative
    */
-  async update(creativeId: string, data: unknown): Promise<unknown> {
-    return this.adapter.request(
+  async update(creativeId: string, data: UpdateCreativeInput): Promise<ApiResponse<Creative>> {
+    return this.adapter.request<ApiResponse<Creative>>(
       'PUT',
       `/campaigns/${validateResourceId(this.campaignId)}/creatives/${validateResourceId(creativeId)}`,
       data
@@ -76,7 +77,7 @@ export class CreativesResource {
    * @param creativeId Creative ID
    */
   async delete(creativeId: string): Promise<void> {
-    await this.adapter.request(
+    await this.adapter.request<void>(
       'DELETE',
       `/campaigns/${validateResourceId(this.campaignId)}/creatives/${validateResourceId(creativeId)}`
     );

@@ -4,9 +4,11 @@
 
 import { type BaseAdapter, validateResourceId } from '../adapters/base';
 import type {
+  SalesAgent,
   SalesAgentAccount,
   ListSalesAgentsParams,
   RegisterSalesAgentAccountInput,
+  PaginatedApiResponse,
 } from '../types';
 import { salesAgentSchemas } from '../schemas/registry';
 import {
@@ -27,18 +29,26 @@ export class SalesAgentsResource {
    * @param params Filter and pagination parameters
    * @returns Sales agents with account info
    */
-  async list(params?: ListSalesAgentsParams): Promise<unknown> {
-    let result = await this.adapter.request<unknown>('GET', '/sales-agents', undefined, {
-      params: {
-        status: params?.status,
-        relationship: params?.relationship,
-        name: params?.name,
-        limit: params?.limit,
-        offset: params?.offset,
-      },
-    });
+  async list(params?: ListSalesAgentsParams): Promise<PaginatedApiResponse<SalesAgent>> {
+    let result = await this.adapter.request<PaginatedApiResponse<SalesAgent>>(
+      'GET',
+      '/sales-agents',
+      undefined,
+      {
+        params: {
+          status: params?.status,
+          relationship: params?.relationship,
+          name: params?.name,
+          limit: params?.limit,
+          offset: params?.offset,
+        },
+      }
+    );
     if (shouldValidateResponse(this.adapter.validate)) {
-      result = validateResponse(salesAgentSchemas.listResponse, result);
+      result = validateResponse(
+        salesAgentSchemas.listResponse,
+        result
+      ) as unknown as PaginatedApiResponse<SalesAgent>;
     }
     return result;
   }

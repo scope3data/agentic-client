@@ -4,6 +4,12 @@
  */
 
 import { type BaseAdapter, validateResourceId } from '../adapters/base';
+import type {
+  ApiResponse,
+  EventSource,
+  CreateEventSourceInput,
+  UpdateEventSourceInput,
+} from '../types';
 
 /**
  * Resource for managing event sources (scoped to an advertiser)
@@ -19,8 +25,8 @@ export class EventSourcesResource {
    * @param data Event sources sync payload
    * @returns Sync result
    */
-  async sync(data: unknown): Promise<unknown> {
-    return this.adapter.request(
+  async sync(data: Record<string, unknown>): Promise<ApiResponse<EventSource[]>> {
+    return this.adapter.request<ApiResponse<EventSource[]>>(
       'POST',
       `/advertisers/${validateResourceId(this.advertiserId)}/event-sources/sync`,
       data
@@ -31,8 +37,8 @@ export class EventSourcesResource {
    * List all event sources for this advertiser
    * @returns List of event sources
    */
-  async list(): Promise<unknown> {
-    return this.adapter.request(
+  async list(): Promise<ApiResponse<EventSource[]>> {
+    return this.adapter.request<ApiResponse<EventSource[]>>(
       'GET',
       `/advertisers/${validateResourceId(this.advertiserId)}/event-sources`
     );
@@ -43,8 +49,8 @@ export class EventSourcesResource {
    * @param data Event source creation data
    * @returns Created event source
    */
-  async create(data: unknown): Promise<unknown> {
-    return this.adapter.request(
+  async create(data: CreateEventSourceInput): Promise<ApiResponse<EventSource>> {
+    return this.adapter.request<ApiResponse<EventSource>>(
       'POST',
       `/advertisers/${validateResourceId(this.advertiserId)}/event-sources`,
       data
@@ -56,8 +62,8 @@ export class EventSourcesResource {
    * @param id Event source ID
    * @returns Event source details
    */
-  async get(id: string): Promise<unknown> {
-    return this.adapter.request(
+  async get(id: string): Promise<ApiResponse<EventSource>> {
+    return this.adapter.request<ApiResponse<EventSource>>(
       'GET',
       `/advertisers/${validateResourceId(this.advertiserId)}/event-sources/${validateResourceId(id)}`
     );
@@ -69,8 +75,8 @@ export class EventSourcesResource {
    * @param data Update data
    * @returns Updated event source
    */
-  async update(id: string, data: unknown): Promise<unknown> {
-    return this.adapter.request(
+  async update(id: string, data: UpdateEventSourceInput): Promise<ApiResponse<EventSource>> {
+    return this.adapter.request<ApiResponse<EventSource>>(
       'PUT',
       `/advertisers/${validateResourceId(this.advertiserId)}/event-sources/${validateResourceId(id)}`,
       data
@@ -82,7 +88,7 @@ export class EventSourcesResource {
    * @param id Event source ID
    */
   async delete(id: string): Promise<void> {
-    await this.adapter.request(
+    await this.adapter.request<void>(
       'DELETE',
       `/advertisers/${validateResourceId(this.advertiserId)}/event-sources/${validateResourceId(id)}`
     );

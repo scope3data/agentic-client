@@ -4,6 +4,7 @@
  */
 
 import { type BaseAdapter, validateResourceId } from '../adapters/base';
+import type { ApiResponse, Audience, AudienceSync } from '../types';
 
 /**
  * Resource for managing audiences (scoped to an advertiser)
@@ -19,8 +20,8 @@ export class AudiencesResource {
    * @param data Audiences sync payload
    * @returns Sync result
    */
-  async sync(data: unknown): Promise<unknown> {
-    return this.adapter.request(
+  async sync(data: AudienceSync): Promise<ApiResponse<void>> {
+    return this.adapter.request<ApiResponse<void>>(
       'POST',
       `/advertisers/${validateResourceId(this.advertiserId)}/audiences/sync`,
       data
@@ -32,8 +33,8 @@ export class AudiencesResource {
    * @param params Optional pagination parameters
    * @returns List of audiences
    */
-  async list(params?: { take?: number; skip?: number }): Promise<unknown> {
-    return this.adapter.request(
+  async list(params?: { take?: number; skip?: number }): Promise<ApiResponse<Audience[]>> {
+    return this.adapter.request<ApiResponse<Audience[]>>(
       'GET',
       `/advertisers/${validateResourceId(this.advertiserId)}/audiences`,
       undefined,

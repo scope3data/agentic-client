@@ -260,7 +260,8 @@ const agents = await client.salesAgents.list();
 
 // Register an account for an agent
 await client.salesAgents.registerAccount('agent-123', {
-  name: 'My Account',
+  advertiserId: 'adv-123',
+  accountIdentifier: 'my-account-id',
 });
 ```
 

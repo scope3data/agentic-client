@@ -4,6 +4,7 @@
  */
 
 import { type BaseAdapter, validateResourceId } from '../adapters/base';
+import type { ApiResponse, Task } from '../types';
 
 /**
  * Resource for managing tasks (Buyer persona, top-level)
@@ -16,7 +17,7 @@ export class TasksResource {
    * @param taskId Task ID
    * @returns Task status details
    */
-  async get(taskId: string): Promise<unknown> {
-    return this.adapter.request('GET', `/tasks/${validateResourceId(taskId)}`);
+  async get(taskId: string): Promise<ApiResponse<Task>> {
+    return this.adapter.request<ApiResponse<Task>>('GET', `/tasks/${validateResourceId(taskId)}`);
   }
 }

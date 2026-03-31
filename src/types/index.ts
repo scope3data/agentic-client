@@ -753,7 +753,7 @@ export interface ReadinessCheck {
   name: string;
   description: string;
   category: string;
-  status: string;
+  status: ReadinessStatus;
   isBlocker: boolean;
   details?: string;
 }
@@ -883,4 +883,218 @@ export interface OAuthAuthorizeResponse {
 export interface OAuthCallbackInput {
   code: string;
   state: string;
+}
+
+// ============================================================================
+// Event Source Types (Buyer Persona)
+// ============================================================================
+
+export interface EventSource {
+  id: string;
+  advertiserId: string;
+  name: string;
+  type: string;
+  status: string;
+  config: Record<string, unknown>;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateEventSourceInput {
+  name: string;
+  type: string;
+  config?: Record<string, unknown>;
+}
+
+export interface UpdateEventSourceInput {
+  name?: string;
+  type?: string;
+  config?: Record<string, unknown>;
+}
+
+// ============================================================================
+// Measurement Data Types (Buyer Persona)
+// ============================================================================
+
+export interface MeasurementDataSync {
+  type?: string;
+  source?: string;
+  data?: Record<string, unknown>;
+  measurements?: Record<string, unknown>[];
+  [key: string]: unknown;
+}
+
+// ============================================================================
+// Catalog Types (Buyer Persona)
+// ============================================================================
+
+export interface Catalog {
+  id: string;
+  advertiserId: string;
+  name: string;
+  status: string;
+  itemCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CatalogSync {
+  source?: string;
+  data?: Record<string, unknown>;
+  catalogs?: Record<string, unknown>[];
+  [key: string]: unknown;
+}
+
+// ============================================================================
+// Audience Types (Buyer Persona)
+// ============================================================================
+
+export interface Audience {
+  id: string;
+  advertiserId: string;
+  name: string;
+  size: number;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AudienceSync {
+  source?: string;
+  data?: Record<string, unknown>;
+  audiences?: Record<string, unknown>[];
+  [key: string]: unknown;
+}
+
+// ============================================================================
+// Syndication Types (Buyer Persona)
+// ============================================================================
+
+export interface SyndicationRequest {
+  targets?: string[];
+  resourceType?: string;
+  resourceId?: string;
+  config?: Record<string, unknown>;
+  [key: string]: unknown;
+}
+
+export interface SyndicationStatus {
+  id: string;
+  status: string;
+  targets: string[];
+  createdAt: string;
+}
+
+// ============================================================================
+// Creative Types (Buyer Persona)
+// ============================================================================
+
+export interface Creative {
+  id: string;
+  campaignId: string;
+  name: string;
+  type: string;
+  status: string;
+  metadata?: Record<string, unknown>;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateCreativeInput {
+  name: string;
+  type: string;
+  metadata?: Record<string, unknown>;
+}
+
+export interface UpdateCreativeInput {
+  name?: string;
+  type?: string;
+  metadata?: Record<string, unknown>;
+}
+
+// ============================================================================
+// Task Types (Buyer Persona)
+// ============================================================================
+
+export interface Task {
+  id: string;
+  type: string;
+  status: string;
+  progress?: number;
+  result?: Record<string, unknown>;
+  error?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// ============================================================================
+// Property List Types (Buyer Persona)
+// ============================================================================
+
+export interface PropertyList {
+  id: string;
+  advertiserId: string;
+  name: string;
+  properties: string[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreatePropertyListInput {
+  name: string;
+  properties?: string[];
+  purpose?: string;
+  [key: string]: unknown;
+}
+
+export interface UpdatePropertyListInput {
+  name?: string;
+  properties?: string[];
+}
+
+export interface PropertyListCheck {
+  id: string;
+  status: string;
+  results?: Record<string, unknown>;
+  createdAt: string;
+}
+
+export interface PropertyListReport {
+  id: string;
+  checkId: string;
+  data: Record<string, unknown>;
+  createdAt: string;
+}
+
+// ============================================================================
+// Billing Types (Storefront Persona)
+// ============================================================================
+
+export interface BillingStatus {
+  status: string;
+  connected: boolean;
+  accountId?: string;
+}
+
+export interface BillingTransaction {
+  id: string;
+  amount: number;
+  currency: string;
+  description: string;
+  createdAt: string;
+}
+
+export interface BillingPayout {
+  id: string;
+  amount: number;
+  currency: string;
+  status: string;
+  createdAt: string;
+}
+
+export interface ListBillingParams {
+  limit?: number;
+  offset?: number;
+  startDate?: string;
+  endDate?: string;
 }
