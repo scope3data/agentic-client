@@ -51,16 +51,29 @@ export type { BaseAdapter } from './adapters/base';
 export {
   AdvertisersResource,
   AgentsResource,
+  BillingResource,
   BundlesResource,
   BundleProductsResource,
   CampaignsResource,
   ConversionEventsResource,
   CreativeSetsResource,
-  PartnersResource,
+  InventorySourcesResource,
+  NotificationsResource,
+  ReadinessResource,
   ReportingResource,
   SalesAgentsResource,
   SignalsResource,
+  StorefrontResource,
   TestCohortsResource,
+  EventSourcesResource,
+  MeasurementDataResource,
+  CatalogsResource,
+  AudiencesResource,
+  SyndicationResource,
+  TasksResource,
+  PropertyListsResource,
+  PropertyListChecksResource,
+  CreativesResource,
 } from './resources';
 
 // ── skill.md support ───────────────────────────────────────────────
@@ -172,18 +185,33 @@ export type {
   // Signals
   Signal,
   DiscoverSignalsInput,
-  // Partner
-  Partner,
-  CreatePartnerInput,
-  UpdatePartnerInput,
-  ListPartnersParams,
+  // Storefront
+  Storefront,
+  CreateStorefrontInput,
+  UpdateStorefrontInput,
+  // Inventory Sources
+  InventorySource,
+  InventorySourceExecutionType,
+  CreateInventorySourceInput,
+  UpdateInventorySourceInput,
+  // Storefront Readiness
+  ReadinessStatus,
+  ReadinessCheck,
+  StorefrontReadiness,
+  // Storefront Billing
+  BillingFee,
+  StorefrontBilling,
+  StorefrontBillingConfig,
+  StripeConnectResponse,
+  // Notifications
+  Notification,
+  ListNotificationsParams,
   // Agent
   Agent,
   AgentType,
   AgentStatus,
   AgentAuthenticationType,
   AgentProtocol,
-  RegisterAgentInput,
   UpdateAgentInput,
   ListAgentsParams,
   OAuthAuthorizeResponse,

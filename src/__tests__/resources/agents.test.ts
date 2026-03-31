@@ -13,7 +13,7 @@ describe('AgentsResource', () => {
     mockAdapter = {
       baseUrl: 'https://api.test.com',
       version: 'v2',
-      persona: 'partner' as const,
+      persona: 'storefront' as const,
       debug: false,
       validate: false,
       request: jest.fn(),
@@ -64,25 +64,6 @@ describe('AgentsResource', () => {
       await resource.get('agent-1');
 
       expect(mockAdapter.request).toHaveBeenCalledWith('GET', '/agents/agent-1');
-    });
-  });
-
-  describe('register', () => {
-    it('should call adapter with correct path and body', async () => {
-      const input = {
-        partnerId: 'p-1',
-        type: 'SALES' as const,
-        name: 'New Agent',
-        endpointUrl: 'https://agent.example.com',
-        protocol: 'MCP' as const,
-        accountPolicy: ['READ'],
-        authenticationType: 'API_KEY' as const,
-      };
-      mockAdapter.request.mockResolvedValue({ id: 'agent-1', name: 'New Agent' });
-
-      await resource.register(input);
-
-      expect(mockAdapter.request).toHaveBeenCalledWith('POST', '/agents', input);
     });
   });
 

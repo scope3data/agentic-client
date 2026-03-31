@@ -84,7 +84,7 @@ function isNestedDataResponse(data: unknown): {
     'products',
     'advertisers',
     'agents',
-    'partners',
+    'storefronts',
   ];
   for (const key of arrayKeys) {
     if (key in dataObj && Array.isArray(dataObj[key])) {

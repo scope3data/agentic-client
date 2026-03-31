@@ -151,34 +151,69 @@ describe('Scope3Client', () => {
     });
   });
 
-  describe('partner persona resources', () => {
-    it('should have partners resource', () => {
-      const client = new Scope3Client({ apiKey: 'test-key', persona: 'partner' });
-      expect(client.partners).toBeDefined();
-      expect(typeof client.partners.list).toBe('function');
-      expect(typeof client.partners.create).toBe('function');
-      expect(typeof client.partners.update).toBe('function');
-      expect(typeof client.partners.archive).toBe('function');
+  describe('storefront persona resources', () => {
+    it('should have storefront resource', () => {
+      const client = new Scope3Client({ apiKey: 'test-key', persona: 'storefront' });
+      expect(client.storefront).toBeDefined();
+      expect(typeof client.storefront.get).toBe('function');
+      expect(typeof client.storefront.create).toBe('function');
+      expect(typeof client.storefront.update).toBe('function');
+      expect(typeof client.storefront.delete).toBe('function');
+    });
+
+    it('should have inventorySources resource', () => {
+      const client = new Scope3Client({ apiKey: 'test-key', persona: 'storefront' });
+      expect(client.inventorySources).toBeDefined();
+      expect(typeof client.inventorySources.list).toBe('function');
+      expect(typeof client.inventorySources.get).toBe('function');
+      expect(typeof client.inventorySources.create).toBe('function');
+      expect(typeof client.inventorySources.update).toBe('function');
+      expect(typeof client.inventorySources.delete).toBe('function');
     });
 
     it('should have agents resource', () => {
-      const client = new Scope3Client({ apiKey: 'test-key', persona: 'partner' });
+      const client = new Scope3Client({ apiKey: 'test-key', persona: 'storefront' });
       expect(client.agents).toBeDefined();
       expect(typeof client.agents.list).toBe('function');
       expect(typeof client.agents.get).toBe('function');
-      expect(typeof client.agents.register).toBe('function');
       expect(typeof client.agents.update).toBe('function');
     });
 
+    it('should have readiness resource', () => {
+      const client = new Scope3Client({ apiKey: 'test-key', persona: 'storefront' });
+      expect(client.readiness).toBeDefined();
+      expect(typeof client.readiness.check).toBe('function');
+    });
+
+    it('should have billing resource', () => {
+      const client = new Scope3Client({ apiKey: 'test-key', persona: 'storefront' });
+      expect(client.billing).toBeDefined();
+      expect(typeof client.billing.get).toBe('function');
+      expect(typeof client.billing.connect).toBe('function');
+      expect(typeof client.billing.status).toBe('function');
+      expect(typeof client.billing.transactions).toBe('function');
+      expect(typeof client.billing.payouts).toBe('function');
+      expect(typeof client.billing.onboardingUrl).toBe('function');
+    });
+
+    it('should have notifications resource', () => {
+      const client = new Scope3Client({ apiKey: 'test-key', persona: 'storefront' });
+      expect(client.notifications).toBeDefined();
+      expect(typeof client.notifications.list).toBe('function');
+      expect(typeof client.notifications.markAsRead).toBe('function');
+      expect(typeof client.notifications.acknowledge).toBe('function');
+      expect(typeof client.notifications.markAllAsRead).toBe('function');
+    });
+
     it('should NOT have advertisers', () => {
-      const client = new Scope3Client({ apiKey: 'test-key', persona: 'partner' });
+      const client = new Scope3Client({ apiKey: 'test-key', persona: 'storefront' });
       expect(() => client.advertisers).toThrow(
         'advertisers is only available with the buyer persona'
       );
     });
 
     it('should NOT have campaigns', () => {
-      const client = new Scope3Client({ apiKey: 'test-key', persona: 'partner' });
+      const client = new Scope3Client({ apiKey: 'test-key', persona: 'storefront' });
       expect(() => client.campaigns).toThrow('campaigns is only available with the buyer persona');
     });
   });
@@ -288,15 +323,15 @@ describe('Scope3Client', () => {
       expect(result).toEqual(fakeParsed);
     });
 
-    it('should pass correct params for partner persona', async () => {
-      const partnerClient = new Scope3Client({ apiKey: 'test-key', persona: 'partner' });
+    it('should pass correct params for storefront persona', async () => {
+      const sfClient = new Scope3Client({ apiKey: 'test-key', persona: 'storefront' });
       mockFetchSkillMd.mockResolvedValue('markdown');
-      mockParseSkillMd.mockReturnValue({ ...fakeParsed, name: 'scope3-agentic-partner' });
+      mockParseSkillMd.mockReturnValue({ ...fakeParsed, name: 'scope3-agentic-storefront' });
 
-      await partnerClient.getSkill();
+      await sfClient.getSkill();
 
       expect(mockFetchSkillMd).toHaveBeenCalledWith(
-        expect.objectContaining({ persona: 'partner' })
+        expect.objectContaining({ persona: 'storefront' })
       );
     });
 
@@ -413,16 +448,16 @@ describe('Scope3Client', () => {
       });
     });
 
-    describe('partner persona cannot access buyer sub-resources', () => {
+    describe('storefront persona cannot access buyer sub-resources', () => {
       it('should throw when accessing advertisers sub-resources', () => {
-        const client = new Scope3Client({ apiKey: 'test-key', persona: 'partner' });
+        const client = new Scope3Client({ apiKey: 'test-key', persona: 'storefront' });
         expect(() => client.advertisers.conversionEvents('adv-1')).toThrow(
           'advertisers is only available with the buyer persona'
         );
       });
 
       it('should throw when accessing bundles sub-resources', () => {
-        const client = new Scope3Client({ apiKey: 'test-key', persona: 'partner' });
+        const client = new Scope3Client({ apiKey: 'test-key', persona: 'storefront' });
         expect(() => client.bundles.products('bundle-1')).toThrow(
           'bundles is only available with the buyer persona'
         );

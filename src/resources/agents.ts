@@ -1,11 +1,10 @@
 /**
- * Agents resource for managing partner agents
+ * Agents resource for discovering and managing agents under storefront
  */
 
 import { type BaseAdapter, validateResourceId } from '../adapters/base';
 import type {
   Agent,
-  RegisterAgentInput,
   UpdateAgentInput,
   ListAgentsParams,
   OAuthAuthorizeResponse,
@@ -14,7 +13,7 @@ import type {
 } from '../types';
 
 /**
- * Resource for managing agents (Partner persona)
+ * Resource for managing agents (Storefront persona)
  */
 export class AgentsResource {
   constructor(private readonly adapter: BaseAdapter) {}
@@ -44,15 +43,6 @@ export class AgentsResource {
       'GET',
       `/agents/${validateResourceId(agentId)}`
     );
-  }
-
-  /**
-   * Register a new agent under a partner
-   * @param data Agent registration data
-   * @returns Registered agent (may include OAuth authorizationUrl)
-   */
-  async register(data: RegisterAgentInput): Promise<ApiResponse<Agent>> {
-    return this.adapter.request<ApiResponse<Agent>>('POST', '/agents', data);
   }
 
   /**

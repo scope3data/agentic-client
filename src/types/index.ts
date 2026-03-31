@@ -10,7 +10,7 @@
 export type ApiVersion = 'v1' | 'v2' | 'latest';
 
 /** API persona - determines which API surface to use */
-export type Persona = 'buyer' | 'partner';
+export type Persona = 'buyer' | 'storefront';
 
 /** Environment for API endpoints */
 export type Environment = 'production' | 'staging';
@@ -662,35 +662,163 @@ export interface DiscoverSignalsInput {
 }
 
 // ============================================================================
-// Partner Types (Partner Persona)
+// Storefront Types (Storefront Persona)
 // ============================================================================
 
-export interface Partner {
-  id: string;
+export interface Storefront {
+  platformId: string;
   name: string;
-  description?: string;
-  status: string;
+  publisherDomain?: string;
+  plan?: string;
+  enabled: boolean;
   createdAt: string;
   updatedAt: string;
 }
 
-export interface CreatePartnerInput {
+export interface CreateStorefrontInput {
+  platformId: string;
   name: string;
-  description?: string;
+  publisherDomain?: string;
+  plan?: string;
 }
 
-export interface UpdatePartnerInput {
+export interface UpdateStorefrontInput {
   name?: string;
-  description?: string;
-}
-
-export interface ListPartnersParams extends PaginationParams {
-  status?: string;
-  name?: string;
+  publisherDomain?: string;
+  platformId?: string;
+  plan?: string;
+  enabled?: boolean;
 }
 
 // ============================================================================
-// Agent Types (Partner Persona)
+// Inventory Source Types (Storefront Persona)
+// ============================================================================
+
+export type InventorySourceExecutionType = 'agent';
+
+export interface InventorySource {
+  sourceId: string;
+  name: string;
+  executionType?: InventorySourceExecutionType;
+  status: string;
+  agentId?: string;
+  type?: AgentType;
+  endpointUrl?: string;
+  protocol?: AgentProtocol;
+  authenticationType?: AgentAuthenticationType;
+  authConfigured?: boolean;
+  executionConfig?: Record<string, unknown>;
+  description?: string;
+  oauth?: {
+    authorizationUrl: string;
+    agentId: string;
+    agentName: string;
+  };
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateInventorySourceInput {
+  sourceId: string;
+  name: string;
+  executionType?: InventorySourceExecutionType;
+  type?: AgentType;
+  endpointUrl?: string;
+  protocol?: AgentProtocol;
+  authenticationType?: AgentAuthenticationType;
+  auth?: {
+    type: string;
+    token?: string;
+    privateKey?: string;
+  };
+  executionConfig?: Record<string, unknown>;
+  description?: string;
+}
+
+export interface UpdateInventorySourceInput {
+  name?: string;
+  executionType?: InventorySourceExecutionType;
+  executionConfig?: Record<string, unknown>;
+  status?: string;
+}
+
+// ============================================================================
+// Storefront Readiness Types
+// ============================================================================
+
+export type ReadinessStatus = 'ready' | 'blocked';
+
+export interface ReadinessCheck {
+  id: string;
+  name: string;
+  description: string;
+  category: string;
+  status: string;
+  isBlocker: boolean;
+  details?: string;
+}
+
+export interface StorefrontReadiness {
+  platformId: string;
+  status: ReadinessStatus;
+  checks: ReadinessCheck[];
+}
+
+// ============================================================================
+// Storefront Billing Types (Stripe Connect)
+// ============================================================================
+
+export interface BillingFee {
+  name: string;
+  feePercent: number;
+}
+
+export interface StorefrontBilling {
+  stripeConnectedAccountId: string;
+  onboardingStatus: string;
+  platformFeePercent?: number;
+  fees?: BillingFee[];
+  currency?: string;
+  defaultNetDays?: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface StorefrontBillingConfig {
+  platformId: string;
+  billing: StorefrontBilling | null;
+}
+
+export interface StripeConnectResponse {
+  platformId: string;
+  stripeConnectedAccountId: string;
+  onboardingUrl: string;
+}
+
+// ============================================================================
+// Notification Types (Storefront Persona)
+// ============================================================================
+
+export interface Notification {
+  id: string;
+  type: string;
+  message: string;
+  read: boolean;
+  acknowledged: boolean;
+  brandAgentId?: number;
+  createdAt: string;
+}
+
+export interface ListNotificationsParams {
+  unreadOnly?: boolean;
+  brandAgentId?: number;
+  types?: string;
+  limit?: number;
+  offset?: number;
+}
+
+// ============================================================================
+// Agent Types (Storefront Persona)
 // ============================================================================
 
 export type AgentType = 'SALES' | 'SIGNAL' | 'CREATIVE' | 'OUTCOME';
@@ -722,24 +850,6 @@ export interface Agent {
   };
   createdAt: string;
   updatedAt?: string;
-}
-
-export interface RegisterAgentInput {
-  partnerId: string;
-  type: AgentType;
-  name: string;
-  endpointUrl: string;
-  protocol: AgentProtocol;
-  accountPolicy: string[];
-  authenticationType: AgentAuthenticationType;
-  auth?: {
-    type: string;
-    token?: string;
-    privateKey?: string;
-  };
-  description?: string;
-  reportingType?: string;
-  reportingPollingCadence?: string;
 }
 
 export interface UpdateAgentInput {

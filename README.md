@@ -69,27 +69,31 @@ const campaign = await client.campaigns.createDiscovery({
 await client.campaigns.execute(campaign.data.id);
 ```
 
-#### Partner Persona
+#### Storefront Persona
 
 ```typescript
-const partnerClient = new Scope3Client({
+const sfClient = new Scope3Client({
   apiKey: process.env.SCOPE3_API_KEY!,
-  persona: 'partner',
+  persona: 'storefront',
 });
 
-// List partners
-const partners = await partnerClient.partners.list();
+// Get your storefront
+const sf = await sfClient.storefront.get();
 
-// Register an agent
-const agent = await partnerClient.agents.register({
-  name: 'My Agent',
+// Create an inventory source (registers an agent)
+const source = await sfClient.inventorySources.create({
+  sourceId: 'my-sales-agent',
+  name: 'My Sales Agent',
+  executionType: 'agent',
   type: 'SALES',
-  partnerId: 'partner-123',
   endpointUrl: 'https://my-agent.example.com/mcp',
   protocol: 'MCP',
-  accountPolicy: ['MARKETPLACE'],
   authenticationType: 'API_KEY',
+  auth: { type: 'bearer', token: 'my-api-key' },
 });
+
+// Check readiness
+const readiness = await sfClient.readiness.check();
 ```
 
 ### MCP Client (AI Agents)
@@ -129,7 +133,7 @@ await mcp.disconnect();
 ```typescript
 const client = new Scope3Client({
   apiKey: 'your-api-key',       // Required: Bearer token
-  persona: 'buyer',              // Required: 'buyer' | 'partner'
+  persona: 'buyer',              // Required: 'buyer' | 'storefront'
   environment: 'production',     // Optional: 'production' (default) | 'staging'
   baseUrl: 'https://custom.com', // Optional: overrides environment
   timeout: 30000,                // Optional: request timeout in ms
@@ -162,7 +166,7 @@ scope3 campaigns list --format json
 scope3 bundles create --advertiser-id adv-123 --channels display,video
 
 # Override persona per-command
-scope3 --persona partner partners list
+scope3 --persona storefront storefront get
 
 # See all commands
 scope3 commands
@@ -172,17 +176,23 @@ scope3 commands
 
 ### Buyer Resources
 
-- `client.advertisers` -- CRUD and sub-resources (conversionEvents, creativeSets, testCohorts)
-- `client.campaigns` -- list, get, createDiscovery, updateDiscovery, createPerformance, updatePerformance, createAudience, execute, pause
+- `client.advertisers` -- CRUD and sub-resources (conversionEvents, creativeSets, testCohorts, eventSources, measurementData, catalogs, audiences, syndication, propertyLists)
+- `client.campaigns` -- list, get, createDiscovery, updateDiscovery, createPerformance, updatePerformance, createAudience, execute, pause, creatives(campaignId)
 - `client.bundles` -- create, discoverProducts, browseProducts, products(bundleId)
 - `client.signals` -- Discover signals
 - `client.reporting` -- Get reporting metrics
 - `client.salesAgents` -- List sales agents, register accounts
+- `client.tasks` -- Get task status
+- `client.propertyListChecks` -- Run and retrieve property list check reports
 
-### Partner Resources
+### Storefront Resources
 
-- `client.partners` -- list, create, update, archive
-- `client.agents` -- list, get, register, update
+- `client.storefront` -- get, create, update, delete
+- `client.inventorySources` -- list, get, create, update, delete
+- `client.agents` -- list, get, update
+- `client.readiness` -- check
+- `client.billing` -- get, connect, status, transactions, payouts, onboardingUrl
+- `client.notifications` -- list, markAsRead, acknowledge, markAllAsRead
 
 ## skill.md Support
 
@@ -223,7 +233,7 @@ The SDK is manually maintained. When the Agentic API changes, update these files
 1. Check the latest skill.md for your persona:
    ```bash
    curl https://api.agentic.scope3.com/api/v2/buyer/skill.md
-   curl https://api.agentic.scope3.com/api/v2/partner/skill.md
+   curl https://api.agentic.scope3.com/api/v2/storefront/skill.md
    ```
 2. Compare against `src/skill/bundled.ts` and update if needed
 3. Update types in `src/types/index.ts` to match any schema changes
@@ -237,7 +247,7 @@ The SDK is manually maintained. When the Agentic API changes, update these files
 ```bash
 export SCOPE3_API_KEY=your_key
 npm run test:buyer     # Buyer workflow
-npm run test:partner   # Partner workflow
+npm run test:storefront   # Storefront workflow
 npm run test:all       # All workflows
 ```
 
@@ -245,7 +255,7 @@ npm run test:all       # All workflows
 
 - [Getting Started](docs/getting-started.md)
 - [Buyer Guide](docs/buyer-guide.md)
-- [Partner Guide](docs/partner-guide.md)
+- [Storefront Guide](docs/storefront-guide.md)
 - [CLI Reference](docs/cli-reference.md)
 
 ## Contributing

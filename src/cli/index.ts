@@ -9,7 +9,7 @@
  * Examples:
  *   scope3 config set apiKey sk_xxx
  *   scope3 --persona buyer advertisers list
- *   scope3 --persona partner partners list
+ *   scope3 --persona storefront storefront get
  *   scope3 campaigns create-discovery --advertiser-id xxx --bundle-id yyy --name "Q1 Campaign"
  *   scope3 bundles create --advertiser-id xxx --channels ctv,display
  */
@@ -25,7 +25,7 @@ import {
   creativeSetsCommand,
   loginCommand,
   logoutCommand,
-  partnersCommand,
+  storefrontCommand,
   reportingCommand,
   salesAgentsCommand,
 } from './commands';
@@ -50,7 +50,7 @@ program
   .option('--base-url <url>', 'Custom API base URL')
   .option('--format <format>', 'Output format: json, table, or yaml (default: table)')
   .option('--debug', 'Enable debug mode')
-  .option('--persona <persona>', 'API persona: buyer or partner (default: buyer)');
+  .option('--persona <persona>', 'API persona: buyer or storefront (default: buyer)');
 
 // Warn if the OAuth session token is expired before running any command
 program.hook('preAction', (_thisCommand, actionCommand) => {
@@ -79,7 +79,7 @@ program.addCommand(campaignsCommand);
 program.addCommand(configCommand);
 program.addCommand(conversionEventsCommand);
 program.addCommand(creativeSetsCommand);
-program.addCommand(partnersCommand);
+program.addCommand(storefrontCommand);
 program.addCommand(reportingCommand);
 program.addCommand(salesAgentsCommand);
 
@@ -142,20 +142,21 @@ const commandsCmd = new Command('commands')
     console.log('    add-asset <id>            Add an asset to a creative set');
     console.log('    remove-asset <id> <assetId>  Remove an asset from a creative set');
 
-    // Partner persona
-    console.log(chalk.blue.bold('\n\nPARTNER PERSONA') + chalk.gray(' (use --persona partner)'));
-    console.log(chalk.gray('For technology partners - manage partners and agents\n'));
+    // Storefront persona
+    console.log(
+      chalk.blue.bold('\n\nSTOREFRONT PERSONA') + chalk.gray(' (use --persona storefront)')
+    );
+    console.log(chalk.gray('For storefronts - manage storefront, inventory sources, and agents\n'));
 
-    console.log(chalk.cyan('  partners'));
-    console.log('    list                      List all partners');
-    console.log('    create                    Create a new partner');
-    console.log('    update <id>               Update a partner');
-    console.log('    archive <id>              Archive a partner');
+    console.log(chalk.cyan('  storefront'));
+    console.log('    get                       Get storefront details');
+    console.log('    create                    Create a new storefront');
+    console.log('    update                    Update the storefront');
+    console.log('    delete                    Delete the storefront');
 
-    console.log(chalk.cyan('\n  partners agents'));
+    console.log(chalk.cyan('\n  storefront agents'));
     console.log('    list                      List all agents');
     console.log('    get <id>                  Get agent details');
-    console.log('    register                  Register a new agent');
     console.log('    update <id>               Update an agent');
     console.log('    oauth-authorize <id>      Start agent-level OAuth flow');
     console.log('    oauth-authorize-account <id>  Start per-account OAuth flow');

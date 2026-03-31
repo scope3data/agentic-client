@@ -25,6 +25,25 @@ This API enables AI-powered programmatic advertising with inventory discovery, c
 
 **Important**: This is a REST API accessed via the \`api_call\` tool. After reading this documentation, use \`api_call\` to make HTTP requests to the endpoints below.
 
+## ⚠️ CRITICAL: Presentation Rules
+
+**Tool responses return JSON data.** For most endpoints (advertisers, sales agents, campaigns, etc.), YOU are responsible for presenting the data clearly in your message. Follow the Display Requirements for each endpoint — they tell you exactly what fields to show and how to structure the output. Never summarize into vague prose — always show the specific data points listed in the display requirements for each item.
+
+**Exception: Product discovery and reporting endpoints render interactive UI components.** When those tools return a UI, display it as-is — do not generate your own competing visualization.
+
+## ⚠️ CRITICAL: Always Use ask_about_capability Before api_call
+
+**Before making ANY \`api_call\`, you MUST first call \`ask_about_capability\`** to learn the correct endpoint, field names, query parameters, and **display requirements**. Do NOT guess or assume any API details — always verify first.
+
+**Required workflow for every API operation:**
+1. Call \`ask_about_capability\` with a question about what you want to do (e.g., "How do I list sales agents and what should I show?", "How do I list advertisers?", "How do I create a campaign?")
+2. Read the response to learn the exact endpoints, parameters, field names, **and what information you must present to the user**
+3. Only then call \`api_call\` with the verified information
+
+**Never skip this step.** Even for simple GET requests like listing sales agents or advertisers, always check \`ask_about_capability\` first. Responses contain critical fields (account status, credential requirements, linked accounts) that you MUST present to the user — not just names.
+
+**Common mistake:** Listing sales agents or advertisers and only showing names. This is WRONG. You must show account status, credential requirements, linked accounts, and other operational details for each item.
+
 ## ⚠️ CRITICAL: Exact Field Names Required
 
 **DO NOT GUESS FIELD NAMES.** Use these exact camelCase names:
@@ -32,7 +51,10 @@ This API enables AI-powered programmatic advertising with inventory discovery, c
 | Field | Type | Notes |
 |-------|------|-------|
 | \`advertiserId\` | string | NOT \`advertiser_id\` |
-| \`brandDomain\` | string | Required on advertiser create (e.g., \`"nike.com"\`) |
+| \`brand\` | string | Required on advertiser create (e.g., \`"nike.com"\`) |
+| \`saveBrand\` | boolean | Optional on advertiser create. Set \`true\` to save an enriched brand to the registry |
+| \`sandbox\` | boolean | Optional on advertiser create. When \`true\`, all ADCP operations use sandbox accounts (no real spend). Immutable after creation |
+| \`optimizationApplyMode\` | string | \`"AUTO"\` or \`"MANUAL"\` (default \`"MANUAL"\`). Controls whether Scope3 AI model optimizations to media buys are applied automatically or require manual approval. Set on advertiser (default for all campaigns) or override per campaign. |
 | \`flightDates\` | **object** | NOT \`startDate\`/\`endDate\` at root level |
 | \`flightDates.startDate\` | string | ISO 8601: \`"2026-02-05T00:00:00Z"\` |
 | \`flightDates.endDate\` | string | ISO 8601: \`"2026-02-10T23:59:59Z"\` |
@@ -41,7 +63,7 @@ This API enables AI-powered programmatic advertising with inventory discovery, c
 | \`budget.currency\` | string | \`"USD"\` (default) |
 | \`constraints\` | object | Optional |
 | \`constraints.channels\` | array | e.g., \`["display"]\`, \`["ctv"]\` |
-| \`performanceConfig\` | object | Required for \`type: "performance"\` |
+| \`performanceConfig\` | object | Optional. Contains \`optimizationGoals\` array. Each goal has \`kind\` (\`"event"\` or \`"metric"\`). Event goals have \`eventSources\` array + optional \`target\`. Metric goals have \`metric\` + optional \`target\`. |
 
 ## ⚠️ CRITICAL: Always Send the ENTIRE Client Brief
 
@@ -54,7 +76,7 @@ The brief is used by sales agents and the discovery system to match relevant inv
 - **Copy the full brief verbatim** — include every detail the client provided
 - **Never summarize** — "Premium CTV for tech enthusiasts" is NOT an acceptable substitute for a multi-paragraph brief
 - **Never truncate** — if the client gave you 500 words, send all 500 words
-- **Applies everywhere \`brief\` is used** — bundle creation, product discovery, campaign creation, and any other endpoint that accepts a brief
+- **Applies everywhere \`brief\` is used** — product discovery, campaign creation, and any other endpoint that accepts a brief
 
 ## ⚠️ CRITICAL: Never Fabricate User Data
 
@@ -64,11 +86,20 @@ The brief is used by sales agents and the discovery system to match relevant inv
 - **NEVER fabricate values** for required fields. If the user hasn't provided a value, ask for it.
 - **Read-only calls are fine** — you can freely call GET endpoints to fetch data and present it to the user.
 - **Confirm before mutating** — Before any POST, PUT, or DELETE call, verify you have user-provided (or user-confirmed) values for all required fields.
-- **Inferring is OK when obvious** — If the user says "optimize for return on ad spend", you can infer \`objective: "ROAS"\`. But if intent is ambiguous, ask.
-- **Never make up IDs** — IDs (advertiserId, bundleId, campaignId, etc.) must come from previous API responses or the user. Never generate them.
+- **Inferring is OK when obvious** — If the user says "optimize for purchases with a 4x ROAS target", you can infer an event goal with \`eventType: "purchase"\` and \`target: { kind: "per_ad_spend", value: 4.0 }\`. But if intent is ambiguous, ask.
+- **Never make up IDs** — IDs (advertiserId, discoveryId, campaignId, etc.) must come from previous API responses or the user. Never generate them.
+- **Account IDs for linking MUST come from discovery** — When linking an agent account to an advertiser, the \`accountId\` MUST come from the \`GET /advertisers/{id}/accounts/available?partnerId={agentId}\` response. Even if the user tells you an account ID or name (e.g., "the account is named XYZ" or "the ID is 06cd7033..."), you MUST still call the discovery endpoint and use the \`accountId\` from the API response. If the account doesn't appear in the discovery results, it cannot be linked — tell the user it was not found. NEVER pretend to successfully link an account that was not returned by the discovery endpoint.
 - **Only use what's documented** — Do NOT invent endpoints, fields, query parameters, or enum values that are not explicitly listed in this skill document. If you're unsure whether something exists, check this document first. If it's not here, don't use it.
 
 ---
+
+## Notifications
+
+The \`help\` and \`ask_about_capability\` tools include unread notifications in their responses. When a response contains a "Unread Notifications" section, summarize those notifications for the user before answering their question.
+
+Notifications can be listed, marked as read, or acknowledged via the \`/api/v2/buyer/notifications\` endpoints — see the Notifications section below for details.
+
+**Setup:** To receive notifications proactively at the start of every session, add this to your Claude Desktop Project instructions, CLAUDE.md, or system prompt: \`When using Scope3 tools, always start by calling the help tool. The response includes unread notifications — summarize those for the user before answering their question.\`
 
 ## Quick Start
 
@@ -79,30 +110,31 @@ The brief is used by sales agents and the discovery system to match relevant inv
 
 ---
 
-## Campaign Workflow Decision Tree
+## Campaigns
 
-**There is no generic campaign creation endpoint.** You must choose a campaign type first, then follow the type-specific workflow.
+Create an ad campaign via \`POST /campaigns\`. Campaigns are configured at creation or update time with:
+- **Products**: Select products via the discovery endpoints (\`POST /discovery/discover-products\`, \`POST /discovery/{id}/products\`), then attach it via \`discoveryId\` at campaign creation or update.
+- **Performance optimization**: Set via the \`performanceConfig\` field at campaign creation (\`POST /campaigns\`) or update (\`PUT /campaigns/{id}\`).
+- **Audience targeting**: Target or suppress audiences via the \`audienceConfig\` field at campaign creation or update. Audiences are synced to the advertiser first via \`POST /audiences/sync\`.
+- **Auto-select products (pick for me)**: Use \`POST /campaigns/{campaignId}/auto-select-products\` to let the system automatically choose products and allocate budget using AI. Requires a performance campaign with discovered products.
 
-**CRITICAL: When a user says "create a campaign" without specifying a type, ALWAYS ask them to choose. Do NOT default to any type.**
+**⚠️ HARD RULE: One API Call Per Turn**
 
-Match the user's **intent** to the right type:
+Only make ONE mutating or discovery API call per turn. After that call, present the results and END YOUR TURN. Do not paginate, re-discover, or chain additional calls — wait for the user to tell you what to do next.
 
-| User Intent | Campaign Type | Workflow |
-|-------------|---------------|----------|
-| "browse inventory", "show me what's available", "I want to pick publishers", "select products", "specific sites", "curated", "what inventory do you have" | **Discovery** ✅ | See Discovery Campaign Workflow below |
-| "optimize for ROAS", "maximize conversions", "drive sales", "hit a CPA target", "performance goal", "optimize my spend" | **Performance** ✅ | See Performance Campaign Workflow below |
-| "target tech enthusiasts", "reach parents aged 25-40", "audience segments", "demographic targeting" | **Audience** ❌ Coming soon | Returns 501 — suggest discovery or performance instead |
+**Required flow when user says "create a campaign":**
+1. Collect campaign details: name, advertiser, budget, flight dates, brief, and any targeting constraints
+2. Ask whether they want to target or suppress any audiences. If yes, list the advertiser's audiences (\`GET /advertisers/{accountId}/audiences\`) and let them choose. If the advertiser has no audiences, let the user know and offer: "You don't have any audiences synced yet. I can help you sync audiences to Scope3 — just ask me how to get started."
+3. Ask if they want to attach a catalog — if yes, list their catalogs via \`GET /advertisers/{advertiserId}/catalogs\` and let them pick one
+4. Ask how they'd like to configure: browse products (discovery) or set performance metrics
+5. Based on their choice:
+   - **Products**: Run discovery ONCE, present results, END YOUR TURN. The user drives what happens next.
+   - **Performance**: Create the campaign with \`performanceConfig\`
+6. Include \`audienceConfig\` if the user selected audiences in step 2
+7. When ready, launch: \`POST /campaigns/{id}/execute\`
 
-**Key distinction:** Does the user want to choose the inventory themselves (→ discovery) or let the system choose (→ performance)? If the user mentions wanting to see products or pick publishers, that's **discovery**, even if they also mention performance goals.
-
-**When the user's intent is ambiguous**, ask:
-> "What type of campaign would you like to create?
-> - **Discovery**: You browse and select the specific ad inventory/products
-> - **Performance**: The system automatically optimizes for your goal (ROAS, conversions, etc.)
-> - **Audience**: Target specific audience segments (coming soon)"
-
-**All campaign types share these required fields:**
-- \`advertiserId\` (string) — NOT \`advertiser_id\`
+**Required fields for campaign creation:**
+- \`advertiserId\` (number) — NOT \`advertiser_id\`
 - \`name\` (string)
 - \`flightDates\` (object) — NOT \`startDate\`/\`endDate\` at root level
   - \`flightDates.startDate\` (ISO 8601 datetime)
@@ -111,74 +143,115 @@ Match the user's **intent** to the right type:
   - \`budget.total\` (number)
   - \`budget.currency\` (string, default \`"USD"\`)
 
-Each type then requires additional fields:
-- **Discovery**: \`bundleId\` (from \`POST /bundles\`) → create via \`POST /campaigns/discovery\`
-- **Performance**: \`performanceConfig.objective\` → create via \`POST /campaigns/performance\`
-- **Audience**: \`signals\` → create via \`POST /campaigns/audience\` (coming soon)
+**Optional fields at creation:**
+- \`discoveryId\`: Attach an existing discovery session
+- \`productIds\`: Product IDs to pre-select (requires discoveryId)
+- \`performanceConfig\`: For performance optimization. Contains \`optimizationGoals\` array. Each goal has \`kind\` (\`"event"\` or \`"metric"\`). Event goals have \`eventSources\` array (each with \`eventSourceId\`, \`eventType\`, optional \`valueField\`) + optional \`target\` object (\`kind: "per_ad_spend"\` or \`kind: "cost_per"\` with \`value\`). Metric goals have \`metric\` string + optional \`target\`. Goals can include \`attributionWindow\` and \`priority\`.
+- \`optimizationApplyMode\`: \`"AUTO"\` or \`"MANUAL"\` (default). Controls whether Scope3 AI model optimizations to media buys are applied automatically or require manual approval. Overrides the advertiser-level default.
+- \`catalogId\` (number, optional): Attach a single catalog to the campaign. Only **one** catalog per campaign. The catalog must belong to the same advertiser. Get available catalogs via \`GET /advertisers/{advertiserId}/catalogs\`. When attached, the catalog is automatically included in product discovery requests — referenced by ID for agents that have the catalog syndicated, or sent inline (feed URL or items) otherwise.
+- \`constraints.channels\`: Target channels (display, olv, ctv, social)
+- \`constraints.countries\`: Target countries (ISO 3166-1 alpha-2 codes)
+- \`brief\`: Campaign brief. **MUST be the ENTIRE brief from the client — never summarize or truncate.**
+- \`audienceConfig\`: Audience targeting and suppression. Contains \`targetAudienceIds\` (audiences to **include**) and \`suppressAudienceIds\` (audiences to **exclude**). Audience IDs come from \`GET /advertisers/{accountId}/audiences\`.
 
 ---
 
-## Browsing Products Without a Campaign
+## Browsing Products Before Creating a Campaign
 
-Browsing products is part of the **discovery** campaign workflow. If a user starts browsing inventory, they are implicitly heading toward a discovery campaign (where they select specific products). This is different from a performance campaign, where the system selects inventory automatically.
+**When a user wants to browse products but hasn't created a campaign yet:**
 
-**When a user wants to browse products without mentioning a campaign:**
-
-Users may want to explore available inventory before committing to a campaign. Use \`POST /bundles/discover-products\` which:
-- Creates a bundle automatically if no bundleId is provided
-- Discovers products based on the advertiser's context
-- Returns both the bundleId and discovered products
+Users may want to explore available inventory before committing to a campaign. Use \`POST /discovery/discover-products\` which discovers products based on the advertiser's context and returns a \`discoveryId\` along with the discovered products.
 
 **Interactive flow:**
-1. **Browse products** — Call \`POST /bundles/discover-products\` with advertiser context
-   - Returns bundleId (auto-created if needed) and product groups
-   - Save the bundleId for later use
+1. **Discover products** — Call \`POST /discovery/discover-products\` with advertiser context
+   - Returns \`discoveryId\` and product groups — save the \`discoveryId\` for later use
 2. **Present products** — Show available inventory in a user-friendly way
-3. **Add products to the bundle** — When the user likes products, add them via \`POST /bundles/{id}/products\`
-4. **Create campaign later** — When ready, create a campaign with the bundleId via \`POST /campaigns/discovery\`
+3. **Select products** — When the user likes products, add them via \`POST /discovery/{id}/products\`
+4. **Attach to a campaign** — Create a campaign with the \`discoveryId\` via \`POST /campaigns\`, or attach it to an existing campaign via \`PUT /campaigns/{id}\` with \`discoveryId\`
 
 **Request Parameters (Filtering):**
 - \`publisherDomain\` (optional): Filter products by publisher domain (exact domain component match). Example: "example" matches "example.com", "www.example.com" but "exampl" does not match
 - \`salesAgentIds\` (optional, array): Filter products by exact sales agent ID(s). Use when you have agent IDs from a previous response.
 - \`salesAgentNames\` (optional, array): Filter products by sales agent name(s) (case-insensitive match). Use when a user mentions specific sellers, partners, or exchanges by name.
+- \`pricingModel\` (optional): Filter by pricing model (\`cpm\`, \`vcpm\`, \`cpc\`, \`cpcv\`, \`cpv\`, \`cpp\`, \`flat_rate\`). Use when a user wants inventory with a specific pricing type.
 
-**Key benefit:** Users can explore inventory without the overhead of creating bundles manually. The bundleId is returned so they can continue building their selection.
-
-See the Discovery Campaign Workflow below for the full step-by-step with HTTP examples.
+See the Campaign Workflow below for the full step-by-step with HTTP examples.
 
 ---
 
-## Discovery Campaign Workflow
+## Adding Products to a Campaign
 
-**When to use:** User wants to browse, select, or control which specific inventory/products to include.
+**When the user wants to choose specific inventory:**
 
-**Prerequisites:** Advertiser exists with a linked brand (set during advertiser creation via \`brandDomain\`).
+Product discovery and selection is done via the discovery endpoints. Discover products, select the ones you want, then attach them to the campaign.
+
+1. **Discover products** — Use \`POST /discovery/discover-products\`
+   - Show product groups, publishers, channels, and price ranges in a user-friendly way
+2. **Present results and let the user choose** — Show the discovered products and ask which ones they want to add. Do NOT auto-select products for the user.
+3. **Add their selections** — Call \`POST /discovery/{id}/products\` with the products the user chose
+   - Show the updated product list and budget allocation
+4. **Attach to campaign** — Create the campaign with \`discoveryId\` via \`POST /campaigns\`, or update an existing campaign via \`PUT /campaigns/{id}\` with \`discoveryId\`
+5. **Confirm readiness** — "Your campaign has X products selected with $Y allocated. Ready to launch?"
+6. **Launch** — Call \`POST /campaigns/{id}/execute\`
+
+See the Discovery Workflow (Pre-Campaign Product Discovery) section below for the full step-by-step with HTTP examples.
+
+### Setting Performance Optimization
+
+**When the user wants the system to optimize for business outcomes:**
+
+1. **Check conversion events** — Call \`GET /advertisers/{advertiserId}/events/summary\` with \`eventType: "conversion"\` to see what events are available for optimization
+   - If none exist, help the user configure event sources first
+   - **Note:** Event data is aggregated hourly. Newly reported events may take up to 1 hour to appear in the summary.
+2. **Set performance config** — Include \`performanceConfig\` at campaign creation (\`POST /campaigns\`) or update (\`PUT /campaigns/{id}\`)
+   - Required: \`optimizationGoals\` array with at least one goal object
+   - Each goal has \`kind\` (\`"event"\` or \`"metric"\`)
+   - Event goals: \`eventSources\` array (each with \`eventSourceId\`, \`eventType\`, optional \`valueField\`), optional \`target\` (\`kind: "per_ad_spend"\` or \`kind: "cost_per"\` with \`value\`), optional \`attributionWindow\`, optional \`priority\`
+   - Metric goals: \`metric\` string, optional \`target\`, optional \`priority\`
+3. **Launch** — Call \`POST /campaigns/{id}/execute\`
+
+### Auto-Selecting Products (Pick For Me)
+
+**When the user wants the system to choose products automatically:**
+
+Instead of manually browsing and selecting products, performance campaigns can use auto-selection:
+
+1. **Ensure products are discovered** — The campaign must have discovered products (via \`POST /discovery/discover-products\` or auto-discovery at campaign creation with \`performanceConfig\` + \`constraints.channels\`)
+2. **Auto-select** — Call \`POST /campaigns/{campaignId}/auto-select-products\` (no request body needed)
+   - The system uses AI to select the best products based on the campaign brief, budget, constraints, and optimization goals
+   - Budget is allocated across selected products based on strategic fit
+   - Any previous product selections in the discovery session are replaced
+3. **Review selections** — Present the selected products, budget allocations, and rationale to the user
+4. **Refine (optional)** — The user can adjust selections using existing discovery endpoints:
+   - \`POST /discovery/{discoveryId}/products\` — Add products
+   - \`DELETE /discovery/{discoveryId}/products\` — Remove products
+   - Or call \`POST /campaigns/{campaignId}/auto-select-products\` again to re-select
+5. **Launch** — When the user confirms, call \`POST /campaigns/{campaignId}/execute\`
+
+**Response includes:**
+- \`selectedProducts\`: Array of products with budget allocations
+- \`budgetContext\`: Campaign budget vs allocated amount
+- \`selectionRationale\`: AI-generated explanation of the selection strategy
+- \`selectionMethod\`: \`"scoring"\`, \`"measurability"\`, or \`"cpm_heuristic"\`
+- \`testBudgetPerProduct\`: Test budget allocated per product (when using measurability or scoring strategy)
+- \`productCount\`: Number of products selected
+
+---
+
+## Discovery Workflow (Pre-Campaign Product Discovery)
+
+**When to use:** User wants to browse, select, or control which specific inventory/products to include before or independently of campaign creation.
+
+**Prerequisites:** Advertiser exists with a linked brand (set during advertiser creation via \`brand\`).
 
 ### Interactive Flow
 
-Follow these steps in order. **Do NOT skip bundle creation or product discovery.**
+Follow these steps in order. **Do NOT skip product discovery.**
 
-**Step 1: Create the bundle**
+**Step 1: Discover products**
 
 \`\`\`http
-POST /api/v2/buyer/bundles
-{
-  "advertiserId": "12345",
-  "channels": ["ctv", "display"],
-  "countries": ["US", "CA"],
-  "brief": "<<< ALWAYS include the ENTIRE brief from the client here — never summarize >>>",
-  "budget": 50000,
-  "flightDates": {
-    "startDate": "2025-02-01T00:00:00Z",
-    "endDate": "2025-03-31T23:59:59Z"
-  }
-}
-\`\`\`
-→ Returns \`{ "bundleId": "abc123-def456-ghi789" }\` — save this for all subsequent steps.
-
-Alternatively, use \`POST /bundles/discover-products\` which creates a bundle AND discovers products in one call (useful when a user just wants to browse without explicit bundle creation):
-\`\`\`http
-POST /api/v2/buyer/bundles/discover-products
+POST /api/v2/buyer/discovery/discover-products
 {
   "advertiserId": "12345",
   "channels": ["ctv", "display"],
@@ -187,23 +260,30 @@ POST /api/v2/buyer/bundles/discover-products
   "salesAgentNames": ["Acme Ad Exchange"]
 }
 \`\`\`
-→ Returns \`{ "bundleId": "...", "productGroups": [...], "totalGroups": 25, "hasMoreGroups": true, "summary": { ... } }\`
+→ Returns \`{ "discoveryId": "...", "productGroups": [...], "totalGroups": 25, "hasMoreGroups": true, "summary": { ... } }\`
 
-**Step 2: STOP and guide the user**
+Save the \`discoveryId\` for all subsequent steps.
 
-Do NOT immediately create the campaign. Instead:
-- Explain that you've started building their campaign bundle
-- Offer to show them available inventory: "Would you like me to show you the available inventory?"
+**Step 2: Present results and END YOUR TURN**
 
-**Step 3: Discover products**
+Present the discovered products and END YOUR TURN. If \`hasMoreGroups: true\`, tell the user more are available.
 
-If you used \`POST /bundles\` in Step 1 (not \`POST /bundles/discover-products\`), discover products now:
-
+To browse more products or apply filters, use:
 \`\`\`http
-GET /api/v2/buyer/bundles/{bundleId}/discover-products?groupLimit=10&groupOffset=0&productsPerGroup=5
+GET /api/v2/buyer/discovery/{discoveryId}/discover-products?groupLimit=10&groupOffset=0&productsPerGroup=15
 \`\`\`
 
-Present product groups, publishers, channels, and price ranges in a user-friendly way.
+**When discovery returns no products:**
+
+A discovery response with 0 products is **not an error** — it means no products matched. Do NOT say "discovery failed." Do NOT speculate about why (e.g. "likely because X wasn't set up correctly" — you have no idea why, and guessing will be wrong and confusing). Just state the fact and offer these specific next steps:
+
+1. **Add specificity** — Include budget, flight dates, specific channels (e.g. CTV, display), or audience targeting. Richer briefs give agents more to match against.
+2. **Try different channels or geos** — The available inventory may not cover the requested combination.
+3. **Reduce the ask** — If the brief is very narrow (e.g. a niche audience + specific publisher + tight budget), broadening one or more constraints often unlocks results.
+4. **Try specific filters** — Filter by \`salesAgentNames\` or \`publisherDomain\` to target sellers known to have relevant inventory.
+
+Example response when no products are returned:
+> No products were returned for this brief. A few things that might help: adding a budget or flight dates, specifying channels (CTV, display, etc.), broadening the audience, or filtering by a specific seller. Want to try refining the brief?
 
 **Explaining product relevance (IMPORTANT):**
 
@@ -229,6 +309,8 @@ When discovering products, these filters narrow results before grouping and pagi
   - Example: "hulu" matches "hulu.com", "www.hulu.com" but "hul" does not
 - \`salesAgentIds\`: Filter by exact sales agent ID(s). Use when you have agent IDs from a previous response. Accepts multiple values.
 - \`salesAgentNames\`: Filter by sales agent name(s) (case-insensitive substring match). Use when a user mentions specific sellers, partners, or exchanges by name. Accepts multiple values.
+- \`pricingModel\`: Filter by pricing model. Use when a user asks about specific pricing types.
+  - Valid values: \`cpm\`, \`vcpm\`, \`cpc\`, \`cpcv\`, \`cpv\`, \`cpp\`, \`flat_rate\`
 
 Filters can be combined. Multiple values within a filter use OR logic (match any); different filters use AND logic.
 
@@ -239,20 +321,24 @@ Do NOT mention filter parameter names. Respond naturally:
 - User: "Show me [publisher] inventory" → filter by publisherDomain
 - User: "What does [agent name] have on [publisher]?" → filter by both salesAgentNames and publisherDomain
 - User: "Show me inventory from [agent 1] and [agent 2]" → filter by salesAgentNames with both values
+- User: "Show me CPM inventory" → filter by pricingModel=cpm
+- User: "What flat rate options are there?" → filter by pricingModel=flat_rate
 - User: "Who sells CTV inventory?" → show unfiltered results, then offer to narrow by seller
 
 Each product group represents a sales agent. To focus on a specific agent's inventory, use the sales agent filter on subsequent requests.
 
-**Step 4: Select products interactively**
+**Step 3: Select products interactively**
 
 Users can select products in two ways:
-1. **Via the interactive card UI** — Users select product cards and click "Add to Bundle". When this happens, you'll receive a message containing the bundleId, productIds, and the exact \`POST /bundles/{id}/products\` API call to execute. The message will also ask you to prompt the user about per-product budgets. **Ask the user if they'd like to set individual budgets before executing the API call.** If they provide budgets, add a \`budget\` field to each product in the request body. If they decline, execute the call as-is without budgets. Do not re-discover products or look up IDs.
+1. **Via the interactive card UI** — Users select product cards and click "Select". When this happens, you'll receive a message containing the discoveryId, productIds, and the exact \`POST /discovery/{id}/products\` API call to execute. The message will also ask you to prompt the user about per-product budgets. **Ask the user if they'd like to set individual budgets before executing the API call.** If they provide budgets, add a \`budget\` field to each product in the request body. If they decline, execute the call as-is without budgets. Do not re-discover products or look up IDs.
 2. **Via conversation** — Users describe which products they want in natural language. The productId, salesAgentId, groupId, and groupName are included in the product listing from the discovery response — extract them from there to build the API call. Do not re-discover products to obtain IDs.
 
 **Per-product budget:** Each product supports an optional \`budget\` field (number, in dollars). Ask about budgets before adding products — don't assume a budget if the user hasn't specified one.
 
+**Bid price (REQUIRED for non-fixed pricing):** When a product's selected pricing option has \`isFixed: false\`, you MUST include \`bidPrice\` in the request body. Use the \`rate\` or \`floorPrice\` from the product's \`pricingOptions\` (from the discovery response) as the \`bidPrice\` value — do NOT ask the user for this. If \`isFixed: true\`, omit \`bidPrice\`.
+
 \`\`\`http
-POST /api/v2/buyer/bundles/{bundleId}/products
+POST /api/v2/buyer/discovery/{discoveryId}/products
 {
   "products": [
     {
@@ -260,27 +346,27 @@ POST /api/v2/buyer/bundles/{bundleId}/products
       "salesAgentId": "agent_456",
       "groupId": "ctx_123-group-0",
       "groupName": "Publisher Name",
-      "cpm": 12.50,
+      "bidPrice": 12.50,
       "budget": 5000
     }
   ]
 }
 \`\`\`
 
-Show the updated bundle with selected products and budget allocation.
+Show the updated selection with selected products and budget allocation.
 
-**Step 5: Confirm readiness**
+**Step 4: Confirm readiness**
 
-"Your bundle has X products selected with $Y allocated. Ready to create the campaign?"
+"You have selected X products with $Y allocated. Ready to create the campaign?"
 
-**Step 6: Create the campaign**
+**Step 5: Create the campaign**
 
 \`\`\`http
-POST /api/v2/buyer/campaigns/discovery
+POST /api/v2/buyer/campaigns
 {
   "advertiserId": "12345",
   "name": "Q1 2025 CTV Campaign",
-  "bundleId": "abc123-def456-ghi789",
+  "discoveryId": "abc123-def456-ghi789",
   "flightDates": {
     "startDate": "2025-02-01T00:00:00Z",
     "endDate": "2025-03-31T23:59:59Z"
@@ -292,75 +378,52 @@ POST /api/v2/buyer/campaigns/discovery
 }
 \`\`\`
 
-**Step 7: Launch**
+**Step 6: Launch**
 
 \`\`\`http
 POST /api/v2/buyer/campaigns/{campaignId}/execute
 \`\`\`
 
-### Bundle Management
+### Discovery Management
 
-- \`GET /bundles/{id}/products\` — List selected products
-- \`POST /bundles/{id}/products\` — Add products
-- \`DELETE /bundles/{id}/products\` — Remove products (body: \`{ "productIds": ["..."] }\`)
+- \`GET /discovery/{id}/products\` — List selected products
+- \`POST /discovery/{id}/products\` — Add products
+- \`DELETE /discovery/{id}/products\` — Remove products (body: \`{ "productIds": ["..."] }\`)
 
-**Summary:** Create bundle → Discover products → Select products → Create campaign → Execute
-
-### Bundle Lifecycle
-
-**How long do bundles live?**
-- Bundles persist indefinitely until explicitly completed
-- There is no automatic expiration or TTL
-- Bundles remain in "active" status until a campaign is executed
-
-**Can bundles be reused?**
-- Yes, the same bundleId can be attached to multiple campaigns
-- Each campaign independently references the bundle's products
-- Modifying the bundle affects all campaigns that reference it
-
-**What happens after campaign creation?**
-- The bundle remains active after campaign creation
-- You can continue adding/removing products from the bundle
-- The bundle is only "completed" when the campaign is executed
-- Once completed, the bundle cannot be modified
-
-**Best Practices:**
-- Create one bundle per campaign workflow
-- Complete product selection before creating the campaign
-- Don't reuse bundles across unrelated campaigns
+**Summary:** Discover products → Select products → Create campaign → Execute
 
 **IMPORTANT:** Do NOT expose API details to the user. Communicate conversationally about campaigns, inventory, products, and budgets — not about endpoints or HTTP methods.
 
 ---
 
-## Performance Campaign Workflow
+## Performance Optimization Workflow
 
-**When to use:** User wants the system to optimize for business outcomes automatically. The system handles inventory selection — no manual product or signal selection needed.
+**When to use:** User wants the system to optimize for business outcomes automatically.
 
-**Prerequisites:** Advertiser exists (with brand set during creation) + Conversion events configured.
-
-### Steps
+**Prerequisites:** Advertiser exists (with brand set during creation) + Event source configured.
 
 **Step 1: Verify advertiser**
-
 \`\`\`http
 GET /api/v2/buyer/advertisers?status=ACTIVE&name={advertiserName}
 \`\`\`
 
-**Step 2: Check/create conversion events**
+**Step 2: Check/create event source**
 
 \`\`\`http
-GET /api/v2/buyer/advertisers/{advertiserId}/conversion-events
+GET /api/v2/buyer/advertisers/{advertiserId}/event-sources
 \`\`\`
 
 If empty, create one:
 \`\`\`http
-POST /api/v2/buyer/advertisers/{advertiserId}/conversion-events
+POST /api/v2/buyer/advertisers/{advertiserId}/event-sources
 {
-  "name": "Purchase",
-  "type": "PURCHASE"
+  "eventSourceId": "website_pixel",
+  "name": "Website Pixel",
+  "eventTypes": ["purchase", "add_to_cart"]
 }
 \`\`\`
+
+Save the \`eventSourceId\` — it's required for optimization goals.
 
 **Step 3: Gather required fields from the user**
 
@@ -368,13 +431,12 @@ Before calling the create endpoint, confirm you have:
 - Campaign name (ask the user or confirm a suggested name)
 - Flight dates (start and end — ask the user)
 - Budget total and currency (ask the user)
-- Performance objective: \`ROAS\`, \`CONVERSIONS\`, \`LEADS\`, or \`SALES\` (ask the user if not clear from context)
-- Optional: goals, bid strategy, constraints (offer these but don't require)
+- Optimization goals: at least one goal with \`kind\` ("event" or "metric"). For event goals: event source ID (from Step 2), event type (e.g. \`purchase\`, \`lead\`), and optionally a \`target\` (e.g. \`kind: "per_ad_spend"\` for ROAS or \`kind: "cost_per"\` for CPA). For metric goals: \`metric\` string and optional \`target\`.
+- Optional: constraints, attribution window, priority
 
-**Step 4: Create the campaign**
-
+**Step 4: Create the campaign with performanceConfig**
 \`\`\`http
-POST /api/v2/buyer/campaigns/performance
+POST /api/v2/buyer/campaigns
 {
   "advertiserId": "12345",
   "name": "Q1 ROAS Optimization",
@@ -387,10 +449,15 @@ POST /api/v2/buyer/campaigns/performance
     "currency": "USD"
   },
   "performanceConfig": {
-    "objective": "ROAS",
-    "goals": {
-      "targetRoas": 4.0
-    }
+    "optimizationGoals": [{
+      "kind": "event",
+      "eventSources": [
+        { "eventSourceId": "es_abc123", "eventType": "purchase", "valueField": "value" }
+      ],
+      "target": { "kind": "per_ad_spend", "value": 4.0 },
+      "attributionWindow": { "clickThrough": "7d" },
+      "priority": 1
+    }]
   },
   "constraints": {
     "channels": ["ctv", "display"],
@@ -399,53 +466,20 @@ POST /api/v2/buyer/campaigns/performance
 }
 \`\`\`
 
-\`performanceConfig.objective\` is required.
+\`performanceConfig\` must include \`optimizationGoals\` array with at least one goal. Each goal has a \`kind\` discriminator: \`"event"\` goals require \`eventSources\` array (each with \`eventSourceId\` and \`eventType\`); \`"metric"\` goals require \`metric\` string. Both kinds support an optional \`target\` object (\`kind: "per_ad_spend"\` for ROAS targets, \`kind: "cost_per"\` for CPA targets, each with a \`value\`), \`attributionWindow\`, and \`priority\`.
 
-**Step 5: Launch**
+**Step 5: Auto-select products (optional)**
 
+If the campaign has discovered products (from auto-discovery at creation), let the system pick the best ones:
+\`\`\`http
+POST /api/v2/buyer/campaigns/{campaignId}/auto-select-products
+\`\`\`
+Returns selected products with budget allocations and AI-generated rationale. Present results and let the user review before launching.
+
+**Step 6: Launch**
 \`\`\`http
 POST /api/v2/buyer/campaigns/{campaignId}/execute
 \`\`\`
-
----
-
-## Audience Campaign Workflow
-
-**Status:** ❌ Not yet implemented — returns 501 Not Implemented.
-
-If a user wants audience targeting, explain this type is coming soon and suggest discovery or performance as alternatives.
-
-**Future flow (once implemented):**
-
-Step 1: Discover available signals
-\`\`\`http
-POST /api/v2/buyer/campaign/signals/discover
-{
-  "filters": {
-    "catalogTypes": ["marketplace"]
-  }
-}
-\`\`\`
-
-Step 2: Create audience campaign with selected signals
-\`\`\`http
-POST /api/v2/buyer/campaigns/audience
-{
-  "advertiserId": "12345",
-  "name": "Tech Enthusiasts Campaign",
-  "flightDates": {
-    "startDate": "2025-02-01T00:00:00Z",
-    "endDate": "2025-03-31T23:59:59Z"
-  },
-  "budget": {
-    "total": 25000,
-    "currency": "USD"
-  },
-  "signals": ["tech_enthusiasts_signal_id", "early_adopters_signal_id"]
-}
-\`\`\`
-
-Step 3: Launch — \`POST /campaigns/{campaignId}/execute\`
 
 ---
 
@@ -456,11 +490,44 @@ Some account management tasks are handled in the web UI at [agentic.scope3.com](
 | Task | URL | Capabilities |
 |------|-----|--------------|
 | **API Keys** | [agentic.scope3.com/user-api-keys](https://agentic.scope3.com/user-api-keys) | Create, view, edit, delete, and reveal API key secrets |
-| **Team Members** | [agentic.scope3.com/user-management](https://agentic.scope3.com/user-management) | Invite members, manage roles, manage seat access |
+| **Team Members** | [agentic.scope3.com/admin](https://agentic.scope3.com/admin) | Invite members, manage roles, manage advertiser access |
 | **Billing** | Available from user menu in the UI | Manage payment methods, view invoices (via Stripe portal) |
 | **Profile** | [agentic.scope3.com/user-info](https://agentic.scope3.com/user-info) | View and update user profile |
 
 **Note:** Billing and member management require admin permissions.
+
+### Current Account
+
+Get the customer the authenticated user is currently operating in:
+
+\`\`\`http
+GET /api/v2/buyer/accounts/current
+\`\`\`
+
+Returns \`{ "id", "company", "name", "role" }\` where \`role\` is the user's normalized role (\`ADMIN\`, \`MEMBER\`, or \`SUPER_ADMIN\`).
+
+### List Accounts
+
+List all customers the authenticated user has active membership on:
+
+\`\`\`http
+GET /api/v2/buyer/accounts
+\`\`\`
+
+Returns \`{ "accounts": [{ "id", "company", "name", "role" }] }\` where \`role\` is the user's normalized role (\`ADMIN\`, \`MEMBER\`, or \`SUPER_ADMIN\`).
+
+### Switch Account
+
+Users with memberships on multiple customers can switch their active customer context:
+
+\`\`\`http
+POST /api/v2/buyer/accounts/switch
+{
+  "customerId": 123
+}
+\`\`\`
+
+Returns the full user response scoped to the target customer (same shape as \`user_get_current\`), including \`user\`, \`customer\`, \`customers\`, \`organization\`, \`showPsaBox\`, and \`latestPsaVersion\`. Returns 403 if the user does not have an active membership on the target customer.
 
 ---
 
@@ -471,29 +538,53 @@ Before creating campaigns, you MUST understand the entity hierarchy:
 \`\`\`
 Customer (your account)
   └── Advertiser (brand account - REQUIRED first)
+        ├── Catalogs (sync product/offering data to partners)
         ├── Campaigns (advertising campaigns)
-        ├── Creative Sets (ad creatives)
-        ├── Conversion Events (for performance tracking)
+        │     └── Creatives
+        ├── Event Sources (conversion data pipelines for optimization)
         └── Test Cohorts (for A/B testing)
 \`\`\`
+
+### ⚠️ CRITICAL: Brand Domain Required for All Advertiser Actions
+
+**Before performing ANY action on an advertiser** (creating campaigns, managing accounts, syncing catalogs, etc.), check that the advertiser has a brand domain configured (the \`brand\` field is not null/missing in the advertiser response).
+
+If the advertiser does NOT have a brand domain:
+1. **Do not proceed** with the requested action.
+2. Inform the user: "This advertiser does not have a brand domain configured, which is required. Please provide a brand domain (e.g., \`nike.com\`) so I can update the advertiser."
+3. Once the user provides one, update the advertiser: \`PUT /api/v2/buyer/advertisers/{id}\` with \`{ "brand": "nike.com" }\`.
+4. Only then continue with the original request.
 
 ### Setup Checklist
 
 **Before you can run a campaign, you need:**
 
-1. **Advertiser** (REQUIRED)
+1. **Advertiser with brand domain** (REQUIRED)
    - First, check if one exists: \`GET /api/v2/buyer/advertisers\`
-   - If not, create one: \`POST /api/v2/buyer/advertisers\` (requires \`brandDomain\`)
+   - If not, create one: \`POST /api/v2/buyer/advertisers\` (requires \`brand\`)
    - An advertiser represents a brand/company you're advertising for
    - The brand is resolved automatically from the domain during creation
+   - If the brand is not yet registered, the API returns an enriched preview — show it to the user, then retry with \`saveBrand: true\` to register the brand and create the advertiser
+   - Set \`sandbox: true\` to create a sandbox advertiser — all ADCP operations will use sandbox-flagged accounts with no real spend. See **Sandbox Mode** below. Sandbox mode cannot be changed after creation.
 
-2. **Conversion Events** (REQUIRED for performance campaigns)
-   - Create tracking events: \`POST /api/v2/buyer/advertisers/{advertiserId}/conversion-events\`
-   - Configure what actions to optimize for (purchases, signups, etc.)
+   **Sandbox Mode**
 
-3. **Creative Sets** (OPTIONAL)
-   - Create creative container: \`POST /api/v2/buyer/advertisers/{advertiserId}/creative-sets\`
-   - Add assets to it for ad delivery
+   Sandbox mode lets you test the full media buying lifecycle — discovery, campaign creation, creatives, and delivery — without real platform calls or spending real money.
+
+   - Sandbox is **account-level, not per-request**. The seller provisions a dedicated sandbox account, and every request using that \`account_id\` is automatically treated as sandbox. This eliminates the risk of accidentally mixing real and test traffic in a multi-step flow.
+   - All discovered accounts for a sandbox advertiser are sandbox accounts — \`list_accounts\` is called with \`sandbox: true\`.
+   - The correct sandbox \`account_id\` is automatically injected into \`create_media_buy\`, \`get_media_buy_delivery\`, and \`get_products\` — delivery and reporting data are fully scoped to the sandbox environment.
+   - Responses contain simulated but realistic data.
+   - Reference: https://docs.adcontextprotocol.org/docs/media-buy/advanced-topics/sandbox#sandbox-mode
+
+2. **Event Sources** (REQUIRED for performance optimization)
+   - Register conversion data pipelines: \`POST /api/v2/buyer/advertisers/{advertiserId}/event-sources\`
+   - Referenced by \`eventSourceId\` in optimization goals
+
+3. **Creative Manifests** (REQUIRED)
+   - Every campaign needs creative assets
+   - **Asset creation and upload is UI-only** — look up the dashboard URL via \`GET /api/v2/buyer/dashboard-url\`, resolve the advertiser + campaign IDs, then direct the buyer to: \`{dashboard_url}/campaign-creative-assets/{advertiserId}/{campaignId}\`
+   - Via MCP you can only **list**, **get**, **update metadata**, and **delete** existing manifests — see the **Creative Manifests** section below
 
 ---
 
@@ -502,11 +593,13 @@ Customer (your account)
 | Concept | Description | Required For |
 |---------|-------------|--------------|
 | **Advertiser** | Top-level account representing a brand/company | Everything |
+| **Catalog** | Product/offering data synced to partner platforms via ADCP | Catalog sync |
 | **Campaign** | Advertising campaign with budget, dates, targeting | Running ads |
-| **Creative Set** | Collection of creative assets | Ad delivery |
-| **Conversion Event** | Trackable action (purchase, signup, etc.) | Performance campaigns |
+| **Creative Manifest** | Campaign-scoped container for creative assets (images, videos, URLs). Created/uploaded via UI only; list/get/update/delete via MCP | Ad delivery |
+| **Event Source** | Conversion data pipeline (pixel, SDK, etc.) | Performance optimization |
+| **Syndication** | Push audiences/events/catalogs to ADCP agents | Audience distribution |
 | **Test Cohort** | A/B test configuration | Experimentation |
-| **Media Buy** | Executed purchase record (within reporting hierarchy) | Reporting |
+| **Media Buy** | Executed purchase record — managed via campaign endpoints (\`PUT /campaigns/{id}\`), no standalone endpoints | Campaigns, Reporting |
 
 ---
 
@@ -517,14 +610,22 @@ If you're starting fresh with a new advertiser, follow these steps.
 \`\`\`
 Step 1: Check if an advertiser already exists
 GET /api/v2/buyer/advertisers
-→ If advertisers exist, you can use one. If not, create one with a brandDomain (see Create Advertiser below).
+→ If advertisers exist, you can use one. If not, create one (see Step 1b).
 
-Step 2: Create conversion events (for performance campaigns)
-POST /api/v2/buyer/advertisers/{advertiserId}/conversion-events
+Step 1b: Create an advertiser (if needed)
+POST /api/v2/buyer/advertisers
+{ "name": "Acme Corp", "brand": "acme.com" }
+→ If brand is registered: advertiser is created with linked brand.
+→ If brand is not registered: returns enriched brand preview. Show it to the user,
+  then retry with saveBrand: true to register the brand and create the advertiser:
+  POST /api/v2/buyer/advertisers
+  { "name": "Acme Corp", "brand": "acme.com", "saveBrand": true }
+
+Step 2: Create an event source (for performance optimization)
+POST /api/v2/buyer/advertisers/{advertiserId}/event-sources
 {
-  "name": "Purchase",
-  "type": "PURCHASE",
-  "description": "Completed purchase event"
+  "eventSourceId": "website_pixel",
+  "name": "Website Pixel"
 }
 
 Step 3: Now you can discover products and create campaigns!
@@ -538,15 +639,38 @@ Step 3: Now you can discover products and create campaigns!
 
 #### List Advertisers
 \`\`\`http
-GET /api/v2/buyer/advertisers?status=ACTIVE&name=Acme&includeBrand=true&take=50&skip=0
+GET /api/v2/buyer/advertisers?status=ACTIVE&name=Acme&includeBrand=true&includeAccounts=true&limit=10&offset=0
 \`\`\`
 
 **Query Parameters (Filters):**
 - \`status\` (optional): Filter by status - \`ACTIVE\` or \`ARCHIVED\`
 - \`name\` (optional): Filter by name (case-insensitive, partial match). Example: \`name=Acme\` matches "Acme Corp", "acme inc", etc.
 - \`includeBrand\` (optional, boolean): Include resolved brand information (full ADCP manifest, logos, colors, industry, tagline, tone) for each advertiser. Default: \`false\`. Pass \`true\` or \`1\` to include.
-- \`take\` (optional): Results per page (default: 50, max: 250)
-- \`skip\` (optional): Pagination offset (default: 0)
+- \`includeAccounts\` (optional, boolean): Embed linked partner accounts for each advertiser in the response. Default: \`true\`. **Use this instead of calling \`GET /advertisers/{id}/accounts\` per advertiser — avoids N+1 calls.** Each advertiser will have a \`linkedAccounts\` array containing \`{ partnerId, accountId, billingType }\` entries.
+- \`limit\` (optional): Maximum number of advertisers per page (default: 10, max: 10)
+- \`offset\` (optional): Pagination offset (default: 0)
+
+**Response format:**
+\`\`\`json
+{
+  "items": [ ... ],
+  "total": 42,
+  "hasMore": true,
+  "nextOffset": 10
+}
+\`\`\`
+Use \`nextOffset\` as the \`offset\` parameter for the next page. When \`hasMore\` is \`false\`, \`nextOffset\` is \`null\`.
+
+**Display Requirements — ALWAYS include when listing advertisers:**
+
+Present each advertiser as a structured entry (not prose). For every advertiser, show:
+- **Name** and **ID**
+- **Status** (ACTIVE, ARCHIVED)
+- **Brand** — linked brand name or domain (show "No brand" if missing)
+- **Sandbox** — Yes/No
+- **Linked Accounts** — list each by partner name, account ID, and status. If none, say "No linked accounts" and offer to discover/link. For sandbox advertisers, do not mention linking accounts — sandbox accounts are provisioned automatically when the user has credentials for a sales agent.
+
+Never summarize into a sentence like "You have 13 advertisers." Always show the per-item details above for every advertiser in the response.
 
 **Note:** \`GET /api/v2/buyer/advertisers/{id}\` (single advertiser) always returns full brand details — no need for \`includeBrand\`.
 
@@ -566,7 +690,7 @@ Returns the advertiser with full brand details (equivalent to \`includeBrand=tru
   "status": "ACTIVE",
   "createdAt": "2026-02-15T10:00:00Z",
   "updatedAt": "2026-02-15T10:00:00Z",
-  "brandDomain": "acme.com",
+  "brand": "acme.com",
   "brandWarning": null,
   "linkedBrand": {
     "id": "brand_123",
@@ -602,33 +726,59 @@ Returns the advertiser with full brand details (equivalent to \`includeBrand=tru
 
 #### Create Advertiser
 
-**⚠️ IMPORTANT: \`brandDomain\` is required when creating an advertiser.**
+**⚠️ IMPORTANT: \`brand\` is required when creating an advertiser.**
 
 When a user asks to create an advertiser:
 
 1. **Ask for the name** - "What would you like to name your advertiser?"
-2. **Ask for the brand domain** - "What is the brand's website domain? (e.g., nike.com)"
-3. **Create the advertiser** with name and brandDomain
+2. **Ask for the brand** - "What is the brand's website domain? (e.g., nike.com)"
+3. **Create the advertiser** with name and brand
 
-The system resolves the brand via Addie (AdCP registry + Brandfetch enrichment). If the brand is found only via enrichment (not yet registered), the create **fails** with a \`VALIDATION_ERROR\`. The error response includes \`error.details.enrichedBrand\` containing the brand data that was found (name, domain, manifest with logos, colors, industry, tagline, tone, etc.).
+The system resolves the brand via Addie (AdCP registry + Brandfetch enrichment). There are three possible outcomes:
+
+**Outcome 1: Brand exists in the registry** — Advertiser is created successfully with the linked brand.
+
+**Outcome 2: Brand found via enrichment only (not yet registered)** — The create **fails** with a \`VALIDATION_ERROR\`. The error response includes \`error.details.enrichedBrand\` containing the brand data that was found (name, domain, manifest with logos, colors, industry, tagline, tone, etc.).
 
 **When this error occurs, you MUST do BOTH of the following:**
 
-1. **ALWAYS show the enriched brand data first.** Present \`error.details.enrichedBrand\` to the user — show the brand name, domain, industry, colors, logo URL, tagline, tone, and any other fields present. This lets the user confirm the right brand was found.
-2. **Then explain next steps.** Tell them this brand needs to be registered before an advertiser can be created. Direct them to register at https://adcontextprotocol.org/chat.html or https://agenticadvertising.org/brand, then retry.
+1. **ALWAYS show the enriched brand preview first.** Present \`error.details.enrichedBrand\` to the user — show the brand name, domain, industry, colors, logo URL, tagline, tone, and any other fields present. This lets the user review and confirm the right brand was found.
+2. **Then offer to save and create.** Tell the user they can save this brand to the AdCP registry and create the advertiser in one step by retrying the same request with \`saveBrand: true\`. The user may also choose to manually adjust the brand data before saving.
 
-If no brand data is found at all (no enrichment results), the create also fails — tell the user to register their brand first.
-
+**Retry with \`saveBrand: true\`:**
 \`\`\`http
 POST /api/v2/buyer/advertisers
 {
   "name": "Acme Corp",
-  "brandDomain": "acme.com",
+  "brand": "acme.com",
+  "description": "Global advertising account",
+  "saveBrand": true
+}
+\`\`\`
+This saves the enriched brand to the AdCP registry and creates the advertiser with the linked brand in one call.
+
+**Outcome 3: No brand data found at all** — The create fails. Tell the user to register their brand at https://adcontextprotocol.org/chat.html or https://agenticadvertising.org/brand, then retry.
+
+**Initial request (without \`saveBrand\`):**
+\`\`\`http
+POST /api/v2/buyer/advertisers
+{
+  "name": "Acme Corp",
+  "brand": "acme.com",
   "description": "Global advertising account"
 }
 \`\`\`
 
-**Response** includes \`brandDomain\`, \`linkedBrand\`, and optional \`brandWarning\` (e.g., if data came from Brandfetch enrichment rather than a well-known manifest).
+**Request fields:**
+- \`name\` (required): Advertiser name
+- \`brand\` (required): Brand domain (e.g., \`"nike.com"\`)
+- \`description\` (optional): Description
+- \`saveBrand\` (optional, boolean, default \`false\`): When \`true\`, saves an enriched brand to the AdCP registry if the brand is not yet registered. Set this after reviewing the enriched brand preview returned from a previous attempt.
+- \`linkedAccounts\` (optional, array): Accounts to link at creation time. Each item: \`{ partnerId, accountId, billingType? }\`. Use \`GET /advertisers/{advertiserId}/accounts/available?partnerId={agentId}\` to discover valid accountIds — never ask the user to provide one manually.
+- \`optimizationApplyMode\` (optional, string): \`"AUTO"\` or \`"MANUAL"\` (default \`"MANUAL"\`). Controls whether Scope3 AI model optimizations to media buys are applied automatically or require manual approval for campaigns under this advertiser.
+- \`utmConfig\` (optional, array, max 20): Default UTM parameters for this advertiser. These are appended to landing page URLs during clickthrough redirection. Each item: \`{ paramKey, paramValue }\`. \`paramKey\` is the query parameter name (e.g. \`"utm_source"\`, \`"bg_campaign"\`). \`paramValue\` is a macro (e.g. \`"{CAMPAIGN_ID}"\`) resolved dynamically at click time, or a static string (e.g. \`"scope3"\`). Available macros follow the ADCP universal macros spec: https://docs.adcontextprotocol.org/docs/creative/universal-macros#universal-macros. If omitted, defaults are applied: \`utm_source=scope3\`, \`utm_medium=agentic\`, \`utm_campaign={CAMPAIGN_ID}\`, \`utm_content={CREATIVE_ID}\`, \`utm_media_buy={MEDIA_BUY_ID}\`, \`utm_package={PACKAGE_ID}\`. Campaign-level UTM config can override these per param key.
+
+**Response** includes \`brand\`, \`linkedBrand\`, \`optimizationApplyMode\`, optional \`utmConfig\` (seat-level UTM params, only present when configured), and optional \`brandWarning\` (e.g., if data came from Brandfetch enrichment rather than a well-known manifest).
 
 #### Update Advertiser
 \`\`\`http
@@ -636,38 +786,90 @@ PUT /api/v2/buyer/advertisers/{id}
 {
   "name": "Acme Corporation",
   "description": "Updated description",
-  "brandDomain": "newbrand.com"
+  "brand": "newbrand.com"
 }
 \`\`\`
 
-**Optional fields:** \`name\`, \`description\`, \`brandDomain\`
+**Optional fields:** \`name\`, \`description\`, \`brand\`, \`linkedAccounts\` (array of \`{ partnerId, accountId, billingType? }\` to add — does not remove existing links), \`optimizationApplyMode\` (\`"AUTO"\` or \`"MANUAL"\` — controls whether Scope3 AI model optimizations to media buys are applied automatically or require manual approval for campaigns under this advertiser), \`utmConfig\` (array of \`{ paramKey, paramValue }\`, max 20 — replaces all existing seat-level UTM params; pass \`[]\` to clear). Discover valid accountIds via \`GET /advertisers/{advertiserId}/accounts/available?partnerId={agentId}\` — never ask the user to provide an account ID.
 
-If \`brandDomain\` is provided, the system resolves the new brand domain and updates the linked brand agent.
+If \`brand\` is provided, the system resolves the new brand and updates the linked brand agent.
+
+#### Link Agent Account to Advertiser
+
+Use this 3-step workflow to discover and link an agent's account to a specific advertiser.
+
+**Two-step process overview:**
+1. **Register agent credentials** (customer-level) — done once per agent via \`POST /sales-agents/{agentId}/accountCredentials\`
+2. **Link account to advertiser** (advertiser-level) — discover available accounts for a specific agent and link one to an advertiser
+
+**Prerequisites:** Agent credentials must already be registered for the relevant agent via \`POST /sales-agents/{agentId}/accountCredentials\` (see Register Agent Credentials in the Sales Agents section). **Only agents with \`requiresOperatorAuth: true\` support account linking.** To find eligible agents, use \`GET /api/v2/buyer/sales-agents?supportsRegistration=true\`.
+
+**⚠️ CRITICAL: Multiple Credentials for the Same Agent**
+
+A customer may register **multiple sets of credentials** for the same sales agent (e.g., two different Snap ad accounts with different API keys). This is fully supported. When this happens:
+- Each set of credentials discovers its own set of ad accounts via \`list_accounts\`
+- The discovery endpoint (\`accounts/available\`) **requires a \`credentialId\` parameter** so the system knows which credential to use for discovery
+- If the customer has multiple credentials and \`credentialId\` is omitted, the API returns a **validation error listing the available credential IDs** — present these to the user and ask them to pick
+- Once the user picks a credential, re-call the discovery endpoint with \`credentialId\` to get that credential's accounts
+- When the user links an account, all future operations for that advertiser+agent pair automatically use the credential associated with that account
+
+**Workflow when multiple credentials exist:**
+1. Call \`GET /sales-agents/accountCredentials\` to list the customer's registered credentials
+2. Present the credentials to the user (show \`id\` and \`accountIdentifier\` for each)
+3. Ask the user which credential to use
+4. Pass the chosen \`credentialId\` to the discovery endpoint
+
+**Step 1 — Create advertiser with brand**
+\`\`\`http
+POST /api/v2/buyer/advertisers
+{ "name": "Acme Corp", "brand": "acme.com" }
+\`\`\`
+
+**Step 2 — Discover available accounts for the agent**
+
+**⚠️ CRITICAL: Account IDs MUST come from the discovery endpoint — NEVER from user input.**
+- You MUST call the discovery endpoint below and use ONLY the \`accountId\` values returned in the response.
+- If the user provides an account ID or account name verbally (e.g., "the account ID is 06cd7033..."), do NOT use that value. Instead, call the discovery endpoint and match against the returned results.
+- If no accounts are returned from discovery, tell the user no matching accounts were found. Do NOT pretend to link an account that was not returned by the API.
+- **NEVER fabricate, guess, or use a user-provided account ID directly.** The only valid account IDs are those returned by this endpoint.
+
+\`\`\`http
+GET /api/v2/buyer/advertisers/{advertiserId}/accounts/available?partnerId={agentId}
+GET /api/v2/buyer/advertisers/{advertiserId}/accounts/available?partnerId={agentId}&credentialId={credentialId}
+\`\`\`
+- \`credentialId\` is **required when the customer has multiple credentials** registered for this agent. If omitted with multiple credentials, the API returns a validation error listing available credential IDs — present them to the user and ask which to use, then retry with \`credentialId\`.
+- \`credentialId\` is optional when the customer has only one credential for the agent.
+- Returns accounts filtered by the advertiser's brand domain for the specified agent and credential.
+- Response includes \`accounts\` array with \`accountId\`, \`name\`, \`house\`, \`advertiser\`, \`partnerId\`, and \`billingOptions.supported\`.
+- **Show ALL discovered accounts to the user and let them pick.** Present each account's \`name\` (and \`advertiser\` if different from the brand).
+- If \`accounts\` is empty, tell the user no matching accounts were found for that agent. Do NOT proceed with linking.
+- **Do NOT ask about billing type.** Use \`billingOptions.default\` from the response if available. Only include \`billingType\` in the link request if the response shows multiple \`billingOptions.supported\` values AND no default — in that case, present the options and ask the user to choose.
+
+**Step 3 — Link the selected account to the advertiser**
+\`\`\`http
+PUT /api/v2/buyer/advertisers/{advertiserId}
+{
+  "linkedAccounts": [
+    { "partnerId": "snap_6e2d13705a26", "accountId": "acc_123" }
+  ]
+}
+\`\`\`
+- The \`accountId\` here MUST be one returned from Step 2. Never use a value from any other source.
+- \`linkedAccounts\` adds accounts — it does not remove existing links. Include \`billingType\` if the agent requires a specific billing arrangement.
 
 ---
 
 ### Campaigns
 
-The API supports three campaign types with **type-specific endpoints**:
-
-| Type | Create Endpoint | Update Endpoint | Prerequisites |
-|------|-----------------|-----------------|---------------|
-| \`discovery\` | \`POST /campaigns/discovery\` | \`PUT /campaigns/discovery/{id}\` | Advertiser + **bundleId (required)** |
-| \`performance\` | \`POST /campaigns/performance\` | \`PUT /campaigns/performance/{id}\` | Advertiser + performanceConfig.objective |
-| \`audience\` | \`POST /campaigns/audience\` | \`PUT /campaigns/audience/{id}\` | **Not implemented (501)** |
-
-**IMPORTANT**: Each campaign type has its own create and update endpoints. You cannot create a campaign at the generic \`/campaigns\` endpoint.
-
-For full step-by-step workflows, see the Discovery Campaign Workflow and Performance Campaign Workflow sections above.
+Campaigns use a single endpoint for creation and update. Configuration is done through action endpoints.
 
 #### List Campaigns
 \`\`\`http
-GET /api/v2/buyer/campaigns?advertiserId=12345&type=discovery&status=ACTIVE
+GET /api/v2/buyer/campaigns?advertiserId=12345&status=ACTIVE
 \`\`\`
 
 **Query Parameters:**
 - \`advertiserId\` (optional): Filter by advertiser
-- \`type\` (optional): \`discovery\`, \`audience\`, or \`performance\`
 - \`status\` (optional): \`DRAFT\`, \`ACTIVE\`, \`PAUSED\`, \`COMPLETED\`, \`ARCHIVED\`
 
 #### Get Campaign
@@ -675,14 +877,23 @@ GET /api/v2/buyer/campaigns?advertiserId=12345&type=discovery&status=ACTIVE
 GET /api/v2/buyer/campaigns/{campaignId}
 \`\`\`
 
-#### Create Discovery Campaign
+Campaign responses include an \`audiences\` array of currently active audiences with: \`audienceId\`, \`name\`, \`status\`, \`type\` (\`"TARGET"\` or \`"SUPPRESS"\`), \`enabledAt\`.
+
+**DRAFT campaigns only:** The response includes \`discoveryId\`, \`products\`, and \`productCount\` fields representing the product selection from the discovery workflow. These fields are **only present while the campaign is in DRAFT status**. After execution, product data is represented through \`mediaBuys\` — do not look for \`discoveryId\` or \`products\` on executed campaigns.
+
+**Understanding duplicate media buys in the response:** The \`mediaBuys\` array may contain **two entries with the same media buy ID but different statuses** — e.g., one \`ACTIVE\` and one \`PENDING_APPROVAL\`. This is **normal and expected**. The \`PENDING_APPROVAL\` entry is a pending version of the media buy that has been submitted to the sales agent/publisher for approval. The original \`ACTIVE\` version remains unchanged until the publisher approves the update — once approved, the pending version becomes ACTIVE and replaces the old one. Do NOT flag this as unusual or ask the user about it — simply explain that the update is pending publisher approval.
+
+#### Create Campaign
+
+**⚠️ BEFORE creating a campaign: verify the advertiser has a brand domain.**
+Call \`GET /api/v2/buyer/advertisers/{advertiserId}\` and check the \`brand\` field is not null/missing.
+If it is missing, do NOT proceed — tell the user: "This advertiser doesn't have a brand domain configured. Please provide one (e.g. \`nike.com\`) so I can update it first." Then \`PUT /api/v2/buyer/advertisers/{id}\` with \`{ "brand": "..." }\` before continuing.
+
 \`\`\`http
-POST /api/v2/buyer/campaigns/discovery
+POST /api/v2/buyer/campaigns
 {
   "advertiserId": "12345",
-  "name": "Q1 CTV Bundle",
-  "bundleId": "abc123-def456-ghi789",
-  "productIds": ["prod_123", "prod_456"],
+  "name": "Q1 Campaign",
   "flightDates": {
     "startDate": "2025-02-01T00:00:00Z",
     "endDate": "2025-03-31T23:59:59Z"
@@ -691,186 +902,274 @@ POST /api/v2/buyer/campaigns/discovery
     "total": 50000,
     "currency": "USD"
   },
-  "brief": "<<< ALWAYS include the ENTIRE brief from the client — never summarize or truncate >>>"
+  "brief": "<<< ALWAYS include the ENTIRE brief from the client — never summarize or truncate >>>",
+  "constraints": {
+    "channels": ["ctv", "display"],
+    "countries": ["US"]
+  },
+  "discoveryId": "optional-existing-discovery-id",
+  "productIds": ["prod_123", "prod_456"],
+  "audienceConfig": {
+    "targetAudienceIds": ["aud_001", "aud_002"],
+    "suppressAudienceIds": ["aud_003"]
+  },
+  "performanceConfig": {
+    "optimizationGoals": [{
+      "kind": "event",
+      "eventSources": [
+        { "eventSourceId": "es_abc123", "eventType": "purchase", "valueField": "value" }
+      ],
+      "target": { "kind": "per_ad_spend", "value": 4.0 },
+      "priority": 1
+    }]
+  }
 }
 \`\`\`
 
 **Required fields:**
 - \`advertiserId\`: Advertiser ID
 - \`name\`: Campaign name (1-255 chars)
-- \`bundleId\`: Bundle ID from \`POST /bundles\` **(required)**
 - \`flightDates\`: Start and end dates
 - \`budget\`: Total and currency
 
 **Optional fields:**
-- \`productIds\`: Product IDs to pre-select from the bundle
+- \`brief\`: Campaign brief. **MUST be the ENTIRE brief from the client — never summarize or truncate.**
 - \`constraints.channels\`: Target channels (display, olv, ctv, social)
 - \`constraints.countries\`: Target countries (ISO 3166-1 alpha-2 codes)
-- \`brief\`: Campaign brief. **MUST be the ENTIRE brief from the client — never summarize or truncate.**
+- \`discoveryId\`: Attach an existing discovery session
+- \`productIds\`: Product IDs to pre-select from the discovery session (requires discoveryId)
+- \`audienceConfig\`: Audience targeting and suppression. \`targetAudienceIds\` (string array) — audiences to include. \`suppressAudienceIds\` (string array) — audiences to exclude. Audience IDs come from \`GET /advertisers/{accountId}/audiences\`.
+- \`performanceConfig\`: Contains \`optimizationGoals\` array. Each goal has \`kind\` (\`"event"\` or \`"metric"\`). Event goals have \`eventSources\` array (each with \`eventSourceId\`, \`eventType\`, optional \`valueField\`), optional \`target\` (\`kind: "per_ad_spend"\` or \`kind: "cost_per"\` with \`value\`), optional \`attributionWindow\`, optional \`priority\`. Metric goals have \`metric\` string, optional \`target\`, optional \`priority\`.
+- \`optimizationApplyMode\`: \`"AUTO"\` or \`"MANUAL"\` (default). Controls whether Scope3 AI model optimizations to media buys are applied automatically or require manual approval. Overrides the advertiser-level default.
+- \`utmConfig\`: Campaign-level UTM parameter overrides. Object with \`params\` (array of \`{ paramKey, paramValue }\`, max 20) and optional \`deleteMissing\` (boolean — if \`true\`, removes campaign-level UTM params not in this request; if \`false\`/omitted, additive mode). Campaign UTM params override seat-level defaults per matching \`paramKey\`.
 
-#### Update Discovery Campaign
+**After creating a campaign, suggest ONLY these next steps (never mention strategies, tactics, or media plans):**
+1. **Discover products** — find and attach inventory via \`POST /discovery/discover-products\`
+2. **Attach audiences** — link synced audiences for targeting/suppression via \`PUT /campaigns/{id}\` with \`audienceConfig\`
+3. **Set performance configuration** — configure optimization goals via \`PUT /campaigns/{id}\` with \`performanceConfig\`
+
+#### Update Campaign
 \`\`\`http
-PUT /api/v2/buyer/campaigns/discovery/{campaignId}
+PUT /api/v2/buyer/campaigns/{campaignId}
 {
   "name": "Updated Campaign Name",
-  "budget": {
-    "total": 75000
-  },
-  "productIds": ["prod_789"]
-}
-\`\`\`
-All fields are optional. Campaign must be of type "discovery".
-
----
-
-#### Create Performance Campaign
-\`\`\`http
-POST /api/v2/buyer/campaigns/performance
-{
-  "advertiserId": "12345",
-  "name": "Q1 ROAS Campaign",
-  "flightDates": {
-    "startDate": "2025-02-01T00:00:00Z",
-    "endDate": "2025-03-31T23:59:59Z"
-  },
-  "budget": {
-    "total": 100000,
-    "currency": "USD"
+  "budget": { "total": 75000 },
+  "audienceConfig": {
+    "targetAudienceIds": ["aud_004"],
+    "suppressAudienceIds": ["aud_005"]
   },
   "performanceConfig": {
-    "objective": "ROAS",
-    "goals": {
-      "targetRoas": 4.0
-    }
-  },
-  "constraints": {
-    "channels": ["ctv", "display"],
-    "countries": ["US"]
+    "optimizationGoals": [{
+      "kind": "event",
+      "eventSources": [
+        { "eventSourceId": "es_abc123", "eventType": "purchase", "valueField": "value" }
+      ],
+      "target": { "kind": "per_ad_spend", "value": 5.0 },
+      "priority": 1
+    }]
   }
 }
 \`\`\`
+All fields are optional. \`audienceConfig\` is **additive** by default — it adds audiences without removing existing ones. Set \`deleteMissing: true\` inside \`audienceConfig\` to replace the full audience set (audiences not in the list are soft-disabled). To remove all audiences, send \`{ "audienceConfig": { "deleteMissing": true } }\`.
 
-**Required fields:**
-- \`advertiserId\`: Advertiser ID
-- \`name\`: Campaign name (1-255 chars)
-- \`flightDates\`: Start and end dates
-- \`budget\`: Total and currency
-- \`performanceConfig.objective\`: One of \`ROAS\`, \`CONVERSIONS\`, \`LEADS\`, \`SALES\`
+##### Updating Media Buys via Campaign Update
 
-#### Update Performance Campaign
+**There are no standalone media buy endpoints.** To update media buys (budget, pacing, creatives, etc.), include the \`mediaBuys\` array in the campaign update body. Each entry targets a specific media buy by ID.
+
+**IMPORTANT: ACTIVE media buys use \`packages\`, DRAFT media buys use \`products\`.**
+- When a media buy is **ACTIVE** (already executed/deployed), update its **\`packages\`** — these are the deployed line items on the publisher side.
+- When a media buy is **DRAFT** (not yet executed), update its **\`products\`** — these are the pre-execution product selections.
+
+**Example — Update budget and pacing for an ACTIVE media buy's package:**
 \`\`\`http
-PUT /api/v2/buyer/campaigns/performance/{campaignId}
+PUT /api/v2/buyer/campaigns/{campaignId}
 {
-  "name": "Updated Campaign Name",
-  "performanceConfig": {
-    "goals": {
-      "targetRoas": 5.0
+  "mediaBuys": [
+    {
+      "mediaBuyId": "mb_abc123",
+      "packages": [
+        {
+          "packageId": "pkg_xyz",
+          "budget": 5000,
+          "pacing": "even"
+        }
+      ],
+      "updated_reason": "Increase budget for Q2 push"
     }
-  }
+  ]
 }
 \`\`\`
-All fields are optional. Campaign must be of type "performance".
+
+**Example — Update a DRAFT media buy's products:**
+\`\`\`http
+PUT /api/v2/buyer/campaigns/{campaignId}
+{
+  "mediaBuys": [
+    {
+      "mediaBuyId": "mb_draft456",
+      "products": [
+        {
+          "product_id": "prod_001",
+          "budget": 3000,
+          "pacing": "even"
+        }
+      ]
+    }
+  ]
+}
+\`\`\`
+
+**Media buy update fields:**
+- \`mediaBuyId\` (required): ID of the media buy to update (from campaign GET response \`mediaBuys\` array)
+- \`name\` (optional): Updated media buy name
+- \`packages\` (optional, for **ACTIVE** media buys): Array of package updates. Each: \`packageId\` (required), \`budget\`, \`pacing\` (\`"even"\` or \`"asap"\`), \`bidPrice\`, \`creative_ids\`
+- \`products\` (optional, for **DRAFT** media buys): Array of product updates. Each: \`product_id\` (required), \`pricingOptionId\`, \`budget\`, \`pacing\` (\`"asap"\`, \`"even"\`, \`"front_loaded"\`), \`bidPrice\`
+- \`start_time\` (optional): \`"asap"\` or ISO 8601 date-time
+- \`end_time\` (optional): ISO 8601 date-time
+- \`creative_ids\` (optional): Updated creative assignments
+- \`updated_reason\` (optional): Reason for update (stored with version history)
+
+**Media buy update versioning:** When you update an ACTIVE media buy, the system creates a **new pending version** with status \`PENDING_APPROVAL\`. This is expected:
+- The original ACTIVE version remains unchanged until the sales agent (publisher) approves the update.
+- The campaign GET response will temporarily show **two entries** for the same media buy: the original ACTIVE version and the new PENDING_APPROVAL version.
+- The pending version's \`packages\`/\`products\` may not immediately reflect the requested changes — the updated values are submitted to the sales agent for approval.
+- Once the sales agent approves, the pending version becomes ACTIVE and replaces the old one.
+- **Do NOT treat this as an error or try alternative approaches.** Simply inform the user that the update has been submitted and is pending approval from the sales agent/publisher.
+
+#### Delete Campaign
+\`\`\`http
+DELETE /api/v2/buyer/campaigns/{campaignId}
+\`\`\`
 
 ---
 
-#### Create Audience Campaign (Not Implemented)
-\`\`\`http
-POST /api/v2/buyer/campaigns/audience
-\`\`\`
-**Returns 501 Not Implemented** - Audience campaigns are not yet available.
-
-#### Update Audience Campaign (Not Implemented)
-\`\`\`http
-PUT /api/v2/buyer/campaigns/audience/{campaignId}
-\`\`\`
-**Returns 501 Not Implemented** - Audience campaigns are not yet available.
+#### Campaign Action Endpoints
 
 #### Execute Campaign (Launch)
 \`\`\`http
 POST /api/v2/buyer/campaigns/{campaignId}/execute
 \`\`\`
-Transitions campaign from DRAFT to ACTIVE.
+
+**Optional request body:**
+\`\`\`json
+{
+  "debug": true
+}
+\`\`\`
+
+**Response:**
+\`\`\`json
+{
+  "campaignId": "campaign_abc123",
+  "previousStatus": "DRAFT",
+  "newStatus": "ACTIVE",
+  "success": true
+}
+\`\`\`
+
+**On partial failure** (some media buys failed to execute):
+\`\`\`json
+{
+  "campaignId": "campaign_abc123",
+  "previousStatus": "DRAFT",
+  "newStatus": "ACTIVE",
+  "success": false,
+  "errors": [
+    {
+      "mediaBuyId": "mb_xyz",
+      "salesAgentId": "snap_abc",
+      "message": "Failed to submit media buy to publisher: ...",
+      "debug": {
+        "request": { "...full ADCP create_media_buy request..." },
+        "response": { "...full ADCP response from sales agent..." },
+        "debugLogs": [ { "...A2A request/response logs..." } ],
+        "error": "error message"
+      }
+    }
+  ]
+}
+\`\`\`
+
+- \`success\` is \`false\` when any media buy execution failed
+- \`errors\` array contains structured error objects per failed media buy
+- \`debug\` field contains the same debug info as v1 \`execute_media_buy\` (full ADCP request, response, and A2A debug logs) — only present when \`debug: true\` was sent in the request body
+- Campaign is still set to ACTIVE even with partial failures — re-execute to retry failed media buys
+
+**Note on Media Buys:** Media buys are child resources of campaigns — there are **no standalone media buy endpoints**. Media buys are auto-created when a campaign is executed (\`POST /campaigns/{id}/execute\`), included in campaign GET responses (\`mediaBuys\` array), and modified through campaign updates (\`PUT /campaigns/{id}\` with \`mediaBuys\` array). For ACTIVE media buys, update \`packages\` (deployed line items); for DRAFT media buys, update \`products\`. See "Updating Media Buys via Campaign Update" above for full schema and examples.
 
 #### Pause Campaign
 \`\`\`http
 POST /api/v2/buyer/campaigns/{campaignId}/pause
 \`\`\`
 
+#### Auto-Select Products
+\`\`\`http
+POST /api/v2/buyer/campaigns/{campaignId}/auto-select-products
+\`\`\`
+No request body. Automatically selects products from the campaign's discovery session and allocates budget based on measurability. Replaces any previous selections. Requires a performance campaign (\`performanceConfig\` set) with discovered products.
+
+**Response:**
+- \`selectedProducts\` (array): Products with budget allocations (\`productId\`, \`salesAgentId\`, \`budget\`, \`cpm\`, \`pricingOptionId\`)
+- \`budgetContext\` (object): \`campaignBudget\`, \`totalAllocated\`, \`remainingBudget\`, \`currency\`
+- \`selectionRationale\` (string): Explanation of the selection strategy
+- \`selectionMethod\` (string): \`"scoring"\`, \`"measurability"\`, or \`"cpm_heuristic"\`
+- \`testBudgetPerProduct\` (number, optional): Test budget allocated per product
+- \`productCount\` (number): Total products selected
+
 ---
 
-### Bundles
+### Discovery
 
-#### Create Bundle
-\`\`\`http
-POST /api/v2/buyer/bundles
-{
-  "advertiserId": "12345",
-  "channels": ["ctv", "display"],
-  "countries": ["US", "CA"],
-  "brief": "<<< ALWAYS include the ENTIRE brief from the client here — never summarize >>>",
-  "budget": 50000,
-  "flightDates": {
-    "startDate": "2025-02-01T00:00:00Z",
-    "endDate": "2025-03-31T23:59:59Z"
-  }
-}
-\`\`\`
+#### Discover Products
 
-**Request Parameters:**
-- \`advertiserId\` (required): Advertiser ID to resolve brand manifest
-- \`channels\` (optional): Channels to search (defaults to ["display", "olv", "ctv", "social"]). Accepted values: display, olv, ctv, social, video (alias for olv).
-- \`countries\` (optional): Target countries (defaults to brand agent countries)
-- \`brief\` (optional): Natural language context for product search. **MUST be the ENTIRE brief from the client — never summarize or truncate.**
-- \`flightDates\` (optional): Flight dates for availability filtering
-- \`budget\` (optional): Budget for budget context
-- \`salesAgentIds\` (optional, array): Filter products by exact sales agent ID(s). These are stored and used as defaults when discovering products for this bundle.
-- \`salesAgentNames\` (optional, array): Filter products by sales agent name(s) (case-insensitive substring match). These are stored and used as defaults when discovering products for this bundle.
-
-**Response:** \`{ "bundleId": "abc123-def456-ghi789" }\`
-
-#### Discover Products (Auto-Creates Bundle)
-
-Creates a bundle and discovers products in one call.
+Discovers products based on advertiser context and returns a discoveryId for managing selections.
 
 \`\`\`http
-POST /api/v2/buyer/bundles/discover-products
+POST /api/v2/buyer/discovery/discover-products
 {
   "advertiserId": "12345",
   "channels": ["ctv", "display"],
   "countries": ["US"],
   "brief": "<<< ALWAYS include the ENTIRE brief from the client here — never summarize >>>",
   "publisherDomain": "example",
-  "salesAgentNames": ["Acme Ad Exchange"]
+  "salesAgentNames": ["Acme Ad Exchange"],
+  "debug": true
 }
 \`\`\`
 
 **Filtering Parameters:**
 - \`publisherDomain\` (optional): Filter by publisher domain (exact domain component match)
+- \`pricingModel\` (optional): Filter by pricing model (\`cpm\`, \`vcpm\`, \`cpc\`, \`cpcv\`, \`cpv\`, \`cpp\`, \`flat_rate\`)
 - \`salesAgentIds\` (optional, array): Filter by exact sales agent ID(s)
 - \`salesAgentNames\` (optional, array): Filter by sales agent name(s) (case-insensitive substring match)
 
-#### Discover Products for Existing Bundle
+**Debug Parameter:**
+- \`debug\` (optional, boolean): When \`true\`, includes detailed ADCP agent request/response debug logs in the response. Returns an \`agentResults\` array with per-agent success/failure status, raw response data, and full HTTP request/response logs (authorization headers redacted). Same structure as v1 \`media_product_discover\` debug output.
+
+#### Discover Products for Existing Session
 \`\`\`http
-GET /api/v2/buyer/bundles/{bundleId}/discover-products?groupLimit=10&groupOffset=0&productsPerGroup=5
+GET /api/v2/buyer/discovery/{discoveryId}/discover-products?groupLimit=10&groupOffset=0&productsPerGroup=15
 \`\`\`
 
 **Query Parameters (Pagination):**
-- \`groupLimit\` (optional): Max product groups (default: 10, max: 50)
+- \`groupLimit\` (optional): Max product groups (default: 10, max: 10)
 - \`groupOffset\` (optional): Groups to skip (default: 0)
-- \`productsPerGroup\` (optional): Max products per group (default: 5, max: 50)
+- \`productsPerGroup\` (optional): Max products per group (default: 10, max: 15)
 - \`productOffset\` (optional): Products to skip within each group (default: 0)
 
 **Query Parameters (Filtering):**
 - \`publisherDomain\` (optional): Filter by publisher domain (exact component match). "hulu" matches "hulu.com" but "hul" does not
+- \`pricingModel\` (optional): Filter by pricing model (\`cpm\`, \`vcpm\`, \`cpc\`, \`cpcv\`, \`cpv\`, \`cpp\`, \`flat_rate\`)
 - \`salesAgentIds\` (optional, comma-separated): Filter by sales agent ID(s)
 - \`salesAgentNames\` (optional, comma-separated): Filter by sales agent name(s) (case-insensitive substring match)
+- \`debug\` (optional): When \`true\`, includes ADCP agent request/response debug logs in the response (see debug section below)
 
-Filters can be combined. Example: \`?publisherDomain=example&salesAgentNames=Acme Ad Exchange\`
+Filters can be combined. Example: \`?publisherDomain=example&pricingModel=cpm&salesAgentNames=Acme Ad Exchange\`
 
 **Response:**
 \`\`\`json
 {
-  "bundleId": "abc123-def456-ghi789",
+  "discoveryId": "abc123-def456-ghi789",
   "productGroups": [
     {
       "groupId": "group-0",
@@ -879,10 +1178,13 @@ Filters can be combined. Example: \`?publisherDomain=example&salesAgentNames=Acm
         {
           "productId": "product_123",
           "name": "Premium CTV Inventory",
-          "publisher": "example.com",
           "channel": "ctv",
-          "cpm": 12.50,
-          "salesAgentId": "agent_456"
+          "bidPrice": 12.50,
+          "salesAgentId": "agent_456",
+          "publisherProperties": [
+            { "publisherDomain": "hulu.com", "selectionType": "all" },
+            { "publisherDomain": "espn.com", "selectionType": "by_id" }
+          ]
         }
       ],
       "productCount": 5,
@@ -905,14 +1207,43 @@ Filters can be combined. Example: \`?publisherDomain=example&salesAgentNames=Acm
 }
 \`\`\`
 
+**Product fields:**
+- \`publisherProperties\` (array, optional): Publisher domains and targeting details for this product. Each product can have multiple publishers. Each entry contains \`publisherDomain\` (string) and \`selectionType\` (\`"all"\` or \`"by_id"\`). Use this to understand which publishers a product targets.
+
+**Debug response** (when \`debug: true\`):
+
+The response includes an \`agentResults\` array containing only failed agents with full ADCP request/response logs for troubleshooting:
+\`\`\`json
+{
+  "agentResults": [
+    {
+      "agentId": "agent_789",
+      "agentName": "Failed Agent",
+      "success": false,
+      "productCount": 0,
+      "error": "Connection timeout",
+      "rawResponseData": { "..." },
+      "debugLogs": [
+        {
+          "timestamp": "2026-03-18T10:00:00Z",
+          "type": "request",
+          "request": { "method": "POST", "url": "...", "headers": { "authorization": "[REDACTED]" }, "body": { "..." } },
+          "response": { "status": 500, "body": { "..." } }
+        }
+      ]
+    }
+  ]
+}
+\`\`\`
+
 **Pagination:**
 - \`hasMoreGroups\`: Use \`groupOffset\` to fetch more groups
 - \`hasMoreProducts\`: Use \`productOffset\` to fetch more products within a group
 - To paginate products for a single group, combine \`productOffset\` with a filter (\`salesAgentIds\` or \`salesAgentNames\`) to isolate that group
 
-#### Add Products to Bundle
+#### Add Products to Selection
 \`\`\`http
-POST /api/v2/buyer/bundles/{bundleId}/products
+POST /api/v2/buyer/discovery/{discoveryId}/products
 {
   "products": [
     {
@@ -920,7 +1251,7 @@ POST /api/v2/buyer/bundles/{bundleId}/products
       "salesAgentId": "agent_456",
       "groupId": "ctx_123-group-0",
       "groupName": "Publisher Name",
-      "cpm": 12.50,
+      "bidPrice": 12.50,
       "budget": 5000
     }
   ]
@@ -928,17 +1259,17 @@ POST /api/v2/buyer/bundles/{bundleId}/products
 \`\`\`
 
 **Required per product:** \`productId\`, \`salesAgentId\`, \`groupId\`, \`groupName\`
-**Optional per product:** \`cpm\`, \`budget\`
+**Optional per product:** \`bidPrice\` (required when \`isFixed: false\`), \`budget\`
 
 **Response:**
 \`\`\`json
 {
-  "bundleId": "abc123-def456-ghi789",
+  "discoveryId": "abc123-def456-ghi789",
   "products": [
     {
       "productId": "product_123",
       "salesAgentId": "agent_456",
-      "cpm": 12.50,
+      "bidPrice": 12.50,
       "budget": 5000,
       "selectedAt": "2025-02-01T10:00:00Z",
       "groupId": "ctx_123-group-0",
@@ -954,16 +1285,16 @@ POST /api/v2/buyer/bundles/{bundleId}/products
 }
 \`\`\`
 
-#### Get Bundle Products
+#### Get Selected Products
 \`\`\`http
-GET /api/v2/buyer/bundles/{bundleId}/products
+GET /api/v2/buyer/discovery/{discoveryId}/products
 \`\`\`
 
 Response format same as Add Products.
 
-#### Remove Products from Bundle
+#### Remove Products from Selection
 \`\`\`http
-DELETE /api/v2/buyer/bundles/{bundleId}/products
+DELETE /api/v2/buyer/discovery/{discoveryId}/products
 {
   "productIds": ["product_123", "product_456"]
 }
@@ -973,42 +1304,290 @@ Response format same as Add Products (with updated list).
 
 ---
 
-### Conversion Events
+### Event Sources
 
-Required for performance campaigns to track and optimize conversions.
+Conversion data pipelines (website pixels, mobile SDKs, etc.) registered at the advertiser level. Referenced by \`eventSourceId\` in campaign optimization goals.
 
-#### List Conversion Events
+Event sources can be managed through sync (bulk upsert following the ADCP spec) or through individual CRUD operations.
+
+#### Sync Event Sources
+
+Sync is the preferred way to manage event sources — it uses upsert semantics (creates or updates as needed).
+
 \`\`\`http
-GET /api/v2/buyer/advertisers/{advertiserId}/conversion-events
-\`\`\`
-
-#### Create Conversion Event
-\`\`\`http
-POST /api/v2/buyer/advertisers/{advertiserId}/conversion-events
+POST /api/v2/buyer/advertisers/26/event-sources/sync
 {
-  "name": "Purchase",
-  "type": "PURCHASE",
-  "description": "Completed purchase event",
-  "value": 100,
-  "currency": "USD"
+  "account": { "account_id": "26" },
+  "event_sources": [
+    {
+      "event_source_id": "website_pixel",
+      "name": "Website Pixel",
+      "event_types": ["purchase", "add_to_cart"],
+      "allowed_domains": ["shop.example.com"]
+    },
+    {
+      "event_source_id": "mobile_sdk",
+      "name": "Mobile App SDK",
+      "event_types": ["app_install", "purchase"]
+    }
+  ],
+  "delete_missing": false
 }
 \`\`\`
 
-**Event Types:** \`PURCHASE\`, \`SIGNUP\`, \`LEAD\`, \`PAGE_VIEW\`, \`ADD_TO_CART\`, \`CUSTOM\`
+**URL path:** \`/advertisers/{advertiserId}/event-sources/sync\` — the \`{advertiserId}\` is the numeric advertiser ID (e.g. \`26\`). Also include it in the request body as \`account.account_id\`.
 
-#### Get Conversion Event
-\`\`\`http
-GET /api/v2/buyer/advertisers/{advertiserId}/conversion-events/{id}
-\`\`\`
+**\`account\` (required in body):**
+- \`account_id\` (string): The advertiser ID — same value as the path \`{advertiserId}\` (e.g. \`"26"\`).
 
-#### Update Conversion Event
-\`\`\`http
-PUT /api/v2/buyer/advertisers/{advertiserId}/conversion-events/{id}
+**\`event_sources\` array (required, 1–50 items). Each object:**
+- \`event_source_id\` (string, required): Buyer-assigned identifier, referenced by optimization goals
+- \`name\` (string, optional): Human-readable label
+- \`event_types\` (array, optional): IAB ECAPI event types this source handles. When omitted, accepts all types. Values: \`purchase\`, \`lead\`, \`add_to_cart\`, \`complete_registration\`, \`subscribe\`, \`app_install\`, \`start_trial\`, \`search\`, \`add_to_wishlist\`, \`view_content\`, \`initiate_checkout\`, \`add_payment_info\`, \`share\`, \`donate\`, \`find_location\`, \`schedule\`, \`contact\`, \`customize_product\`, \`submit_application\`, \`login\`, \`page_view\`, \`complete_tutorial\`, \`achieve_level\`, \`unlock_achievement\`, \`spend_credits\`, \`rate\`, \`download\`, \`custom\`
+- \`allowed_domains\` (array, optional): Domains authorized to send events
+
+**Other optional fields:**
+- \`delete_missing\` (boolean): Archive event sources not included in this request (default: false)
+
+**Response (200):**
+\`\`\`json
 {
-  "name": "High-Value Purchase",
-  "value": 200
+  "data": {
+    "event_sources": [
+      { "event_source_id": "website_pixel", "action": "created" },
+      { "event_source_id": "mobile_sdk", "action": "updated" }
+    ]
+  }
 }
 \`\`\`
+
+Actions: \`created\`, \`updated\`, \`unchanged\`, \`failed\`, \`deleted\`
+
+#### List Event Sources
+
+\`\`\`http
+GET /api/v2/buyer/advertisers/{advertiserId}/event-sources
+\`\`\`
+
+**Query Parameters:**
+- \`take\` / \`skip\` (optional): Pagination
+
+#### Create Event Source
+\`\`\`http
+POST /api/v2/buyer/advertisers/{advertiserId}/event-sources
+{
+  "eventSourceId": "website_pixel",
+  "name": "Website Pixel",
+  "eventTypes": ["purchase", "add_to_cart"],
+  "allowedDomains": ["shop.example.com"]
+}
+\`\`\`
+
+**Required fields:**
+- \`eventSourceId\` (string): Identifier referenced by optimization goals (e.g., \`"retailer_sales"\`, \`"website_pixel"\`)
+- \`name\` (string): Human-readable name
+
+**Optional fields:**
+- \`eventTypes\` (array): IAB ECAPI event types this source handles. When omitted, accepts all types. Values: \`purchase\`, \`lead\`, \`add_to_cart\`, \`complete_registration\`, \`subscribe\`, \`app_install\`, \`start_trial\`, \`search\`, \`add_to_wishlist\`, \`view_content\`, \`initiate_checkout\`, \`add_payment_info\`, \`share\`, \`donate\`, \`find_location\`, \`schedule\`, \`contact\`, \`customize_product\`, \`submit_application\`, \`login\`, \`page_view\`, \`complete_tutorial\`, \`achieve_level\`, \`unlock_achievement\`, \`spend_credits\`, \`rate\`, \`download\`, \`custom\`
+- \`allowedDomains\` (array): Domains authorized to send events for this source
+
+#### Get Event Source
+\`\`\`http
+GET /api/v2/buyer/advertisers/{advertiserId}/event-sources/{eventSourceId}
+\`\`\`
+
+#### Update Event Source
+\`\`\`http
+PUT /api/v2/buyer/advertisers/{advertiserId}/event-sources/{eventSourceId}
+{
+  "name": "Updated Pixel Name",
+  "eventTypes": ["purchase"]
+}
+\`\`\`
+
+All fields are optional.
+
+#### Delete Event Source
+\`\`\`http
+DELETE /api/v2/buyer/advertisers/{advertiserId}/event-sources/{eventSourceId}
+\`\`\`
+
+---
+
+### Event Summary
+
+Get hourly-aggregated event counts for an advertiser. Use this to verify that events (impressions, clicks, conversions, etc.) are being ingested before setting up optimization goals.
+
+**Important:** Event data is aggregated hourly. Newly reported events may take up to 1 hour to appear in this summary. If the user has just started reporting events, let them know to wait before checking.
+
+#### Get Event Summary
+\`\`\`http
+GET /api/v2/buyer/advertisers/{advertiserId}/events/summary
+\`\`\`
+
+**Query Parameters:**
+- \`eventType\` (string, optional): Filter by event type — one of \`impression\`, \`click\`, \`conversion\`, \`measurement\`, \`mmp\`. When omitted, returns all types.
+- \`startHour\` (string, optional): Start of query range (inclusive), hour-aligned ISO 8601 (e.g. \`2026-03-27T14:00:00Z\`). Defaults to start of last completed UTC hour.
+- \`endHour\` (string, optional): End of query range (exclusive), hour-aligned ISO 8601. Defaults to end of last completed UTC hour.
+
+**Response (200):**
+\`\`\`json
+{
+  "data": {
+    "periodStart": "2026-03-27T14:00:00.000Z",
+    "periodEnd": "2026-03-27T15:00:00.000Z",
+    "entries": [
+      {
+        "eventHour": "2026-03-27T14:00:00.000Z",
+        "eventType": "impression",
+        "eventCount": 1500
+      },
+      {
+        "eventHour": "2026-03-27T14:00:00.000Z",
+        "eventType": "conversion",
+        "eventCount": 25
+      }
+    ],
+    "totalEventCount": 1525
+  }
+}
+\`\`\`
+
+The response includes both advertiser-specific events and customer-level shared events (events not tied to a specific advertiser but shared across all advertisers under the same customer).
+
+---
+
+### Log Event
+
+Log conversion and marketing events for attribution. Events are forwarded to the tracking endpoint (CAPI). Requires an event source registered via sync_event_sources.
+
+#### Log Events
+\`\`\`http
+POST /api/v2/buyer/advertisers/{advertiserId}/log-event
+{
+  "event_source_id": "website_pixel",
+  "events": [
+    {
+      "event_id": "txn_abc123",
+      "event_type": "purchase",
+      "event_time": "2026-03-15T14:30:00-05:00",
+      "action_source": "website",
+      "event_source_url": "https://example.com/checkout",
+      "user_match": {
+        "hashed_email": "a1b2c3d4e5f6...",
+        "click_id": "abc123",
+        "click_id_type": "gclid"
+      },
+      "custom_data": {
+        "value": 99.99,
+        "currency": "USD",
+        "order_id": "order_456",
+        "content_ids": ["prod_789"],
+        "num_items": 2
+      }
+    }
+  ],
+  "test_event_code": "TEST123"
+}
+\`\`\`
+
+**Request body:**
+- \`event_source_id\` (string, required): Event source registered via sync_event_sources
+- \`events\` (array, required, 1–10,000 items): Events to log
+- \`test_event_code\` (string, optional): Test code for validation without affecting production data
+
+**Each event object:**
+- \`event_id\` (string, required): Unique identifier for deduplication
+- \`event_type\` (enum, required): \`purchase\`, \`lead\`, \`add_to_cart\`, \`initiate_checkout\`, \`view_content\`, \`complete_registration\`, \`page_view\`, \`app_install\`, \`deposit\`, \`subscription\`, \`custom\`
+- \`event_time\` (string, required): When the event occurred (ISO 8601 with timezone)
+- \`action_source\` (enum, optional): \`website\`, \`app\`, \`in_store\`, \`phone_call\`, \`system_generated\`, \`other\`
+- \`event_source_url\` (string, optional): URL where the event occurred
+- \`custom_event_name\` (string, optional): Name for custom events (when event_type is \`custom\`)
+- \`user_match\` (object, optional): User identity for attribution matching
+  - \`uids\` (array): Universal ID values (\`{type, value}\` — rampid, id5, uid2, euid, pairid, maid)
+  - \`hashed_email\`: SHA-256 of lowercase trimmed email
+  - \`hashed_phone\`: SHA-256 of E.164 phone number
+  - \`click_id\` / \`click_id_type\`: Platform click identifier
+  - \`client_ip\` / \`client_user_agent\`: For probabilistic matching
+- \`custom_data\` (object, optional): Event-specific data
+  - \`value\`: Monetary value
+  - \`currency\`: ISO 4217 code (e.g. \`USD\`)
+  - \`order_id\`: Transaction identifier
+  - \`content_ids\`: Product identifiers
+  - \`content_type\`: Category (product, service, etc.)
+  - \`num_items\`: Item count
+  - \`contents\`: Array of \`{id, quantity, price, brand}\`
+
+**Response (200):**
+\`\`\`json
+{
+  "data": {
+    "events_received": 1,
+    "events_processed": 1,
+    "partial_failures": [],
+    "warnings": [],
+    "match_quality": 0.85
+  }
+}
+\`\`\`
+
+---
+
+### Measurement Data
+
+Sync advertiser performance measurement data as an alternative to CAPI. Accepts time-series metric data over date ranges keyed by campaign, media buy, package, and/or creative. Uses upsert semantics — re-submitting the same data is safe and idempotent.
+
+#### Sync Measurement Data
+
+\`\`\`http
+POST /api/v2/buyer/advertisers/26/measurement-data/sync
+{
+  "measurements": [
+    {
+      "start_time": "2026-03-01T00:00:00-05:00",
+      "end_time": "2026-03-07T23:59:59-05:00",
+      "metric_id": "incremental_revenue",
+      "metric_value": 8450.75,
+      "unit": "currency",
+      "currency": "USD",
+      "campaign_id": "camp_456"
+    }
+  ]
+}
+\`\`\`
+
+**URL path:** \`/advertisers/{advertiserId}/measurement-data/sync\` — the \`{advertiserId}\` is the numeric advertiser ID (e.g. \`26\`).
+
+**\`measurements\` array (required, 1–1000 items). Each object:**
+- \`start_time\` (string, required): Start of the measurement period (ISO 8601 with timezone)
+- \`end_time\` (string, required): End of the measurement period (ISO 8601 with timezone, must be after start_time)
+- \`metric_id\` (enum, required): \`revenue\`, \`incremental_revenue\`, \`conversions\`, \`incremental_conversions\`, \`page_view_count\`, \`add_to_cart_count\`, \`purchase_count\`, \`ltv_1d\`, \`ltv_7d\`, \`ltv_30d\`
+- \`metric_value\` (number, required): Measured value for this metric
+- \`unit\` (enum, required): \`currency\`, \`count\`, \`ratio\`, \`percentage\`
+- \`currency\` (string, conditional): 3-letter uppercase ISO 4217 code (e.g. \`"USD"\`) — required when \`unit\` is \`"currency"\`
+- \`advertiser_id\` (string, optional): Advertiser identifier
+- \`campaign_id\` (string, optional): Campaign identifier
+- \`media_buy_id\` (string, optional): Media buy identifier
+- \`package_id\` (string, optional): Package identifier
+- \`creative_id\` (string, optional): Creative identifier
+- \`source\` (string, optional): Source of the measurement data
+- \`source_platform\` (string, optional): Platform the data originates from
+- \`external_row_id\` (string, optional): External row identifier for idempotency
+
+**Constraint:** At least one of \`advertiser_id\`, \`campaign_id\`, \`media_buy_id\`, \`package_id\`, or \`creative_id\` must be provided.
+
+**Response (200):**
+\`\`\`json
+{
+  "data": {
+    "measurements": [
+      { "index": 0, "action": "created" }
+    ]
+  }
+}
+\`\`\`
+
+Actions: \`created\`, \`updated\`, \`unchanged\`, \`failed\`
 
 ---
 
@@ -1033,37 +1612,127 @@ POST /api/v2/buyer/advertisers/{advertiserId}/test-cohorts
 
 ---
 
-### Creative Sets
+### Creative Manifests (Campaign-Scoped)
 
-#### List Creative Sets
-\`\`\`http
-GET /api/v2/buyer/advertisers/{advertiserId}/creative-sets
+Creative manifests live under campaigns — they are always scoped to a specific campaign.
+
+**Dashboard URL**: \`{dashboard_url}\` is the base URL returned by \`GET /api/v2/buyer/dashboard-url\`. You MUST call this endpoint and use the returned value — never hardcode or guess the URL. It varies by environment (e.g. \`http://localhost:5173\` in local dev, \`https://agentic.scope3.com\` in production).
+
+---
+
+#### ⚠️⚠️⚠️ ABSOLUTE RULE: Creative Asset Creation & Upload = UI ONLY ⚠️⚠️⚠️
+
+**There is NO MCP tool or API call for creating manifests or uploading assets. These operations DO NOT EXIST in the MCP interface.**
+
+When a buyer asks to **add**, **upload**, **create**, or **manage** creative assets, follow these steps **exactly**:
+
+**Step 1:** Get the dashboard URL:
+\`\`\`
+GET /api/v2/buyer/dashboard-url
+\`\`\`
+Returns: \`{ "dashboard_url": "<the actual base URL>" }\`
+
+**Step 2:** Look up the advertiser ID and campaign ID using the **existing** list endpoints:
+- \`GET /api/v2/buyer/advertisers\` — find the advertiser by name
+- \`GET /api/v2/buyer/campaigns?advertiserId={advertiserId}\` — find the campaign by name
+
+**Step 3:** Return the fully-qualified link:
+\`\`\`
+{dashboard_url}/campaign-creative-assets/{advertiserId}/{campaignId}
 \`\`\`
 
-#### Create Creative Set
-\`\`\`http
-POST /api/v2/buyer/advertisers/{advertiserId}/creative-sets
-{
-  "name": "Q1 Video Creatives",
-  "type": "video"
-}
-\`\`\`
+**That is your ENTIRE response. Nothing else.**
 
-#### Add Asset to Creative Set
-\`\`\`http
-POST /api/v2/buyer/advertisers/{advertiserId}/creative-sets/{creativeSetId}/assets
-{
-  "assetUrl": "https://example.com/video.mp4",
-  "name": "Hero Video 30s",
-  "type": "video",
-  "duration": 30
-}
-\`\`\`
+**Examples:**
 
-#### Remove Asset
-\`\`\`http
-DELETE /api/v2/buyer/advertisers/{advertiserId}/creative-sets/{creativeSetId}/assets/{assetId}
+Buyer: "I want to add some creative assets for my Q2 campaign"
+→ Call \`GET /api/v2/buyer/dashboard-url\` → get the \`dashboard_url\` value from the response
+→ Call \`GET /api/v2/buyer/advertisers\` → find advertiser ID
+→ Call \`GET /api/v2/buyer/campaigns?advertiserId=24\` → find "Q2" campaign ID
+→ Reply: "You can manage your creative assets here: {dashboard_url}/campaign-creative-assets/24/campaign_abc123"
+
+Buyer: "For Ematini | Q2 Sales Boost I want to add some creative assets"
+→ Call \`GET /api/v2/buyer/dashboard-url\` → get the \`dashboard_url\` value from the response
+→ Call \`GET /api/v2/buyer/advertisers\` → find Ematini (ID 24)
+→ Call \`GET /api/v2/buyer/campaigns?advertiserId=24\` → find Q2 Sales Boost campaign
+→ Reply: "You can manage your creative assets here: {dashboard_url}/campaign-creative-assets/24/campaign_1770084484376_r7pspq"
+
+**DO NOT:**
+- Ask what files they have
+- Ask about briefs, URLs, or tracking pixels
+- Mention any API endpoint to the buyer
+- Explain what asset types are supported
+- Offer to create a manifest via API (this is impossible via MCP)
+- Mention \`POST .../creatives/create\` (that is a REST-only endpoint used by the UI, not available via MCP)
+- Use \`ask_about_capability\` — just call the endpoints above directly
+
+---
+
+#### What IS Available via MCP (READ-ONLY + metadata updates on EXISTING manifests)
+
+**REMINDER: You CANNOT create new manifests via MCP. If the buyer asks to "add", "create", or "upload" creatives, you MUST direct them to the UI link (see above). The operations below ONLY work on manifests that already exist.**
+
+The MCP interface exposes these operations for creative manifests that were **already created in the UI**:
+
+**Note:** Template detection and format matching happen automatically when assets are uploaded via the UI. The response includes \`auto_detected_template\` with the detected \`template_id\` and detection \`method\`. There is no need to call a separate templates endpoint.
+
+##### 1. List Creative Manifests
 \`\`\`
+GET /api/v2/buyer/campaigns/{campaignId}/creatives
+\`\`\`
+**Query parameters:**
+- \`quality\` (optional): Filter by quality level
+- \`search\` (optional): Case-insensitive name search
+- \`take\` (optional): Page size, default 50
+- \`skip\` (optional): Pagination offset
+
+**Response:** Array of manifests, each with \`creative_id\`, \`name\`, \`message\` (brief), \`template_id\`, \`format_id\`, \`preview_url\`, \`format_previews[]\` (concrete format sizes), \`auto_detected_template\`, \`assets[]\` (each with \`asset_source\`: \`CREATIVE_SOURCE\`, \`USER_UPLOADED\`, or \`SYSTEM_PROCESSED\`), \`campaign_id\`, \`created_at\`, \`updated_at\`.
+
+##### 2. Get Creative Manifest
+\`\`\`
+GET /api/v2/buyer/campaigns/{campaignId}/creatives/{creativeId}
+\`\`\`
+Optional query: \`?preview=true\`
+
+**Response:** Single manifest with all fields including \`preview_url\`, \`format_previews[]\`, \`auto_detected_template\`, \`html_processing\` (macros injected, unresolved refs), and assets array.
+
+##### 3. Update Creative Manifest (metadata only — NO file uploads)
+\`\`\`
+PUT /api/v2/buyer/campaigns/{campaignId}/creatives/{creativeId}
+\`\`\`
+**Body (all fields optional):**
+- \`name\` (string): Manifest name
+- \`message\` (string): Creative brief
+- \`tag\` (string): Tag
+- \`quality\` (string): Quality level
+- \`format_id\` (object): \`{ agent_url: string, id: string }\` — ADCP format ID
+- \`template_id\` (string): ADCP format template ID (e.g. \`"display_300x250_html"\`, \`"video_standard"\`, \`"vendor_dcm_tag"\`)
+- \`url_asset\` (object): \`{ url: string, url_type: string }\` — add a URL-based asset
+- \`delete_asset_ids\` (string[]): Asset IDs to soft-delete
+- \`reclassify_assets\` (array): \`[{ asset_id: string, asset_type: string }]\` — change asset type
+
+**Note:** File uploads are NOT possible via MCP. The MCP update only handles metadata changes, URL assets, and asset deletion/reclassification. For file uploads, direct the buyer to the UI.
+
+##### 4. Delete Creative Manifest
+\`\`\`
+DELETE /api/v2/buyer/campaigns/{campaignId}/creatives/{creativeId}
+\`\`\`
+Soft-deletes the manifest and all its assets (sets \`archived_at\`).
+
+**Response:** \`204 No Content\`
+
+**⚠️ FINAL REMINDER: None of the above operations CREATE a manifest. If the buyer wants to ADD or CREATE creatives, your ONLY response is the UI link: \`{dashboard_url}/campaign-creative-assets/{advertiserId}/{campaignId}\`. Do NOT ask follow-up questions about file types, URLs, briefs, or tags.**
+
+---
+
+#### Display Requirements — When listing/showing manifests:
+- **Name** and **Creative ID**
+- **Template** and **Format ID** (if set) — these are ADCP format IDs (e.g. \`display_300x250_html\`, \`video_standard\`)
+- **Auto-detected template** (if present) — show \`template_id\` and detection \`method\`
+- **Brief/message** (if present)
+- **Format previews count** (if present) — e.g. "4 format sizes available"
+- **Asset count** and asset details (filename, type, \`asset_source\`, URL)
+- **Created/Updated timestamps**
 
 ---
 
@@ -1086,6 +1755,19 @@ Returns reporting data in one of two views: **summary** (hierarchical breakdown)
 - \`advertiserId\` (optional): Filter by advertiser ID
 - \`campaignId\` (optional): Filter by campaign ID
 - \`demo\` (optional, boolean): When \`true\`, returns auto-generated demo data instead of querying real data sources. Default: \`false\`. Useful for testing and previewing the reporting UI without live campaign data.
+
+**⚠️ CRITICAL: Disambiguating "demo" in user requests**
+
+The word "demo" can mean two different things in reporting requests. You MUST distinguish between them:
+
+| User intent | Example phrases | Action |
+|-------------|----------------|--------|
+| **Demo flag** (synthetic demo data) | "show reporting (demo)", "demo show reporting", "show reporting with demo flag", "show reporting demo mode" | Set \`demo=true\` query parameter |
+| **Name filter** (advertiser/campaign containing "demo") | "show reporting for demo advertiser", "show reporting for % demo %", "show campaigns named demo", "reporting for 'demo brand'" | Use \`advertiserId\` or \`campaignId\` filters to match entities whose names contain "demo" — do NOT set \`demo=true\` |
+
+**How to tell the difference:**
+- If "demo" appears as a **modifier or flag on the reporting request itself** (in parentheses, as "demo mode", "demo flag", or as a standalone qualifier adjacent to "reporting"), the user wants \`demo=true\`.
+- If "demo" appears as a **value describing an advertiser, campaign, or entity name** (preceded by "for", "named", "called", or wrapped in quotes/wildcards), the user is filtering by name — do NOT set \`demo=true\`.
 
 **Summary Response** (\`view=summary\`, default):
 \`\`\`json
@@ -1142,25 +1824,224 @@ Returns reporting data in one of two views: **summary** (hierarchical breakdown)
 
 **Metrics included:** impressions, spend, clicks, views, completedViews, conversions, leads, videoCompletions, ecpm, cpc, ctr, completionRate
 
+#### Export / Download Reporting Metrics as CSV
+
+To export or download reporting data as a CSV file, use the same reporting metrics endpoint with \`?download=true\`. This generates a CSV and returns a signed download URL (valid 7 days) instead of JSON data.
+
+**IMPORTANT:** When a user asks to "export", "download", "save as CSV", or "get a spreadsheet" of their reporting data, use this endpoint with \`download=true\`.
+
+\`\`\`http
+GET /api/v2/buyer/reporting/metrics?days=30&download=true
+\`\`\`
+
+All the same query parameters apply (\`days\`, \`startDate\`, \`endDate\`, \`advertiserId\`, \`campaignId\`). The only addition is \`download=true\`.
+
+**Response when \`download=true\`:**
+\`\`\`json
+{
+  "downloadUrl": "https://storage.googleapis.com/...",
+  "expiresAt": "2025-02-20T12:00:00.000Z",
+  "fileName": "reporting-metrics-2025-02-06-to-2025-02-13.csv",
+  "rowCount": 42
+}
+\`\`\`
+
+**CSV columns (20):** Advertiser ID, Advertiser Name, Campaign ID, Campaign Name, Media Buy ID, Media Buy Name, Media Buy Status, Package ID, Impressions, Spend, Clicks, Views, Completed Views, Conversions, Leads, Video Completions, eCPM, CPC, CTR, Completion Rate. One row per package (media buys with no packages get one row with empty Package ID).
+
+**CRITICAL: NEVER generate your own CSV, Excel, or spreadsheet files.** Always use this \`?download=true\` endpoint to produce reporting exports. The endpoint handles proper formatting, escaping, and data integrity. Do not use artifacts, code execution, or any other mechanism to create files — use the API.
+
+When the download response is received, present the \`downloadUrl\` to the user as a clickable download link. Include the \`fileName\` and note that the link expires after 7 days (\`expiresAt\`).
+
+---
+
+### Catalogs
+
+Catalogs are managed entirely through sync — there is no separate create/update/delete.
+
+**Before calling sync, you MUST collect from the user:**
+1. Which advertiser — the advertiser ID goes in the URL path AND in \`account.account_id\` in the request body
+2. The catalog(s) to sync — each needs a \`catalog_id\`, \`type\`, and either a feed \`url\` or inline \`items\`
+
+#### Sync Catalogs
+
+**Option A — Remote feed URL (multiple catalogs in one call):**
+\`\`\`http
+POST /api/v2/buyer/advertisers/26/catalogs/sync
+{
+  "account": { "account_id": "26" },
+  "catalogs": [
+    {
+      "catalog_id": "products-2026",
+      "type": "product",
+      "name": "2026 Product Catalog",
+      "url": "https://example.com/products.xml",
+      "feed_format": "google_merchant_center",
+      "update_frequency": "daily"
+    },
+    {
+      "catalog_id": "promotions-q1",
+      "type": "promotion",
+      "name": "Q1 Promotions",
+      "url": "https://example.com/promotions.xml",
+      "feed_format": "custom",
+      "update_frequency": "hourly"
+    }
+  ]
+}
+\`\`\`
+
+**Option B — Inline items:**
+\`\`\`http
+POST /api/v2/buyer/advertisers/26/catalogs/sync
+{
+  "account": { "account_id": "26" },
+  "catalogs": [
+    {
+      "catalog_id": "my-catalog-1",
+      "type": "product",
+      "name": "Q1 Products",
+      "items": [
+        {
+          "item_id": "sku-001",
+          "title": "Blue Widget",
+          "description": "A sturdy blue widget for everyday use",
+          "price": "19.99 USD",
+          "link": "https://example.com/products/blue-widget",
+          "image_link": "https://example.com/images/blue-widget.jpg",
+          "availability": "in stock",
+          "brand": "Acme",
+          "google_product_category": "Hardware > Tools"
+        },
+        {
+          "item_id": "sku-002",
+          "title": "Red Widget",
+          "description": "A sturdy red widget for everyday use",
+          "price": "24.99 USD",
+          "link": "https://example.com/products/red-widget",
+          "image_link": "https://example.com/images/red-widget.jpg",
+          "availability": "in stock",
+          "brand": "Acme",
+          "google_product_category": "Hardware > Tools"
+        }
+      ]
+    }
+  ]
+}
+\`\`\`
+
+> Items are free-form key/value objects — the fields depend on the catalog \`type\`. The examples above use common product fields. For \`job\` catalogs use fields like \`job_id\`, \`title\`, \`company\`, \`location\`; for \`hotel\` use \`hotel_id\`, \`name\`, \`address\`, \`star_rating\`; etc.
+
+**URL path:** \`/advertisers/{advertiserId}/catalogs/sync\` — the \`{advertiserId}\` is the numeric advertiser ID (e.g. \`26\`). Also include it in the request body as \`account.account_id\`.
+
+**\`account\` (required in body):**
+- \`account_id\` (string): The advertiser ID — same value as the path \`{advertiserId}\` (e.g. \`"26"\`).
+
+**\`catalogs\` array (required, 1–50 items). Each object:**
+- \`catalog_id\` (string, required): Buyer-assigned identifier
+- \`type\` (string, required): \`offering\`, \`product\`, \`inventory\`, \`store\`, \`promotion\`, \`hotel\`, \`flight\`, \`job\`, \`vehicle\`, \`real_estate\`, \`education\`, \`destination\`
+- \`name\` (string, optional): Display name
+- \`url\` (string): Remote feed URL — provide this OR \`items\`, not both
+- \`items\` (array): Inline catalog items — provide this OR \`url\`, not both
+- \`feed_format\` (string, optional): \`google_merchant_center\`, \`facebook_catalog\`, \`shopify\`, \`linkedin_jobs\`, \`custom\`
+- \`update_frequency\` (string, optional): \`realtime\`, \`hourly\`, \`daily\`, \`weekly\`
+- \`conversion_events\` (array, optional): Conversion event IDs
+
+**Other optional fields:**
+- \`catalog_ids\` (array): Filter which catalog_ids from the \`catalogs\` array to process
+- \`delete_missing\` (boolean): Archive catalogs not included in this request (default: false)
+- \`dry_run\` (boolean): Preview changes without persisting (default: false)
+- \`validation_mode\` (string): \`strict\` (default) or \`lenient\`
+
+**Response:**
+\`\`\`json
+{
+  "data": {
+    "results": [
+      {
+        "catalog_id": "my-catalog-1",
+        "action": "created",
+        "name": "Q1 Products",
+        "type": "offering"
+      }
+    ]
+  }
+}
+\`\`\`
+
+Actions: \`created\`, \`updated\`, \`unchanged\`, \`failed\`, \`deleted\`
+
+#### List Catalogs
+
+\`\`\`http
+GET /api/v2/buyer/advertisers/26/catalogs
+\`\`\`
+
+**URL path:** \`/advertisers/{advertiserId}/catalogs\` — the \`{advertiserId}\` is the numeric advertiser ID.
+
+**Query Parameters:**
+- \`type\` (optional): Filter by catalog type (\`offering\`, etc.)
+- \`take\` / \`skip\` (optional): Pagination
+
+**Response (200):**
+\`\`\`json
+{
+  "data": {
+    "account": { "account_id": "26" },
+    "catalogs": [
+      {
+        "catalogId": "my-catalog-1",
+        "type": "offering",
+        "name": "Q1 Products",
+        "url": "https://example.com/feed.xml"
+      }
+    ]
+  }
+}
+\`\`\`
+
 ---
 
 ### Sales Agents
 
-Browse available sales agents and register accounts to connect with them.
+Browse available sales agents, register agent credentials, and link accounts to advertisers.
+
+**CRITICAL — Account Status Awareness:**
+When listing sales agents, you MUST tell the user about the credential/account registration status for EACH agent. Specifically:
+- If \`requiresAccount\` is \`true\`: Tell the user they need to register credentials for this agent before they can use it.
+- If \`customerAccounts\` is empty and \`requiresOperatorAuth\` is \`true\`: The customer has NOT set up credentials yet — flag this.
+- If \`customerAccounts\` has entries: Show the user their registered account identifiers and statuses.
+- If \`requiresOperatorAuth\` is \`false\`: The platform handles credentials — no action needed from the user.
+
+Never silently omit this information. The user needs to know which agents are ready to use and which require setup.
+
+**CRITICAL — Proactive Registration Prompt for \`requiresAccount: true\` Agents:**
+When ANY agent in the response has \`requiresAccount: true\`, you MUST:
+1. **Explicitly call it out in a separate section** — Do NOT bury it in the main list. After showing the full agent list, add a clear callout like: "The following agents require you to register credentials before you can use them: [agent names]. Would you like to register credentials for any of them?"
+2. **Offer to start the registration flow** — Ask the user if they want to register credentials now. If yes:
+   a. For **OAUTH agents** (\`authenticationType: "OAUTH"\`): Call \`POST /api/v2/buyer/sales-agents/{agentId}/accountCredentials\` with just \`accountIdentifier\` (no \`auth\` field). Present the returned \`oauth.authorizationUrl\` for the user to complete authorization.
+   b. For **API_KEY/JWT agents**: Ask the user for their credentials, then call \`POST /api/v2/buyer/sales-agents/{agentId}/accountCredentials\`.
+3. **After registering credentials, offer to link an account to an advertiser** — Once agent credentials are registered, ask: "Now that credentials are set up for [agent name], would you like to discover and link an account to a specific advertiser?" If yes, follow the Link Agent Account to Advertiser workflow (see Advertisers section):
+   a. List the customer's advertisers via \`GET /api/v2/buyer/advertisers\`
+   b. For the chosen advertiser, discover available accounts for the agent: \`GET /api/v2/buyer/advertisers/{advertiserId}/accounts/available?partnerId={agentId}\`
+   c. Present discovered accounts and let the user pick
+   d. Link via \`PUT /api/v2/buyer/advertisers/{advertiserId}\` with \`linkedAccounts\`
+
+This end-to-end flow (list agents → register agent credentials → link account to advertiser) should feel seamless. Do NOT make the user figure out the next step — always offer it.
 
 #### List Sales Agents
 
 List all sales agents visible to the buyer. Shows all non-DISABLED agents. Results are paginated.
 
 \`\`\`http
-GET /api/v2/buyer/sales-agents?status=ACTIVE&relationship=MARKETPLACE&limit=20&offset=0
+GET /api/v2/buyer/sales-agents?status=ACTIVE&relationship=MARKETPLACE&limit=10&offset=0
 \`\`\`
 
 **Query Parameters (all optional):**
 - \`status\` (string): Filter by status — \`PENDING\`, \`ACTIVE\`
 - \`relationship\` (string): Filter by relationship — \`SELF\` (owned by you), \`MARKETPLACE\` (all other marketplace agents)
 - \`name\` (string): Filter by agent name (partial match, case-insensitive)
-- \`limit\` (number): Maximum number of agents to return per page (default: 20)
+- \`supportsRegistration\` (boolean string \`"true"\`/\`"false"\`): When \`true\`, return only agents with \`requiresOperatorAuth: true\` (i.e. agents the buyer must register their own credentials for)
+- \`limit\` (number): Maximum number of agents to return per page (default: 10, max: 10)
 - \`offset\` (number): Number of agents to skip for pagination (default: 0)
 
 **Response:**
@@ -1176,7 +2057,7 @@ GET /api/v2/buyer/sales-agents?status=ACTIVE&relationship=MARKETPLACE&limit=20&o
         "endpointUrl": "https://api.premiumvideo.com/adcp",
         "protocol": "MCP",
         "authenticationType": "API_KEY",
-        "accountPolicy": ["advertiser_account", "marketplace_account"],
+        "requiresOperatorAuth": true,
         "status": "ACTIVE",
         "relationship": "MARKETPLACE",
         "customerAccounts": [
@@ -1191,36 +2072,91 @@ GET /api/v2/buyer/sales-agents?status=ACTIVE&relationship=MARKETPLACE&limit=20&o
       }
     ],
     "total": 25,
-    "hasMore": true
+    "hasMore": true,
+    "nextOffset": 10
   }
 }
 \`\`\`
 
-**Pagination:** Use \`offset\` + \`limit\` to page through results. When \`hasMore\` is true, fetch the next page with \`offset\` increased by \`limit\`.
+**Pagination:** Results are paginated with a maximum of 10 items per page. When \`hasMore\` is true, use the \`nextOffset\` value as the \`offset\` parameter in your next request to fetch the next page. Continue until \`hasMore\` is false or \`nextOffset\` is null.
 
 **Notes:**
 - All non-DISABLED agents are visible to everyone
 - PENDING agents from other owners appear as \`"status": "COMING_SOON"\` with minimal info
 - \`customerAccounts\` lists the caller's own accounts (excludes marketplace accounts)
-- \`requiresAccount\` is true when the agent supports per-account registration and the caller has no accounts
-- \`accountPolicy\` shows the agent's allowed account types
+- \`requiresAccount\` is true when the agent requires operator auth and the caller has no credentials registered
+- \`requiresOperatorAuth\` indicates whether the buyer must provide their own credentials
 - \`oauth\` field is present for owner's PENDING OAUTH agents that haven't completed the OAuth flow
 
+**Credential rules — CRITICAL:**
+- \`requiresOperatorAuth: true\` → the buyer MUST provide their own credentials. Use \`GET /api/v2/buyer/sales-agents?supportsRegistration=true\` to list these. Registration is done via \`POST /api/v2/buyer/sales-agents/{agentId}/accountCredentials\`.
+- \`requiresOperatorAuth: false\` → the platform (Scope3) uses its own credentials. **Individual credential registration is NOT applicable.** Do NOT present these agents when the user asks which agents they can register credentials for or which agents they can link to advertisers.
+- These states are mutually exclusive — an agent is in one state or the other, never both.
+- **Account linking requires \`requiresOperatorAuth: true\`.** Only agents where the buyer registers their own credentials can have accounts discovered and linked to advertisers. When users ask about linking agents to advertisers, ALWAYS filter with \`supportsRegistration=true\`.
+
 **Display Requirements — ALWAYS include when listing sales agents:**
-- \`accountPolicy\`: Show what account types each agent supports (advertiser_account, marketplace_account)
-- \`customerAccounts\`: Show the caller's registered accounts for each agent
-- \`requiresAccount\`: Highlight agents that require account registration
-- Group agents by status (ACTIVE first, then COMING_SOON)
-- For each agent, clearly indicate: name, status, account policy, number of caller's accounts, and whether registration is needed
 
-#### Register Sales Agent Account
+Present each agent as a structured entry (not prose). Group agents into these sub-categories:
 
-Register an account for a sales agent under a specific advertiser. This connects the buyer's advertiser to the agent.
+1. **Active & Ready to Use** — ACTIVE agents where \`requiresAccount\` is false
+2. **Active but Requires Your Credentials** — ACTIVE agents where \`requiresAccount\` is true
+3. **Coming Soon** — agents with status \`COMING_SOON\`
+
+For every agent, show:
+- **Name** (append "[Your Agent]" if \`relationship: "SELF"\`)
+- **ID** (\`agentId\`)
+- **Protocol** (MCP, A2A, etc.)
+- **Status** (ACTIVE, COMING_SOON, etc.)
+- **Credential status** — one of: "Platform-managed" (if \`requiresOperatorAuth: false\`), "Registered" (if \`requiresOperatorAuth: true\` and \`customerAccounts\` has entries), or "Needs your credentials" (if \`requiresOperatorAuth: true\` and no \`customerAccounts\`)
+- **Registered accounts** — list each \`customerAccounts\` entry by \`accountIdentifier\` and \`status\`, or "None" if empty
+
+Key rules:
+- \`status\` and \`requiresAccount\` are separate concepts. \`status\` = whether the agent is live. \`requiresAccount\` = whether this buyer has registered credentials.
+- Never summarize into a sentence like "You have 5 sales agents." Always show the per-item details above for every agent.
+- **After listing, ALWAYS ask about registration** if any agents have \`requiresAccount: true\`. Do NOT just list them and move on.
+- When answering "which agents can I register credentials for" or "which agents can I link to advertisers" (or any variation about linking, connecting, or registering with agents) — call \`GET /api/v2/buyer/sales-agents?supportsRegistration=true\` to get only agents that support account registration and linking. Only agents with \`requiresOperatorAuth: true\` can have accounts linked to advertisers — agents with \`requiresOperatorAuth: false\` use platform-managed credentials and do NOT support per-advertiser account linking. Do NOT call without this parameter and filter client-side.
+
+#### List Registered Agent Credentials
+
+List all agent credentials registered by this customer across all agents.
 
 \`\`\`http
-POST /api/v2/buyer/sales-agents/{agentId}/accounts
+GET /api/v2/buyer/sales-agents/accountCredentials
+\`\`\`
+
+**Response (200):**
+\`\`\`json
 {
-  "advertiserId": "300",
+  "data": [
+    {
+      "id": "722",
+      "agentId": "snap_6e2d13705a26",
+      "agentName": "Snap",
+      "accountIdentifier": "Scope3 Snap Creds",
+      "accountType": "CLIENT",
+      "status": "ACTIVE",
+      "registeredBy": "user@example.com",
+      "createdAt": "2026-02-23T19:55:11.602Z",
+      "updatedAt": "2026-02-23T19:56:56.272Z"
+    }
+  ]
+}
+\`\`\`
+
+**Notes:**
+- Returns all agent credentials belonging to the authenticated customer, across all agents
+- \`auth_configuration\` is never returned (sensitive)
+- Use this to check what agent credentials have been registered before linking accounts to advertisers
+
+#### Register Agent Credentials
+
+Register credentials for a specific agent at the **customer level**. This is the first step in connecting to an agent — credentials belong to the whole customer, not a specific advertiser. Once credentials are registered, accounts can be discovered and linked to individual advertisers (see Link Agent Account to Advertiser in the Advertisers section).
+
+**Multiple credentials per agent:** A customer CAN register multiple sets of credentials for the same agent (e.g., two different Snap ad accounts with different API keys). Each set uses a different \`accountIdentifier\`. Each credential discovers its own set of ad accounts. When discovering accounts for linking, the \`credentialId\` parameter is required so the system knows which credential to query — see "Link Agent Account to Advertiser" in the Advertisers section for the full workflow.
+
+\`\`\`http
+POST /api/v2/buyer/sales-agents/{agentId}/accountCredentials
+{
   "accountIdentifier": "my-publisher-account",
   "auth": {
     "type": "bearer",
@@ -1233,7 +2169,6 @@ POST /api/v2/buyer/sales-agents/{agentId}/accounts
 - \`agentId\` (string): The agent ID
 
 **Required Fields:**
-- \`advertiserId\` (string): The advertiser seat ID (BUYER seat) to connect this account for
 - \`accountIdentifier\` (string): Unique account identifier for this agent
 
 **Optional Fields:**
@@ -1274,27 +2209,391 @@ POST /api/v2/buyer/sales-agents/{agentId}/accounts
 - For OAUTH agents, the account is created with PENDING status and includes an \`authorizationUrl\` for the user to click
 - After the user authorizes, the account status changes to ACTIVE automatically
 
+### Audiences
+
+Sync first-party CRM audiences into Scope3 for later syndication to sales agents. Audiences contain hashed customer identifiers used for targeting. Processing is **asynchronous** — sync returns immediately with an \`operationId\`, and processing completes in the background.
+
+**Important:** All member identifiers must be pre-hashed before sending:
+- **Email:** SHA-256 of lowercase, trimmed email (64-char hex string)
+- **Phone:** SHA-256 of E.164-formatted phone number (64-char hex string)
+- **Universal IDs:** RampID, UID2, MAID, etc. passed as-is
+
+**Limits:** Maximum 100,000 total members per sync call. For larger lists, chunk into sequential requests.
+
+#### Sync Audiences
+
+Sync audience data for an advertiser. The \`accountId\` in the URL is the **advertiser ID** (numeric, e.g. \`25\`) — the same \`advertiserId\` used when creating campaigns. Returns **202 Accepted** with an operation ID for tracking. Each member requires an \`externalId\` plus at least one hashed identifier.
+
+\`\`\`http
+POST /api/v2/buyer/advertisers/{accountId}/audiences/sync
+{
+  "audiences": [
+    {
+      "audienceId": "crm-high-value",
+      "name": "High Value Customers",
+      "add": [
+        {
+          "externalId": "user-001",
+          "hashedEmail": "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2"
+        },
+        {
+          "externalId": "user-002",
+          "uids": [{ "type": "uid2", "value": "uid2-token-value" }]
+        }
+      ],
+      "consentBasis": "consent"
+    }
+  ],
+  "deleteMissing": false
+}
+\`\`\`
+
+**Path Parameters:**
+- \`accountId\` (string, required): Advertiser ID (numeric, e.g. \`"25"\`)
+
+**Required Fields:**
+- \`audiences\` (array): Audiences to sync
+  - \`audienceId\` (string, required): Buyer's identifier for this audience
+
+**Optional Fields per Audience:**
+- \`name\` (string): Human-readable name
+- \`add\` (array, max 10,000): Members to add (each needs \`externalId\` + at least one identifier)
+- \`remove\` (array, max 10,000): Members to remove by \`externalId\`
+- \`delete\` (boolean): When true, delete this audience entirely
+- \`consentBasis\` (string): GDPR lawful basis — \`consent\`, \`legitimate_interest\`, \`contract\`, \`legal_obligation\`
+- \`deleteMissing\` (boolean): When true, audiences not in this request are marked as deleted
+
+**Response (202 Accepted):**
+\`\`\`json
+{
+  "success": true,
+  "accountId": "25",
+  "operationId": "550e8400-e29b-41d4-a716-446655440000",
+  "taskId": "550e8400-e29b-41d4-a716-446655440000"
+}
+\`\`\`
+
+**Notes:**
+- Processing is asynchronous — poll \`GET /api/v2/buyer/tasks/{taskId}\` for progress (see [Tasks](#tasks))
+- \`status\` values: \`PROCESSING\` (matching in progress), \`READY\` (available for targeting), \`ERROR\`, \`TOO_SMALL\` (below platform minimum)
+
+#### List Audiences
+
+List stored audiences for an account. Use this to check processing status after syncing.
+
+\`\`\`http
+GET /api/v2/buyer/advertisers/{accountId}/audiences?take=50&skip=0
+\`\`\`
+
+**Path Parameters:**
+- \`accountId\` (string, required): Advertiser ID (numeric, e.g. \`"25"\`)
+
+**Query Parameters (all optional):**
+- \`take\` (number): Results per page (default: 50, max: 100)
+- \`skip\` (number): Pagination offset (default: 0)
+
+**Response:**
+\`\`\`json
+{
+  "audiences": [
+    {
+      "audienceId": "crm-high-value",
+      "name": "High Value Customers",
+      "accountId": "25",
+      "consentBasis": "consent",
+      "status": "READY",
+      "deleted": false,
+      "uploadedCount": 1500,
+      "matchedCount": 1200,
+      "lastOperationStatus": "COMPLETED",
+      "createdAt": "2026-02-24T10:00:00Z",
+      "updatedAt": "2026-02-25T10:00:00Z"
+    }
+  ],
+  "total": 1,
+  "take": 50,
+  "skip": 0
+}
+\`\`\`
+
 ---
 
-### Signals (for Audience Campaigns)
+### Syndication
 
-#### Discover Signals
+Syndicate audiences, event sources, or catalogs to ADCP agents. Tracks status asynchronously via webhooks.
+
+#### Syndicate Resource
+
 \`\`\`http
-POST /api/v2/buyer/campaign/signals/discover
+POST /api/v2/buyer/advertisers/{advertiserId}/syndicate
+{
+  "resourceType": "AUDIENCE",
+  "resourceId": "aud_12345",
+  "adcpAgentIds": ["agent-abc-123", "agent-def-456"],
+  "enabled": true
+}
 \`\`\`
 
-Discover available signals for audience targeting. Audience campaigns are not yet implemented (returns 501), but you can browse available signals.
+**Request Body:**
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| \`resourceType\` | string | Yes | \`AUDIENCE\`, \`EVENT_SOURCE\`, or \`CATALOG\` |
+| \`resourceId\` | string | Yes | ID of the resource to syndicate |
+| \`adcpAgentIds\` | string[] | Yes | Array of ADCP agent ID strings (min 1) |
+| \`enabled\` | boolean | Yes | Whether to enable or disable syndication |
 
-#### List Saved Signals
+**Response (201):** Returns the syndication status records for each agent.
+
+#### Query Syndication Status
+
 \`\`\`http
-GET /api/v2/buyer/signals
+GET /api/v2/buyer/advertisers/{advertiserId}/syndication-status?resourceType=AUDIENCE&status=SYNCING&limit=20&offset=0
 \`\`\`
 
-Returns signals that have been saved to your account.
+**Query Parameters (all optional):**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| \`resourceType\` | string | Filter by \`AUDIENCE\`, \`EVENT_SOURCE\`, or \`CATALOG\` |
+| \`resourceId\` | string | Filter by specific resource ID |
+| \`adcpAgentId\` | string | Filter by ADCP agent ID |
+| \`enabled\` | string | Filter by \`true\` or \`false\` |
+| \`status\` | string | Filter by \`PENDING\`, \`SYNCING\`, \`COMPLETED\`, \`FAILED\`, or \`DISABLED\` |
+| \`limit\` | number | Max results (1-100, default 50) |
+| \`offset\` | number | Pagination offset (default 0) |
+
+---
+
+### Tasks
+
+Async operations (audience sync, media buy creation, etc.) return a task ID that can be polled for status.
+
+#### Get Task Status
+\`\`\`http
+GET /api/v2/buyer/tasks/{taskId}
+\`\`\`
+
+**Response:**
+\`\`\`json
+{
+  "task": {
+    "taskId": "550e8400-e29b-41d4-a716-446655440000",
+    "taskType": "audience_sync",
+    "status": "completed",
+    "resourceType": "audience",
+    "resourceId": "aud_12345",
+    "error": null,
+    "response": { "audience_id": "aud_12345", "member_count": 15000 },
+    "metadata": {},
+    "retryAfterSeconds": null,
+    "createdAt": "2026-01-15T10:30:00.000Z",
+    "updatedAt": "2026-01-15T10:35:00.000Z"
+  }
+}
+\`\`\`
+
+**Task types:** \`audience_sync\`, \`media_buy_create\`, \`creative_sync\`
+
+**Status values:** \`submitted\`, \`working\`, \`completed\`, \`failed\`, \`input-required\`
+
+**Error format** (AdCP-compatible, set when status is \`failed\`):
+\`\`\`json
+{
+  "code": "VALIDATION_ERROR",
+  "message": "Invalid budget value",
+  "field": "packages[0].budget",
+  "suggestion": "Budget must be positive",
+  "recovery": "correctable"
+}
+\`\`\`
+
+**Notes:**
+- Task IDs are UUIDs returned in 202 responses from async operations
+- Poll this endpoint when webhooks are unavailable — use \`retryAfterSeconds\` for polling interval guidance
+- \`response\` contains the original downstream response payload (varies by task type)
+- Tasks are scoped to the caller's customer — you cannot access another customer's tasks
+
+---
+
+### Property Lists
+
+Property lists define which publisher domains an advertiser targets (include lists) or avoids (exclude lists). Lists are scoped to an advertiser and automatically apply to all campaigns under that brand's targeting profile.
+
+#### Create Property List
+
+Create a named include or exclude list of publisher domains. Domains are resolved to internal property records. Any domains that cannot be resolved are returned as \`unresolvedDomains\`.
+
+\`\`\`http
+POST /api/v2/buyer/advertisers/{advertiserId}/property-lists
+\`\`\`
+
+**Request body:**
+\`\`\`json
+{
+  "name": "Q1 Campaign - Premium Publishers",
+  "purpose": "include",
+  "domains": ["nytimes.com", "cnn.com", "bbc.co.uk"]
+}
+\`\`\`
+
+**Response (201):**
+\`\`\`json
+{
+  "listId": "42",
+  "name": "Q1 Campaign - Premium Publishers",
+  "purpose": "include",
+  "domains": ["nytimes.com", "cnn.com"],
+  "unresolvedDomains": ["bbc.co.uk"],
+  "propertyCount": 2,
+  "createdAt": "2026-03-16T10:00:00.000Z",
+  "updatedAt": "2026-03-16T10:00:00.000Z"
+}
+\`\`\`
+
+#### List Property Lists
+
+\`\`\`http
+GET /api/v2/buyer/advertisers/{advertiserId}/property-lists?purpose=include
+\`\`\`
+
+#### Get Property List
+
+\`\`\`http
+GET /api/v2/buyer/advertisers/{advertiserId}/property-lists/{listId}
+\`\`\`
+
+#### Update Property List
+
+Update name and/or replace domains entirely.
+
+\`\`\`http
+PUT /api/v2/buyer/advertisers/{advertiserId}/property-lists/{listId}
+\`\`\`
+
+**Request body:**
+\`\`\`json
+{
+  "name": "Updated List Name",
+  "domains": ["nytimes.com", "washingtonpost.com"]
+}
+\`\`\`
+
+#### Delete Property List
+
+Archives the property list. The list remains associated with the advertiser but is no longer active.
+
+\`\`\`http
+DELETE /api/v2/buyer/advertisers/{advertiserId}/property-lists/{listId}
+\`\`\`
+
+**Recommended workflow:**
+1. Create a property list with initial domains
+2. Use the check endpoint (below) to validate domains against the AAO registry
+3. Update the list based on check results (remove blocked domains, apply canonical corrections)
+4. All campaigns under the advertiser automatically inherit the targeting
+5. Property lists are automatically passed to sales agents during product discovery via ADCP \`property_list\` field
+
+#### Resolve Property List (ADCP)
+
+Returns a property list in ADCP \`GetPropertyListResponse\` format with domain identifiers. Used by sales agents to resolve a \`PropertyListReference\` received during product discovery. Authenticated via HMAC token (not platform auth).
+
+\`\`\`http
+GET /lists/{listId}
+Authorization: Bearer {auth_token}
+\`\`\`
+
+**Response:**
+\`\`\`json
+{
+  "list": {
+    "list_id": "123",
+    "name": "Premium publishers"
+  },
+  "identifiers": [
+    { "type": "domain", "value": "nytimes.com" },
+    { "type": "domain", "value": "cnn.com" }
+  ],
+  "resolved_at": "2026-03-17T12:00:00.000Z",
+  "cache_valid_until": "2026-03-18T12:00:00.000Z"
+}
+\`\`\`
+
+#### Check Property List
+
+Validate a list of publisher domains against the AAO Community Registry. Identifies blocked domains (ad servers, CDNs, trackers), normalizes URLs (strips www/m prefixes), removes duplicates, and flags unknown domains.
+
+\`\`\`http
+POST /api/v2/buyer/property-lists/check
+\`\`\`
+
+**Request body:**
+\`\`\`json
+{
+  "domains": ["nytimes.com", "www.cnn.com", "doubleclick.net", "unknown-site.xyz"]
+}
+\`\`\`
+
+**Response:**
+\`\`\`json
+{
+  "summary": { "total": 4, "remove": 1, "modify": 1, "assess": 1, "ok": 1 },
+  "remove": [
+    { "input": "doubleclick.net", "canonical": "doubleclick.net", "reason": "blocked", "domain_type": "ad_server" }
+  ],
+  "modify": [
+    { "input": "www.cnn.com", "canonical": "cnn.com", "reason": "www prefix removed" }
+  ],
+  "assess": [
+    { "domain": "unknown-site.xyz" }
+  ],
+  "ok": [
+    { "domain": "nytimes.com", "source": "registry" }
+  ],
+  "reportId": "rpt_abc123"
+}
+\`\`\`
+
+**Result buckets:**
+- \`remove\`: Domains to remove — duplicates or blocked (ad servers, CDNs, trackers, intermediaries)
+- \`modify\`: Domains that were normalized (e.g. \`www.example.com\` → \`example.com\`). Use the \`canonical\` value.
+- \`assess\`: Unknown domains not in the registry and not blocked — may need manual review
+- \`ok\`: Domains found in the registry with no issues
+
+**Limits:** 1–1000 domains per request.
+
+#### Get Property Check Report
+
+Retrieve a stored property check report by ID. Reports expire after 7 days.
+
+\`\`\`http
+GET /api/v2/buyer/property-lists/reports/{reportId}
+\`\`\`
+
+**Response:**
+\`\`\`json
+{
+  "summary": { "total": 4, "remove": 1, "modify": 1, "assess": 1, "ok": 1 }
+}
+\`\`\`
 
 ---
 
 ## Error Handling
+
+### Hard Failures vs. No Products Found
+
+These are two distinct outcomes — do NOT conflate them:
+
+**Hard failures** — the agent returned an actual error response. Examples:
+- Auth or tenant context errors
+- Authentication required
+- Data corruption errors
+- MCP endpoint not responding
+
+These surface as non-2xx HTTP responses or error payloads. Treat as errors that need investigation.
+
+**Soft failures / no products** — the agent responded successfully (HTTP 200) but returned 0 products. This is **not an error**. It means the brief did not match available inventory. Do NOT tell the user the agent "failed." See "When discovery returns no products" above for how to handle this.
+
+### API Error Format
 
 All errors follow this format:
 \`\`\`json
@@ -1319,28 +2618,110 @@ All errors follow this format:
 
 ---
 
+## Notifications
+
+Notifications are events about resources you manage — campaigns going unhealthy, creatives syncing, agents registering, etc. They follow a \`resource.action\` taxonomy (e.g., \`campaign.unhealthy\`, \`creative.sync_failed\`).
+
+### List Notifications
+\`\`\`http
+GET /api/v2/buyer/notifications?unreadOnly=true&limit=20&offset=0
+\`\`\`
+
+**Query Parameters (all optional):**
+- \`unreadOnly\` (\`true\`/\`false\`): Show only unread notifications
+- \`brandAgentId\` (number): Filter by brand agent
+- \`types\` (comma-separated): Filter by event types (e.g., \`campaign.unhealthy,creative.sync_failed\`)
+- \`campaignId\` (string): Filter by campaign
+- \`creativeId\` (string): Filter by creative
+- \`limit\` (number): Results per page (default: 50, max: 100)
+- \`offset\` (number): Pagination offset
+
+**Response:**
+\`\`\`json
+{
+  "notifications": [
+    {
+      "id": "notif_1709123456_abc123",
+      "type": "campaign.unhealthy",
+      "data": {
+        "message": "Campaign \\"Q1 CTV\\" is unhealthy",
+        "campaignId": "camp_123",
+        "campaignName": "Q1 CTV"
+      },
+      "read": false,
+      "acknowledged": false,
+      "createdAt": "2026-03-01T12:00:00Z"
+    }
+  ],
+  "totalCount": 15,
+  "unreadCount": 3,
+  "hasMore": false
+}
+\`\`\`
+
+### Mark Notification as Read
+\`\`\`http
+POST /api/v2/buyer/notifications/{notificationId}/read
+\`\`\`
+
+Marks a single notification as seen. No request body required.
+
+### Mark Notification as Acknowledged
+\`\`\`http
+POST /api/v2/buyer/notifications/{notificationId}/acknowledge
+\`\`\`
+
+Marks a notification as dealt with. Acknowledged notifications are automatically cleaned up after 90 days. No request body required.
+
+### Mark All Notifications as Read
+\`\`\`http
+POST /api/v2/buyer/notifications/read-all
+\`\`\`
+
+**Optional body:**
+\`\`\`json
+{ "brandAgentId": 123 }
+\`\`\`
+
+If \`brandAgentId\` is provided, only marks notifications for that agent as read. Otherwise marks all unread notifications as read.
+
+### Proactive Notification Setup
+
+Unread notifications are automatically included in \`help\` and \`ask_about_capability\` tool responses. To ensure your AI agent surfaces them to users at the start of every session, add the following to your client configuration:
+
+- **Claude Desktop**: Create a Project and add to the project instructions: \`When using Scope3 tools, always start by calling the help tool. The response includes unread notifications — summarize those for the user before answering their question.\`
+- **Claude Code**: Add the same instruction to your \`CLAUDE.md\` or project instructions.
+- **API / Custom Agent**: Add it to your system prompt.
+- **ChatGPT Custom GPT**: Add it to your Custom GPT's instructions.
+
+---
+
 ## Common Mistakes to Avoid
 
 1. **Creating campaign without advertiser** — Always create/verify advertiser first
-2. **Discovery campaign without bundleId** — You MUST create a bundle first via \`POST /bundles\` or \`POST /bundles/discover-products\`
-3. **Skipping product selection** — You MUST add products to the bundle via \`POST /bundles/{id}/products\` BEFORE creating a discovery campaign
-4. **Expecting products from POST /bundles** — \`POST /bundles\` only returns bundleId; use \`GET /bundles/{id}/discover-products\` to get product suggestions
-5. **Performance campaign without conversion events** — System needs events to optimize
-6. **Adding products to performance campaigns** — Performance campaigns handle inventory selection automatically; don't pass product/signal selections
-7. **Forgetting to execute** — Campaigns start in DRAFT status; must call \`POST /campaigns/{id}/execute\`
-8. **Wrong endpoint path** — Always use \`/api/v2/buyer/\` prefix
-9. **Creating advertiser without brandDomain** — \`brandDomain\` is required. If brand resolution fails, tell the user to register their brand at https://adcontextprotocol.org/chat.html or https://agenticadvertising.org/brand first
-10. **Choosing performance when user wants to browse/select inventory** — If the user wants to see products or pick publishers, that's **discovery**, not performance
-11. **Defaulting to a campaign type without asking** — When the user says "create a campaign" without specifying a type, ALWAYS ask them to choose
-12. **Fabricating field values** — NEVER guess or make up values for required fields. Always ask the user or use values from previous API responses
+2. **Skipping product discovery** — Always use \`POST /discovery/discover-products\` to discover products; use \`GET /discovery/{id}/discover-products\` to browse more
+3. **Optimization without event source** — You need an event source (\`eventSourceId\`) before creating a campaign with event-based optimization goals
+4. **Optimization without conversion data** — System needs events logged via event sources to optimize for ROAS/conversions
+5. **Forgetting to execute** — Campaigns start in DRAFT status; must call \`POST /campaigns/{id}/execute\`
+6. **Wrong endpoint path** — Always use \`/api/v2/buyer/\` prefix
+7. **Creating advertiser without brand** — \`brand\` is required. If brand resolution returns an enriched preview, show the preview and offer to retry with \`saveBrand: true\`. Only direct the user to external registration if no brand data is found at all
+8. **Auto-selecting products for the user** — When the user wants to browse/select inventory, ALWAYS present discovery results and let them choose
+9. **Defaulting to a configuration without asking** — When the user says "create a campaign" without specifying how to configure it, ask them to choose (product discovery or performance metrics)
+10. **Fabricating field values** — NEVER guess or make up values for required fields. Always ask the user or use values from previous API responses
+11. **Making multiple API calls in one turn** — ONE discovery/mutating call per turn. Present results, END YOUR TURN, wait for the user.
+12. **Missing bid price for non-fixed pricing** — If a product's pricing option has \`isFixed: false\`, \`bidPrice\` is REQUIRED in the \`POST /discovery/{id}/products\` request. Read it from the product's \`pricingOptions\` (\`rate\` or \`floorPrice\`) in the discovery response. Do NOT ask the user — the value comes from the product data.
+13. **Summarizing list responses as prose** — When listing advertisers, sales agents, or campaigns, NEVER reduce the response to a sentence like "You have 13 advertisers." Always show the structured per-item details specified in the Display Requirements for that endpoint. The user needs to see each item's operational details, not a count.
+14. **Using user-provided account IDs for linking** — NEVER use an account ID or account name that the user provides verbally. Account IDs for linking MUST come from the \`GET /advertisers/{id}/accounts/available?partnerId={agentId}\` discovery endpoint. If the user says "link account 06cd7033..." or "the account is named XYZ", do NOT use that value directly — call the discovery endpoint first, find the matching account in the response, and use the \`accountId\` from the API response. If the account does not appear in the discovery results, tell the user it was not found — do NOT pretend to link it.
+15. **Missing credentialId with multiple credentials** — When a customer has multiple credentials for the same agent, the \`accounts/available\` endpoint requires \`credentialId\`. If omitted, the API returns an error with available credential IDs. Present those to the user and ask which to use, then retry with the chosen \`credentialId\`.
+
 `;
 
-export const bundledPartnerSkillMd = `
+export const bundledStorefrontSkillMd = `
 ---
-name: scope3-agentic-partner
+name: scope3-agentic-storefront
 version: "2.0.0"
-description: Scope3 Agentic Partner API - Publisher and seller integrations
-api_base_url: https://api.agentic.scope3.com/api/v2/partner
+description: Scope3 Agentic Storefront API - Publisher and seller integrations
+api_base_url: https://api.agentic.scope3.com/api/v2/storefront
 auth:
   type: bearer
   header: Authorization
@@ -1348,30 +2729,36 @@ auth:
   obtain_url: https://agentic.scope3.com/user-api-keys
 ---
 
-# Scope3 Agentic Partner API
+# Scope3 Agentic Storefront API
 
-This API enables partners to manage their activation partnerships and register agents with the Scope3 Agentic platform. Partners manage agents of different types (SALES, SIGNAL, CREATIVE, OUTCOME), configure authentication including OAuth, and buyers connect to agents via the Buyer API.
+This API enables partners to manage their activation partnerships, create storefronts, and register agents through the Scope3 Agentic platform. Storefronts are the single entry point for partner onboarding — agents are created as part of inventory source setup.
 
 **Important**: This is a REST API accessed via the \`api_call\` tool. After reading this documentation, use \`api_call\` to make HTTP requests to the endpoints below.
 
-## ⚠️ CRITICAL: Always Ask for Account Policy
+## ⚠️ CRITICAL: Never Render Your Own UI When a Tool Is Already Returning One
 
-**NEVER default or auto-select \`accountPolicy\`.** When registering or updating an agent, you MUST ask the user which account policy they want. Do NOT assume, infer, or pick a default — always ask.
+**When a tool response already includes a UI component, display it as-is. Do NOT generate your own HTML artifacts, dashboards, charts, or visual components on top of it.** If the tool returns a UI, that is the UI — do not create a competing or duplicate visualization.
 
-Explain the options to the user:
-- **\`"advertiser_account"\`** — Each buyer must register their own credentials with the agent. The agent authenticates requests using per-buyer credentials. Choose this when the agent requires each buyer to have their own account (e.g., their own API key or OAuth token).
-- **\`"marketplace_account"\`** — All buyers share the Scope3 marketplace credentials. The agent authenticates using a single shared credential configured at the agent level. Choose this when the agent doesn't need individual buyer accounts (e.g., a public inventory feed or a Scope3-managed integration).
-- **Both \`["advertiser_account", "marketplace_account"]\`** — The agent supports either mode. Buyers who register their own account use their credentials; buyers without an account fall back to the shared marketplace credentials. Choose this for maximum flexibility.
+## Notifications
 
-## Quick Start
+The \`help\` and \`ask_about_capability\` tools include unread notifications in their responses. When a response contains a "Unread Notifications" section, summarize those notifications for the user before answering their question.
 
-1. **Use \`ask_about_capability\` first**: Ask about the user's request to learn the correct workflow, endpoints, and field names
-2. **Use \`api_call\` to execute**: All operations go through the generic \`api_call\` tool
-3. **Base path**: All endpoints start with \`/api/v2/partner/\`
-4. **Authentication**: All endpoints require authentication via the MCP session, except the platform OAuth callback (\`GET /oauth/callback\`) which is public to handle browser redirects.
+## Getting Started
+
+All operations go through the generic \`api_call\` tool. Base path: \`/api/v2/storefront/\`. All endpoints require authentication via the MCP session, except the platform OAuth callback (\`GET /oauth/callback\`) which is public.
+
+### Onboarding Flow
+
+\`\`\`
+1. Create Storefront    → POST /storefront { platformId, name, publisherDomain }
+2. Add Inventory Source  → POST /storefront/inventory-sources
+3. Activate Source       → PUT /storefront/inventory-sources/{sourceId} { status: "active" }
+4. Set Up Billing        → POST /storefront/billing/connect
+5. Check Readiness       → GET /storefront/readiness
+6. Enable Storefront     → PUT /storefront { enabled: true }
+\`\`\`
 
 ---
-
 ## Account Management
 
 Some account management tasks are handled in the web UI at [agentic.scope3.com](https://agentic.scope3.com). Direct users to these pages for:
@@ -1379,7 +2766,7 @@ Some account management tasks are handled in the web UI at [agentic.scope3.com](
 | Task | URL | Capabilities |
 |------|-----|--------------|
 | **API Keys** | [agentic.scope3.com/user-api-keys](https://agentic.scope3.com/user-api-keys) | Create, view, edit, delete, and reveal API key secrets |
-| **Team Members** | [agentic.scope3.com/user-management](https://agentic.scope3.com/user-management) | Invite members, manage roles, manage seat access |
+| **Team Members** | [agentic.scope3.com/user-management](https://agentic.scope3.com/user-management) | Invite members, manage roles, manage partner access |
 | **Billing** | Available from user menu in the UI | Manage payment methods, view invoices (via Stripe portal) |
 | **Profile** | [agentic.scope3.com/user-info](https://agentic.scope3.com/user-info) | View and update user profile |
 
@@ -1389,415 +2776,195 @@ Some account management tasks are handled in the web UI at [agentic.scope3.com](
 
 ## Available Endpoints
 
-### Partner Management
+### Storefront Management
 
-Partners represent activation partnerships. Each partner is an ACTIVATION-type seat in the platform.
+Each customer can have at most one storefront, keyed by a platformId slug.
 
-#### List Partners
-
-List all partners visible to the authenticated user. Supports filtering by status and name, with pagination.
+#### Create Storefront
 
 \`\`\`http
-GET /api/v2/partner/partners
-\`\`\`
-
-**Query Parameters (all optional):**
-- \`status\` (string): Filter by status — \`ACTIVE\` (default) or \`ARCHIVED\`
-- \`name\` (string): Filter by name (case-insensitive, partial match)
-- \`take\` (number): Number of results to return (default: 50)
-- \`skip\` (number): Number of results to skip (default: 0)
-
-**Response:**
-\`\`\`json
+POST /api/v2/storefront
 {
-  "data": [
-    {
-      "id": "50",
-      "name": "Acme Activation",
-      "description": "Activation partner for Acme Corporation",
-      "status": "ACTIVE",
-      "createdAt": "2026-01-15T10:00:00Z",
-      "updatedAt": "2026-01-15T10:00:00Z"
-    }
-  ],
-  "meta": {
-    "pagination": {
-      "skip": 0,
-      "take": 50,
-      "total": 1,
-      "hasMore": false
-    }
-  }
-}
-\`\`\`
-
----
-
-#### Create Partner
-
-Create a new activation partner. This creates an ACTIVATION-type seat and adds the creator as admin.
-
-\`\`\`http
-POST /api/v2/partner/partners
-{
-  "name": "Acme Activation",
-  "description": "Activation partner for Acme Corporation"
+  "platformId": "cvs-media",
+  "name": "CVS Media",
+  "publisherDomain": "cvs.com"
 }
 \`\`\`
 
 **Required Fields:**
-- \`name\` (string, 1-255 chars): Partner display name
+- \`platformId\` (string): Lowercase slug with hyphens
+- \`name\` (string, 1-255 chars): Display name
 
 **Optional Fields:**
-- \`description\` (string, max 1000 chars): Partner description
+- \`publisherDomain\` (string): Publisher's domain
+- \`plan\` (string): Plan tier, currently only \`"basic"\` (default)
 
-**Response (201):**
-\`\`\`json
+#### Get Customer Storefront
+\`\`\`http
+GET /api/v2/storefront
+\`\`\`
+
+#### Update Storefront
+\`\`\`http
+PUT /api/v2/storefront
 {
-  "id": "50",
-  "name": "Acme Activation",
-  "description": "Activation partner for Acme Corporation",
-  "status": "ACTIVE",
-  "createdAt": "2026-01-15T10:00:00Z",
-  "updatedAt": "2026-01-15T10:00:00Z"
+  "name": "CVS Media Network",
+  "enabled": true
 }
 \`\`\`
 
+**Note:** Setting \`enabled: true\` requires all readiness checks to pass. Check readiness first with \`GET /storefront/readiness\`.
+
+#### Delete Storefront
+\`\`\`http
+DELETE /api/v2/storefront
+\`\`\`
+
 ---
 
-#### Update Partner
+### Inventory Sources (Agent Registration)
 
-Update a partner's name or description. Requires access to the partner seat.
+When \`executionType\` is \`"agent"\`, creating an inventory source also registers the agent.
+
+#### Create Inventory Source
 
 \`\`\`http
-PUT /api/v2/partner/partners/{id}
+POST /api/v2/storefront/inventory-sources
 {
-  "name": "Updated Partner Name",
-  "description": "Updated description"
+  "sourceId": "snap-ads-agent",
+  "name": "Snap Ads Agent",
+  "executionType": "agent",
+  "type": "SALES",
+  "endpointUrl": "https://agent.example.com/adcp",
+  "protocol": "MCP",
+  "authenticationType": "API_KEY",
+  "auth": { "type": "bearer", "token": "my-api-key" }
 }
 \`\`\`
 
-**Path Parameters:**
-- \`id\` (string): The partner ID
+**Required Fields:**
+- \`sourceId\` (string): Unique ID within the storefront
+- \`name\` (string, 1-255 chars): Display name
 
-**Request Body (all fields optional):**
-- \`name\` (string, 1-255 chars): Updated name
-- \`description\` (string, max 1000 chars): Updated description
+**Required when executionType is "agent":**
+- \`type\`: \`"SALES"\`, \`"SIGNAL"\`, \`"CREATIVE"\`, or \`"OUTCOME"\`
+- \`endpointUrl\`: Agent endpoint URL (public HTTPS)
+- \`protocol\`: \`"MCP"\` or \`"A2A"\`
+- \`authenticationType\`: \`"API_KEY"\`, \`"NO_AUTH"\`, \`"JWT"\`, or \`"OAUTH"\`
+- \`auth\` (object): Initial credentials. Required for non-OAUTH agents.
 
----
-
-#### Archive Partner
-
-Archive (soft-delete) a partner. Sets the partner to inactive.
-
+#### List Inventory Sources
 \`\`\`http
-DELETE /api/v2/partner/partners/{id}
+GET /api/v2/storefront/inventory-sources
 \`\`\`
 
-**Path Parameters:**
-- \`id\` (string): The partner ID
+#### Get Inventory Source
+\`\`\`http
+GET /api/v2/storefront/inventory-sources/{sourceId}
+\`\`\`
 
-**Response:** 204 No Content
+#### Update Inventory Source
+\`\`\`http
+PUT /api/v2/storefront/inventory-sources/{sourceId}
+{ "status": "active" }
+\`\`\`
+
+**Status Transitions:**
+- \`pending → active\`: Activates source and linked agent
+- \`pending → disabled\`: Disables source and linked agent
+- \`active → disabled\`: Disables source and linked agent
+
+#### Delete Inventory Source
+\`\`\`http
+DELETE /api/v2/storefront/inventory-sources/{sourceId}
+\`\`\`
 
 ---
 
-### Agent Management
+### Storefront Readiness
 
-Agents represent different types of integrations:
-- **SALES** — Sales/media agents (ad inventory, publisher connections)
-- **SIGNAL** — Signal/data agents (audience segments, first-party data)
-- **CREATIVE** — Creative agents (ad creative generation, management)
-- **OUTCOME** — Outcome measurement agents (attribution, conversion tracking)
+\`\`\`http
+GET /api/v2/storefront/readiness
+\`\`\`
+
+**Status values:** \`ready\` (all checks pass), \`blocked\` (blockers present)
+
+**Checks:** \`inventory_sources\`, \`agent_status\`, \`agent_auth\`, \`billing_setup\`
+
+---
+
+### Storefront Billing (Stripe Connect)
+
+#### Provision Stripe Connect Account
+\`\`\`http
+POST /api/v2/storefront/billing/connect
+\`\`\`
+
+#### Get Billing Config
+\`\`\`http
+GET /api/v2/storefront/billing
+\`\`\`
+
+#### Get Stripe Account Status
+\`\`\`http
+GET /api/v2/storefront/billing/status
+\`\`\`
+
+#### Get Balance Transactions
+\`\`\`http
+GET /api/v2/storefront/billing/transactions?limit=25&starting_after=txn_xxx
+\`\`\`
+
+#### Get Payouts
+\`\`\`http
+GET /api/v2/storefront/billing/payouts?limit=25&starting_after=po_xxx
+\`\`\`
+
+#### Get Onboarding URL
+\`\`\`http
+GET /api/v2/storefront/billing/onboard
+\`\`\`
+
+---
+
+### Agent Discovery (Read-Only)
 
 #### List Agents
-
-List all agents visible to the authenticated user. Supports filtering by type, status, and relationship.
-
 \`\`\`http
-GET /api/v2/partner/agents
+GET /api/v2/storefront/agents
 \`\`\`
 
-**Query Parameters (all optional):**
-- \`type\` (string): Filter by agent type — \`SALES\`, \`SIGNAL\`, \`CREATIVE\`, or \`OUTCOME\`
-- \`status\` (string): Filter by status — \`PENDING\`, \`ACTIVE\`, or \`DISABLED\`
-- \`relationship\` (string): Filter by relationship — \`SELF\` (owned by you), \`MARKETPLACE\` (all other marketplace agents)
-
-**Response:**
-\`\`\`json
-{
-  "data": [
-    {
-      "agentId": "premiumvideo_a1b2c3d4",
-      "type": "SALES",
-      "name": "Premium Video Exchange",
-      "description": "Premium CTV and video inventory provider",
-      "endpointUrl": "https://api.premiumvideo.com/adcp",
-      "protocol": "MCP",
-      "authenticationType": "API_KEY",
-      "accountPolicy": ["advertiser_account", "marketplace_account"],
-      "status": "ACTIVE",
-      "relationship": "MARKETPLACE",
-      "customerAccounts": [
-        {
-          "accountIdentifier": "my-account-123",
-          "status": "ACTIVE"
-        }
-      ],
-      "requiresAccount": false,
-      "authConfigured": true,
-      "createdAt": "2026-01-15T10:00:00Z"
-    }
-  ]
-}
-\`\`\`
-
-**Notes:**
-- All non-DISABLED agents are visible to everyone
-- PENDING agents from other owners appear as \`"status": "COMING_SOON"\` with minimal info (name only)
-- \`customerAccounts\` lists the caller's own accounts (excludes marketplace accounts)
-- \`requiresAccount\` is true when the agent supports per-account registration (\`advertiser_account\` or \`oauth_account\` policy) and the caller has no accounts
-- \`accountPolicy\` shows the agent's allowed account types
-- \`authConfigured\` indicates whether the agent has authentication credentials configured. For OAUTH agents: \`true\` means the OAuth flow is complete, \`false\` means the user still needs to authorize. Use this field (NOT \`status\`) to determine if OAuth is complete.
-- \`oauth\` is present ONLY for owner's PENDING OAUTH agents where \`authConfigured\` is \`false\` (OAuth flow not yet completed)
-
-**Display Requirements — ALWAYS include when listing agents:**
-- \`accountPolicy\`: Show what account types each agent supports (advertiser_account, marketplace_account)
-- \`customerAccounts\`: Show the caller's registered accounts for each agent
-- \`requiresAccount\`: Highlight agents that require account registration
-- \`authConfigured\`: Show whether authentication is set up
-- Group agents by status (ACTIVE first, then COMING_SOON)
-- For each agent, clearly indicate: name, type, status, account policy, number of caller's accounts, and whether registration is needed
-
----
-
-#### Register Agent
-
-Register a new agent under a specific partner seat.
-
-\`\`\`http
-POST /api/v2/partner/agents
-{
-  "partnerId": "50",
-  "type": "SALES",
-  "name": "Premium Video Exchange",
-  "description": "Premium CTV and video inventory provider",
-  "endpointUrl": "https://api.premiumvideo.com/adcp",
-  "protocol": "MCP",
-  "accountPolicy": ["advertiser_account"],
-  "authenticationType": "API_KEY",
-  "auth": {
-    "type": "bearer",
-    "token": "my-api-key-for-testing"
-  }
-}
-\`\`\`
-
-**Required Fields:**
-- \`partnerId\` (string): The partner seat ID (ACTIVATION seat) to register this agent under. Create a partner first via \`POST /partners\` if needed.
-- \`type\` (string): Agent type — \`"SALES"\` (media/inventory), \`"SIGNAL"\` (data/segments), \`"CREATIVE"\` (creative generation), or \`"OUTCOME"\` (measurement/attribution). **This cannot be changed after registration.**
-- \`name\` (string): Agent display name
-- \`endpointUrl\` (string): URL of the agent's ADCP/MCP endpoint
-- \`protocol\` (string): \`"MCP"\` or \`"A2A"\`
-- \`accountPolicy\` (array of strings): **MUST ASK THE USER** — Only valid values are \`"advertiser_account"\` and \`"marketplace_account"\`. No other values exist. Do NOT default or auto-select. Always ask the user which account policy they want.
-- \`authenticationType\` (string): Auth method required (\`"API_KEY"\`, \`"NO_AUTH"\`, \`"JWT"\`, \`"OAUTH"\`)
-- \`auth\` (object): Initial credentials for testing and validation. Required for non-OAUTH agents.
-
-**Note on OAUTH agents:** When \`authenticationType\` is \`"OAUTH"\`:
-- No \`redirectUri\` needed — the platform automatically uses its own callback URL
-- The registration automatically initiates the OAuth flow and returns an \`authorizationUrl\` in the response
-- Just present the \`authorizationUrl\` link to the user — they authorize in their browser and the platform handles the rest
-- \`auth\` is not required — the OAuth flow provides the agent's credentials
-- The platform automatically discovers the agent's OAuth endpoints from its ADCP endpoint URL
-
-**IMPORTANT: \`accountPolicy\` and \`authenticationType\` are independent.** Any combination is valid.
-
-**Optional Fields:**
-- \`description\` (string): Agent description
-- \`reportingType\` (string): \`"WEBHOOK"\`, \`"BUCKET"\`, or \`"POLLING"\`
-- \`reportingPollingCadence\` (string): \`"DAILY"\` or \`"MONTHLY"\` (when reportingType is POLLING)
-
-**Response (non-OAUTH):**
-\`\`\`json
-{
-  "agentId": "premiumvideo_a1b2c3d4",
-  "type": "SALES",
-  "name": "Premium Video Exchange",
-  "status": "PENDING",
-  "endpointUrl": "https://api.premiumvideo.com/adcp",
-  "protocol": "MCP",
-  "accountPolicy": ["advertiser_account"],
-  "authenticationType": "API_KEY",
-  "description": "Premium CTV and video inventory provider"
-}
-\`\`\`
-
-**Response (OAUTH agent — returns authorization URL):**
-\`\`\`json
-{
-  "agentId": "oauthseller_x1y2z3",
-  "type": "SALES",
-  "name": "OAuth Seller",
-  "status": "PENDING",
-  "endpointUrl": "https://seller.example.com/adcp",
-  "protocol": "MCP",
-  "accountPolicy": ["advertiser_account"],
-  "authenticationType": "OAUTH",
-  "oauth": {
-    "authorizationUrl": "https://seller.example.com/oauth/authorize?client_id=abc&...",
-    "agentId": "oauthseller_x1y2z3",
-    "agentName": "OAuth Seller"
-  }
-}
-\`\`\`
-
-**Note:** All agents start as PENDING. The owner activates when ready using \`PATCH /agents/{agentId}\` with \`{"status": "ACTIVE"}\`. For OAUTH agents, complete the OAuth flow first, then activate.
-
----
+**Query Parameters:** \`type\`, \`status\`, \`relationship\`
 
 #### Get Agent Details
-
-Retrieve detailed information about a registered agent, including account data.
-
 \`\`\`http
-GET /api/v2/partner/agents/{agentId}
+GET /api/v2/storefront/agents/{agentId}
 \`\`\`
-
-**Path Parameters:**
-- \`agentId\` (string): The agent ID returned from registration
-
-**Response:**
-\`\`\`json
-{
-  "agentId": "premiumvideo_a1b2c3d4",
-  "type": "SALES",
-  "name": "Premium Video Exchange",
-  "status": "ACTIVE",
-  "endpointUrl": "https://api.premiumvideo.com/adcp",
-  "protocol": "MCP",
-  "accountPolicy": ["advertiser_account"],
-  "authenticationType": "API_KEY",
-  "description": "Premium CTV and video inventory provider",
-  "customerId": 1,
-  "relationship": "MARKETPLACE",
-  "reportingType": "WEBHOOK",
-  "reportingPollingCadence": null,
-  "createdAt": "2026-01-15T10:00:00Z",
-  "updatedAt": "2026-01-15T10:05:00Z"
-}
-\`\`\`
-
----
-
-#### Update Agent
-
-Update an agent's configuration. Only the owner can update an agent. **Note: The \`type\` field cannot be changed after registration.**
-
-\`\`\`http
-PATCH /api/v2/partner/agents/{agentId}
-{
-  "name": "Updated Agent Name",
-  "description": "New description",
-  "accountPolicy": ["advertiser_account", "marketplace_account"],
-  "reportingType": "POLLING",
-  "reportingPollingCadence": "DAILY"
-}
-\`\`\`
-
-**Path Parameters:**
-- \`agentId\` (string): The agent ID
-
-**Request Body (all fields optional, at least one required):**
-- \`name\` (string): Agent display name
-- \`description\` (string): Agent description
-- \`endpointUrl\` (string): Agent endpoint URL
-- \`protocol\` (string): \`"MCP"\` or \`"A2A"\`
-- \`accountPolicy\` (array of strings): **MUST ASK THE USER** — Only valid values are \`"advertiser_account"\` and \`"marketplace_account"\`. Do NOT default or auto-select. Always ask the user which account policy they want.
-- \`authenticationType\` (string): Auth method
-- \`auth\` (object): Authentication configuration
-- \`reportingType\` (string): \`"WEBHOOK"\`, \`"BUCKET"\`, or \`"POLLING"\`
-- \`reportingPollingCadence\` (string): \`"DAILY"\` or \`"MONTHLY"\`
-- \`status\` (string): \`"PENDING"\`, \`"ACTIVE"\`, or \`"DISABLED"\` — see status transition rules below
-
-**Status Transition Rules:**
-- **→ ACTIVE**: Only allowed if the agent has authentication configured (agent-level credentials or at least one account with auth). Returns \`VALIDATION_ERROR\` otherwise.
-- **→ DISABLED**: Always allowed, no prerequisites.
-- **→ PENDING**: Always allowed.
-
-**Response:**
-\`\`\`json
-{
-  "agentId": "premiumvideo_a1b2c3d4",
-  "type": "SALES",
-  "name": "Updated Agent Name",
-  "status": "ACTIVE",
-  "updatedFields": ["name", "description", "accountPolicy", "reportingType", "reportingPollingCadence", "status"]
-}
-\`\`\`
-
----
-
-### Account Registration (Buyer API)
-
-**Account registration has moved to the Buyer API** (\`/api/v2/buyer/sales-agents\`). Buyers must specify which advertiser (BUYER seat) they are connecting for.
-
-\`\`\`http
-POST /api/v2/buyer/sales-agents/{agentId}/accounts
-{
-  "advertiserId": "300",
-  "accountIdentifier": "my-publisher-account",
-  "auth": {
-    "type": "bearer",
-    "token": "my-api-key"
-  }
-}
-\`\`\`
-
-**Required Fields:**
-- \`advertiserId\` (string): The advertiser seat ID (BUYER seat) to connect this account for
-- \`accountIdentifier\` (string): Unique account identifier
-
-**Optional Fields:**
-- \`auth\` (object): Authentication credentials. Required for API_KEY/JWT agents, not needed for OAUTH agents.
 
 ---
 
 ### OAuth Endpoints
 
 #### Start Setup OAuth Flow
-
-Initiate the OAuth flow for **agent-level setup**. Tokens are stored in the agent's configuration. The \`redirectUri\` is optional — if omitted, the platform-hosted callback URL is used automatically.
-
 \`\`\`http
-POST /api/v2/partner/agents/{agentId}/oauth/authorize
+POST /api/v2/storefront/agents/{agentId}/oauth/authorize
 {}
 \`\`\`
 
 #### Start Account OAuth Flow
-
-Initiate the OAuth flow for **per-account registration**. Tokens are stored per-account. The \`redirectUri\` is optional — if omitted, the platform-hosted callback URL is used automatically.
-
 \`\`\`http
-POST /api/v2/partner/agents/{agentId}/accounts/oauth/authorize
+POST /api/v2/storefront/agents/{agentId}/accounts/oauth/authorize
 {}
 \`\`\`
 
 #### Platform OAuth Callback (Public - No Auth)
-
-Platform-hosted callback that automatically completes the OAuth flow. AI agents should use this URL as their \`redirectUri\`.
-
 \`\`\`
-GET /api/v2/partner/oauth/callback?code={code}&state={state}
+GET /api/v2/storefront/oauth/callback?code={code}&state={state}
 \`\`\`
-
-- **Production:** \`https://api.agentic.scope3.com/api/v2/partner/oauth/callback\`
-- **Staging:** \`https://api.agentic.staging.scope3.com/api/v2/partner/oauth/callback\`
 
 #### Exchange OAuth Code
-
-Exchange an OAuth authorization code for tokens manually. Only needed if you have your own callback server.
-
 \`\`\`http
-POST /api/v2/partner/agents/{agentId}/oauth/callback
+POST /api/v2/storefront/agents/{agentId}/oauth/callback
 {
   "code": "authorization-code-from-redirect",
   "state": "state-parameter-from-redirect"
@@ -1806,132 +2973,59 @@ POST /api/v2/partner/agents/{agentId}/oauth/callback
 
 ---
 
+### Notifications
+
+#### List Notifications
+\`\`\`http
+GET /api/v2/storefront/notifications?unreadOnly=true&limit=20&offset=0
+\`\`\`
+
+#### Mark Notification as Read
+\`\`\`http
+POST /api/v2/storefront/notifications/{notificationId}/read
+\`\`\`
+
+#### Mark Notification as Acknowledged
+\`\`\`http
+POST /api/v2/storefront/notifications/{notificationId}/acknowledge
+\`\`\`
+
+#### Mark All Notifications as Read
+\`\`\`http
+POST /api/v2/storefront/notifications/read-all
+\`\`\`
+
+---
+
 ## Key Concepts
-
-### Partners and Agents
-
-- **Partners** are ACTIVATION-type seats that represent activation partnerships
-- **Agents** are registered under a specific partner via \`partnerId\` and have a \`type\` (SALES, SIGNAL, CREATIVE, or OUTCOME)
-- Create a partner first (\`POST /partners\`), then register agents under it (\`POST /agents\` with \`partnerId\` and \`type\`)
-- Buyers connect to SALES agents via the Buyer API (\`POST /api/v2/buyer/sales-agents/{agentId}/accounts\`)
-- The agent \`type\` cannot be changed after registration
-
-### Account Policies
-
-The \`accountPolicy\` field is an array specifying how buyers authenticate with the agent. **Always ask the user which policy they want — never default.**
-
-| Value | What it means | Buyer experience | When to use |
-|-------|---------------|------------------|-------------|
-| \`["advertiser_account"]\` | Each buyer registers their own credentials with the agent | Buyers must set up an account before using the agent | Agent requires per-buyer API keys, OAuth tokens, or account IDs |
-| \`["marketplace_account"]\` | All buyers share a single Scope3 marketplace credential configured at the agent level | No setup needed — buyers can use the agent immediately | Agent uses a shared feed, public API, or Scope3-managed integration |
-| \`["advertiser_account", "marketplace_account"]\` | Both modes supported — buyers with their own account use it, others fall back to marketplace credentials | Optional account setup; works either way | Maximum flexibility — lets buyers choose their level of integration |
-
-**How credential resolution works when both are set:** The platform checks for a buyer's own advertiser account first. If none exists, it falls back to the marketplace account. If no marketplace account exists, it falls back to the agent-level configuration.
 
 ### Authentication Types
 
 | Type | Auth Object Format | Notes |
 |------|-------------------|-------|
-| \`API_KEY\` | \`{ "type": "bearer", "token": "..." }\` | Most common. Simple token-based auth. |
-| \`NO_AUTH\` | \`{}\` | Agent endpoint is open. |
-| \`JWT\` | \`{ "type": "jwt", "privateKey": "...", ... }\` | JSON Web Token with private key signing. |
-| \`OAUTH\` | Managed by OAuth flow | Credentials obtained through OAuth redirect flow. |
-
-### Agent Lifecycle
-
-\`\`\`
-Registration (POST /agents with partnerId)
-  --> PENDING (initial state, always)
-      For OAUTH agents: complete the OAuth flow first
-      Owner decides when to activate:
-        --> PATCH /agents/{agentId} with status: "ACTIVE"
-        --> ACTIVE (requires auth to be configured)
-
-Any state --> DISABLED (via PATCH, always allowed)
-DISABLED --> ACTIVE (via PATCH, requires auth configured)
-\`\`\`
-
-**Key points:**
-- All agents start as PENDING — registration never auto-activates
-- The owner explicitly activates when ready via \`PATCH /agents/{agentId}\` with \`{"status": "ACTIVE"}\`
-- Non-owners see PENDING agents as \`COMING_SOON\` in list responses
-
----
-
-## Error Handling
-
-All errors follow this format:
-\`\`\`json
-{
-  "data": null,
-  "error": {
-    "code": "ERROR_CODE",
-    "message": "Human-readable message",
-    "details": {}
-  }
-}
-\`\`\`
-
-| Code | HTTP Status | Resolution |
-|------|-------------|------------|
-| \`VALIDATION_ERROR\` | 400 | Check request body against schema |
-| \`UNAUTHORIZED\` | 401 | Verify API key/auth |
-| \`ACCESS_DENIED\` | 403 | Check permissions |
-| \`NOT_FOUND\` | 404 | Verify agent/partner ID exists |
-| \`CONFLICT\` | 409 | Agent already registered at endpoint URL or duplicate account |
-| \`RATE_LIMITED\` | 429 | Wait and retry |
-
----
-
-## Registering an OAuth Agent
-
-**CRITICAL: NEVER ask the user for OAuth credentials.** No client_id, client_secret, authorization URL, token URL, or scopes. The platform discovers and handles ALL of this automatically.
-
-**Steps:**
-1. Ask the user for: \`partnerId\`, \`name\`, \`endpointUrl\`, \`protocol\`, and \`accountPolicy\`
-2. Set \`authenticationType\` to \`"OAUTH"\` — do NOT include an \`auth\` field
-3. Call \`POST /api/v2/partner/agents\` with those fields
-4. The response includes an \`oauth.authorizationUrl\` — present this link to the user
-5. The user clicks the link and authorizes in their browser
-6. The platform handles the rest (token exchange, storage)
-
-**Example request:**
-\`\`\`json
-{
-  "partnerId": "28",
-  "type": "SALES",
-  "name": "Snap Sales Agent",
-  "endpointUrl": "https://snapadcp.scope3.com/mcp",
-  "protocol": "MCP",
-  "accountPolicy": ["advertiser_account"],
-  "authenticationType": "OAUTH"
-}
-\`\`\`
-
-**What happens behind the scenes (you do NOT need to do any of this):**
-- Platform discovers OAuth endpoints from the agent's \`.well-known/oauth-authorization-server\`
-- Platform performs dynamic client registration (RFC 7591) if needed
-- Platform generates PKCE challenge and stores pending flow
-- After user authorizes, platform exchanges the code for tokens automatically
+| \`API_KEY\` | \`{ "type": "bearer", "token": "..." }\` | Most common |
+| \`NO_AUTH\` | \`{}\` | Agent endpoint is open |
+| \`JWT\` | \`{ "type": "jwt", "privateKey": "..." }\` | JSON Web Token |
+| \`OAUTH\` | Managed by OAuth flow | Credentials obtained through OAuth redirect |
 
 ---
 
 ## Common Mistakes to Avoid
 
-1. **Asking the user for OAuth credentials** - NEVER ask for client_id, client_secret, authorization URL, token URL, or scopes for OAUTH agents. The platform discovers everything automatically. Just set \`authenticationType: "OAUTH"\` with no \`auth\` field.
-2. **Missing \`partnerId\` when registering an agent** - Every agent must be registered under a partner. Create a partner first via \`POST /partners\`.
-3. **Auto-selecting \`accountPolicy\`** - \`accountPolicy\` is a required field that MUST be chosen by the user. Never default it or pick a value automatically. Always ask the user which account policy they want before registering an agent.
-4. **Registering accounts on the Partner API** - Account registration is on the Buyer API (\`POST /api/v2/buyer/sales-agents/{agentId}/accounts\`), not the Partner API.
-5. **Missing \`advertiserId\` when registering an account** - Buyers must specify which advertiser seat to connect for.
-6. **Missing \`auth\` for non-OAUTH agents** - Initial credentials are required for testing and validation when \`authenticationType\` is NOT \`OAUTH\`
-7. **No \`redirectUri\` needed for OAuth registration** - The platform automatically uses its own callback URL
-8. **Using GET for OAuth authorize** - The OAuth authorize endpoints are POST, not GET
-9. **Calling endpoints without auth** - All endpoints require authentication except \`GET /oauth/callback\`
-10. **Wrong base path** - Partner API endpoints use \`/api/v2/partner/\` prefix
-11. **Registering accounts on PENDING agents** - Agent must be ACTIVE before accounts can be registered
+1. **Asking the user for OAuth credentials** - The platform discovers everything automatically
+2. **Auto-selecting accountPolicy** - Always ask the user
+3. **Registering credentials/accounts on the Storefront API** - Use the Buyer API
+4. **Missing advertiserId when linking an account** - Buyers must specify which advertiser
+5. **Missing auth for non-OAUTH agents** - Initial credentials required
+6. **No redirectUri needed for OAuth** - Platform uses its own callback URL
+7. **Using GET for OAuth authorize** - The endpoints are POST
+8. **Calling endpoints without auth** - All require auth except OAuth callback
+9. **Wrong base path** - Storefront API uses \`/api/v2/storefront/\` prefix
+10. **Registering accounts on PENDING agents** - Agent must be ACTIVE first
+11. **Enabling storefront without checking readiness** - Always check readiness first
 `;
 
-export const bundledAt = '2026-02-17T18:48:16.000Z';
+export const bundledAt = '2026-03-31T00:00:00.000Z';
 
 /**
  * Get bundled skill.md for a persona
@@ -1940,8 +3034,8 @@ export function getBundledSkillMd(persona: Persona = 'buyer'): string {
   switch (persona) {
     case 'buyer':
       return bundledBuyerSkillMd;
-    case 'partner':
-      return bundledPartnerSkillMd;
+    case 'storefront':
+      return bundledStorefrontSkillMd;
     default:
       return bundledBuyerSkillMd;
   }

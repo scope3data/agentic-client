@@ -14,6 +14,12 @@ import type {
 import { ConversionEventsResource } from './conversion-events';
 import { CreativeSetsResource } from './creative-sets';
 import { TestCohortsResource } from './test-cohorts';
+import { EventSourcesResource } from './event-sources';
+import { MeasurementDataResource } from './measurement-data';
+import { CatalogsResource } from './catalogs';
+import { AudiencesResource } from './audiences';
+import { SyndicationResource } from './syndication';
+import { PropertyListsResource } from './property-lists';
 
 /**
  * Resource for managing advertisers (Buyer persona)
@@ -111,5 +117,59 @@ export class AdvertisersResource {
    */
   testCohorts(advertiserId: string): TestCohortsResource {
     return new TestCohortsResource(this.adapter, validateResourceId(advertiserId));
+  }
+
+  /**
+   * Get the event sources resource for a specific advertiser
+   * @param advertiserId Advertiser ID
+   * @returns EventSourcesResource scoped to the advertiser
+   */
+  eventSources(advertiserId: string): EventSourcesResource {
+    return new EventSourcesResource(this.adapter, validateResourceId(advertiserId));
+  }
+
+  /**
+   * Get the measurement data resource for a specific advertiser
+   * @param advertiserId Advertiser ID
+   * @returns MeasurementDataResource scoped to the advertiser
+   */
+  measurementData(advertiserId: string): MeasurementDataResource {
+    return new MeasurementDataResource(this.adapter, validateResourceId(advertiserId));
+  }
+
+  /**
+   * Get the catalogs resource for a specific advertiser
+   * @param advertiserId Advertiser ID
+   * @returns CatalogsResource scoped to the advertiser
+   */
+  catalogs(advertiserId: string): CatalogsResource {
+    return new CatalogsResource(this.adapter, validateResourceId(advertiserId));
+  }
+
+  /**
+   * Get the audiences resource for a specific advertiser
+   * @param advertiserId Advertiser ID
+   * @returns AudiencesResource scoped to the advertiser
+   */
+  audiences(advertiserId: string): AudiencesResource {
+    return new AudiencesResource(this.adapter, validateResourceId(advertiserId));
+  }
+
+  /**
+   * Get the syndication resource for a specific advertiser
+   * @param advertiserId Advertiser ID
+   * @returns SyndicationResource scoped to the advertiser
+   */
+  syndication(advertiserId: string): SyndicationResource {
+    return new SyndicationResource(this.adapter, validateResourceId(advertiserId));
+  }
+
+  /**
+   * Get the property lists resource for a specific advertiser
+   * @param advertiserId Advertiser ID
+   * @returns PropertyListsResource scoped to the advertiser
+   */
+  propertyLists(advertiserId: string): PropertyListsResource {
+    return new PropertyListsResource(this.adapter, validateResourceId(advertiserId));
   }
 }
