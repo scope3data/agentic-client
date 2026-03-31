@@ -15,11 +15,10 @@ export type Persona = 'buyer' | 'partner';
 /** Environment for API endpoints */
 export type Environment = 'production' | 'staging';
 
-/** Adapter type for communication protocol */
-export type AdapterType = 'rest' | 'mcp';
-
 /**
- * Configuration for Scope3Client
+ * Configuration for Scope3Client (REST client)
+ *
+ * For MCP consumers, use Scope3McpClient with Scope3McpClientConfig instead.
  */
 export interface Scope3ClientConfig {
   /** API key (Bearer token) for authentication */
@@ -32,8 +31,6 @@ export interface Scope3ClientConfig {
   environment?: Environment;
   /** Custom base URL (overrides environment) */
   baseUrl?: string;
-  /** Adapter type: 'rest' for HTTP, 'mcp' for AI agents (default: 'rest') */
-  adapter?: AdapterType;
   /** Request timeout in ms (default: 30000) */
   timeout?: number;
   /** Enable debug logging */

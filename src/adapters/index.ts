@@ -4,4 +4,3 @@
 
 export * from './base';
 export { RestAdapter } from './rest';
-export { McpAdapter } from './mcp';

@@ -1,5 +1,5 @@
 /**
- * Tests for Scope3Client
+ * Tests for Scope3Client (REST-only)
  */
 
 import { Scope3Client } from '../client';
@@ -163,18 +163,6 @@ describe('Scope3Client', () => {
     });
   });
 
-  describe('adapter selection', () => {
-    it('should default to REST adapter', () => {
-      const client = new Scope3Client({ apiKey: 'test-key', persona: 'buyer' });
-      expect(client.baseUrl).toBe('https://api.agentic.scope3.com');
-    });
-
-    it('should use MCP adapter when specified', () => {
-      const client = new Scope3Client({ apiKey: 'test-key', persona: 'buyer', adapter: 'mcp' });
-      expect(client.baseUrl).toBe('https://api.agentic.scope3.com');
-    });
-  });
-
   describe('version handling', () => {
     it('should support latest version', () => {
       const client = new Scope3Client({ apiKey: 'test-key', persona: 'buyer', version: 'latest' });
@@ -184,14 +172,6 @@ describe('Scope3Client', () => {
     it('should support v1 version', () => {
       const client = new Scope3Client({ apiKey: 'test-key', persona: 'buyer', version: 'v1' });
       expect(client.version).toBe('v1');
-    });
-  });
-
-  describe('connect/disconnect', () => {
-    it('should connect and disconnect without error for REST', async () => {
-      const client = new Scope3Client({ apiKey: 'test-key', persona: 'buyer' });
-      await expect(client.connect()).resolves.toBeUndefined();
-      await expect(client.disconnect()).resolves.toBeUndefined();
     });
   });
 
