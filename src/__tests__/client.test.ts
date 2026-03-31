@@ -3,6 +3,20 @@
  */
 
 import { Scope3Client } from '../client';
+import { ConversionEventsResource } from '../resources/conversion-events';
+import { CreativeSetsResource } from '../resources/creative-sets';
+import { TestCohortsResource } from '../resources/test-cohorts';
+import { BundleProductsResource } from '../resources/products';
+
+jest.mock('../skill', () => ({
+  fetchSkillMd: jest.fn(),
+  parseSkillMd: jest.fn(),
+}));
+
+import { fetchSkillMd, parseSkillMd } from '../skill';
+
+const mockFetchSkillMd = fetchSkillMd as jest.Mock;
+const mockParseSkillMd = parseSkillMd as jest.Mock;
 
 describe('Scope3Client', () => {
   describe('initialization', () => {
@@ -12,6 +26,12 @@ describe('Scope3Client', () => {
       );
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       expect(() => new Scope3Client({} as any)).toThrow('apiKey is required');
+    });
+
+    it('should throw for whitespace-only apiKey', () => {
+      expect(() => new Scope3Client({ apiKey: '   ', persona: 'buyer' })).toThrow(
+        'apiKey is required'
+      );
     });
 
     it('should require persona', () => {
@@ -184,6 +204,229 @@ describe('Scope3Client', () => {
     it('should enable debug when specified', () => {
       const client = new Scope3Client({ apiKey: 'test-key', persona: 'buyer', debug: true });
       expect(client.debug).toBe(true);
+    });
+  });
+
+  // ── getSkill ─────────────────────────────────────────────────
+
+  describe('getSkill', () => {
+    let client: Scope3Client;
+
+    const fakeParsed = {
+      name: 'scope3-agentic-buyer',
+      version: '2.0.0',
+      description: 'Buyer skill',
+      apiBase: 'https://api.agentic.scope3.com',
+      commands: [],
+      examples: [],
+    };
+
+    beforeEach(() => {
+      mockFetchSkillMd.mockReset();
+      mockParseSkillMd.mockReset();
+      client = new Scope3Client({ apiKey: 'test-key', persona: 'buyer' });
+    });
+
+    it('should fetch and parse skill.md on first call', async () => {
+      mockFetchSkillMd.mockResolvedValue('# Skill\nraw markdown');
+      mockParseSkillMd.mockReturnValue(fakeParsed);
+
+      const result = await client.getSkill();
+
+      expect(mockFetchSkillMd).toHaveBeenCalledTimes(1);
+      expect(mockFetchSkillMd).toHaveBeenCalledWith({
+        version: 'v2',
+        persona: 'buyer',
+        baseUrl: 'https://api.agentic.scope3.com',
+      });
+      expect(mockParseSkillMd).toHaveBeenCalledTimes(1);
+      expect(mockParseSkillMd).toHaveBeenCalledWith('# Skill\nraw markdown');
+      expect(result).toEqual(fakeParsed);
+    });
+
+    it('should cache the result and only fetch once', async () => {
+      mockFetchSkillMd.mockResolvedValue('markdown');
+      mockParseSkillMd.mockReturnValue(fakeParsed);
+
+      const first = await client.getSkill();
+      const second = await client.getSkill();
+      const third = await client.getSkill();
+
+      expect(mockFetchSkillMd).toHaveBeenCalledTimes(1);
+      expect(mockParseSkillMd).toHaveBeenCalledTimes(1);
+      expect(first).toBe(second);
+      expect(second).toBe(third);
+    });
+
+    it('should return the same promise for concurrent calls', async () => {
+      mockFetchSkillMd.mockResolvedValue('markdown');
+      mockParseSkillMd.mockReturnValue(fakeParsed);
+
+      const [a, b, c] = await Promise.all([
+        client.getSkill(),
+        client.getSkill(),
+        client.getSkill(),
+      ]);
+
+      expect(mockFetchSkillMd).toHaveBeenCalledTimes(1);
+      expect(a).toBe(b);
+      expect(b).toBe(c);
+    });
+
+    it('should clear cache on error so next call retries', async () => {
+      mockFetchSkillMd.mockRejectedValueOnce(new Error('Network error'));
+
+      await expect(client.getSkill()).rejects.toThrow('Network error');
+
+      // After error, cache should be cleared — next call should retry
+      mockFetchSkillMd.mockResolvedValue('recovered markdown');
+      mockParseSkillMd.mockReturnValue(fakeParsed);
+
+      const result = await client.getSkill();
+
+      expect(mockFetchSkillMd).toHaveBeenCalledTimes(2);
+      expect(result).toEqual(fakeParsed);
+    });
+
+    it('should pass correct params for partner persona', async () => {
+      const partnerClient = new Scope3Client({ apiKey: 'test-key', persona: 'partner' });
+      mockFetchSkillMd.mockResolvedValue('markdown');
+      mockParseSkillMd.mockReturnValue({ ...fakeParsed, name: 'scope3-agentic-partner' });
+
+      await partnerClient.getSkill();
+
+      expect(mockFetchSkillMd).toHaveBeenCalledWith(
+        expect.objectContaining({ persona: 'partner' })
+      );
+    });
+
+    it('should pass correct params for custom version', async () => {
+      const v1Client = new Scope3Client({ apiKey: 'test-key', persona: 'buyer', version: 'v1' });
+      mockFetchSkillMd.mockResolvedValue('markdown');
+      mockParseSkillMd.mockReturnValue(fakeParsed);
+
+      await v1Client.getSkill();
+
+      expect(mockFetchSkillMd).toHaveBeenCalledWith(expect.objectContaining({ version: 'v1' }));
+    });
+
+    it('should pass correct params for custom baseUrl', async () => {
+      const customClient = new Scope3Client({
+        apiKey: 'test-key',
+        persona: 'buyer',
+        baseUrl: 'https://custom.api.com',
+      });
+      mockFetchSkillMd.mockResolvedValue('markdown');
+      mockParseSkillMd.mockReturnValue(fakeParsed);
+
+      await customClient.getSkill();
+
+      expect(mockFetchSkillMd).toHaveBeenCalledWith(
+        expect.objectContaining({ baseUrl: 'https://custom.api.com' })
+      );
+    });
+  });
+
+  // ── Sub-resource access ──────────────────────────────────────
+
+  describe('sub-resource access', () => {
+    describe('advertisers sub-resources', () => {
+      let client: Scope3Client;
+
+      beforeEach(() => {
+        client = new Scope3Client({ apiKey: 'test-key', persona: 'buyer' });
+      });
+
+      it('conversionEvents() returns a ConversionEventsResource', () => {
+        const resource = client.advertisers.conversionEvents('adv-123');
+        expect(resource).toBeInstanceOf(ConversionEventsResource);
+      });
+
+      it('conversionEvents() has list, get, create, update methods', () => {
+        const resource = client.advertisers.conversionEvents('adv-123');
+        expect(typeof resource.list).toBe('function');
+        expect(typeof resource.get).toBe('function');
+        expect(typeof resource.create).toBe('function');
+        expect(typeof resource.update).toBe('function');
+      });
+
+      it('creativeSets() returns a CreativeSetsResource', () => {
+        const resource = client.advertisers.creativeSets('adv-456');
+        expect(resource).toBeInstanceOf(CreativeSetsResource);
+      });
+
+      it('creativeSets() has list, create, addAsset, removeAsset methods', () => {
+        const resource = client.advertisers.creativeSets('adv-456');
+        expect(typeof resource.list).toBe('function');
+        expect(typeof resource.create).toBe('function');
+        expect(typeof resource.addAsset).toBe('function');
+        expect(typeof resource.removeAsset).toBe('function');
+      });
+
+      it('testCohorts() returns a TestCohortsResource', () => {
+        const resource = client.advertisers.testCohorts('adv-789');
+        expect(resource).toBeInstanceOf(TestCohortsResource);
+      });
+
+      it('testCohorts() has list and create methods', () => {
+        const resource = client.advertisers.testCohorts('adv-789');
+        expect(typeof resource.list).toBe('function');
+        expect(typeof resource.create).toBe('function');
+      });
+
+      it('returns a new resource instance each call (not cached)', () => {
+        const a = client.advertisers.conversionEvents('adv-123');
+        const b = client.advertisers.conversionEvents('adv-123');
+        expect(a).not.toBe(b);
+      });
+
+      it('returns different resources for different advertiser IDs', () => {
+        const a = client.advertisers.conversionEvents('adv-1');
+        const b = client.advertisers.conversionEvents('adv-2');
+        expect(a).not.toBe(b);
+      });
+    });
+
+    describe('bundles sub-resources', () => {
+      let client: Scope3Client;
+
+      beforeEach(() => {
+        client = new Scope3Client({ apiKey: 'test-key', persona: 'buyer' });
+      });
+
+      it('products() returns a BundleProductsResource', () => {
+        const resource = client.bundles.products('bundle-123');
+        expect(resource).toBeInstanceOf(BundleProductsResource);
+      });
+
+      it('products() has list, add, remove methods', () => {
+        const resource = client.bundles.products('bundle-123');
+        expect(typeof resource.list).toBe('function');
+        expect(typeof resource.add).toBe('function');
+        expect(typeof resource.remove).toBe('function');
+      });
+
+      it('returns a new resource instance each call', () => {
+        const a = client.bundles.products('bundle-123');
+        const b = client.bundles.products('bundle-123');
+        expect(a).not.toBe(b);
+      });
+    });
+
+    describe('partner persona cannot access buyer sub-resources', () => {
+      it('should throw when accessing advertisers sub-resources', () => {
+        const client = new Scope3Client({ apiKey: 'test-key', persona: 'partner' });
+        expect(() => client.advertisers.conversionEvents('adv-1')).toThrow(
+          'advertisers is only available with the buyer persona'
+        );
+      });
+
+      it('should throw when accessing bundles sub-resources', () => {
+        const client = new Scope3Client({ apiKey: 'test-key', persona: 'partner' });
+        expect(() => client.bundles.products('bundle-1')).toThrow(
+          'bundles is only available with the buyer persona'
+        );
+      });
     });
   });
 });

@@ -85,6 +85,10 @@ const agent = await partnerClient.agents.register({
   name: 'My Agent',
   type: 'SALES',
   partnerId: 'partner-123',
+  endpointUrl: 'https://my-agent.example.com/mcp',
+  protocol: 'MCP',
+  accountPolicy: ['MARKETPLACE'],
+  authenticationType: 'API_KEY',
 });
 ```
 

@@ -56,7 +56,8 @@ export class Scope3Client {
   private skillPromise: Promise<ParsedSkill> | null = null;
 
   constructor(config: Scope3ClientConfig) {
-    if (!config.apiKey) {
+    const trimmedKey = config.apiKey?.trim();
+    if (!trimmedKey) {
       throw new Error('apiKey is required');
     }
     if (!config.persona) {
@@ -65,7 +66,7 @@ export class Scope3Client {
 
     this.version = config.version ?? 'v2';
     this.persona = config.persona;
-    this.adapter = new RestAdapter(config);
+    this.adapter = new RestAdapter({ ...config, apiKey: trimmedKey });
 
     switch (this.persona) {
       case 'buyer':
@@ -80,6 +81,10 @@ export class Scope3Client {
         this._partners = new PartnersResource(this.adapter);
         this._agents = new AgentsResource(this.adapter);
         break;
+      default: {
+        const _exhaustive: never = this.persona;
+        throw new Error(`Unknown persona: ${_exhaustive}`);
+      }
     }
   }
 

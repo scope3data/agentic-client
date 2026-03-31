@@ -255,6 +255,38 @@ describe('RestAdapter', () => {
         status: 408,
       });
     });
+
+    it('should return undefined for 204 No Content response', async () => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        status: 204,
+        headers: { get: () => null },
+      });
+
+      const adapter = new RestAdapter({ apiKey: 'test-key', persona: 'buyer' });
+      const result = await adapter.request('DELETE', '/advertisers/123');
+
+      expect(result).toBeUndefined();
+    });
+
+    it('should call fetch with PATCH method and body', async () => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        headers: { get: (key: string) => (key === 'content-type' ? 'application/json' : null) },
+        json: () => Promise.resolve({ id: '123', name: 'Patched' }),
+      });
+
+      const adapter = new RestAdapter({ apiKey: 'test-key', persona: 'buyer' });
+      await adapter.request('PATCH', '/advertisers/123', { name: 'Patched' });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({
+          method: 'PATCH',
+          body: JSON.stringify({ name: 'Patched' }),
+        })
+      );
+    });
   });
 
   describe('connect/disconnect', () => {
