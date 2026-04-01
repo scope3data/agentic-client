@@ -22,8 +22,8 @@ scope3 config set apiKey your_api_key_here
 # List advertisers (buyer persona, default)
 scope3 advertisers list
 
-# List partners (partner persona)
-scope3 --persona partner partners list
+# Get storefront (storefront persona)
+scope3 --persona storefront storefront get
 ```
 
 ## Configuration
@@ -62,7 +62,7 @@ export SCOPE3_PERSONA=buyer
 | Option | Description |
 |---|---|
 | `--api-key <key>` | API key (overrides config and environment variable) |
-| `--persona <persona>` | Persona to use: `buyer`, `partner` (overrides config and environment variable) |
+| `--persona <persona>` | Persona to use: `buyer`, `storefront` (overrides config and environment variable) |
 | `--environment <env>` | Target environment: `production`, `staging` |
 | `--base-url <url>` | Custom API base URL |
 | `--format <format>` | Output format: `table` (default), `json`, `yaml` |
@@ -173,31 +173,31 @@ scope3 sales-agents list
 scope3 sales-agents register-account <agent-id> --name "Account Name"
 ```
 
-## Partner Commands
+## Storefront Commands
 
-Partner commands require the `partner` persona.
+Storefront commands require the `storefront` persona.
 
 ```bash
-# List partners
-scope3 --persona partner partners list
+# Get storefront
+scope3 --persona storefront storefront get
 
-# Create a partner
-scope3 --persona partner partners create --name "My Org"
+# Create storefront
+scope3 --persona storefront storefront create --name "My Storefront"
 
-# Update a partner
-scope3 --persona partner partners update <id> --name "New Name"
+# List inventory sources
+scope3 --persona storefront inventory-sources list
 
-# Archive a partner
-scope3 --persona partner partners archive <id>
+# Get an inventory source
+scope3 --persona storefront inventory-sources get <id>
 
 # List agents
-scope3 --persona partner agents list
+scope3 --persona storefront agents list
 
 # Get agent details
-scope3 --persona partner agents get <id>
+scope3 --persona storefront agents get <id>
 
-# Register an agent
-scope3 --persona partner agents register --name "My Agent" --type SALES --partner-id <id>
+# Check readiness
+scope3 --persona storefront readiness check
 ```
 
 ## Output Formats
@@ -285,17 +285,22 @@ sales-agents
   list                      List sales agents
   register-account <id>     Register account for a sales agent
 
-partners (--persona partner)
-  list                      List partners
-  create                    Create a partner
-  update <id>               Update a partner
-  archive <id>              Archive a partner
+storefront (--persona storefront)
+  get                       Get storefront
+  create                    Create storefront
+  update                    Update storefront
+  delete                    Delete storefront
 
-agents (--persona partner)
+inventory-sources (--persona storefront)
+  list                      List inventory sources
+  get <id>                  Get inventory source by ID
+  create                    Create an inventory source
+  update <id>               Update an inventory source
+  delete <id>               Delete an inventory source
+
+agents (--persona storefront)
   list                      List agents
   get <id>                  Get agent by ID
-  register                  Register an agent
-  update <id>               Update an agent
 
 config
   set <key> <value>         Set a configuration value

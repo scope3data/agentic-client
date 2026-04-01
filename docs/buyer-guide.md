@@ -4,11 +4,13 @@
 
 The buyer persona enables AI-powered programmatic advertising with:
 
-- Advertiser management
+- Advertiser management with rich sub-resources (conversion events, creative sets, test cohorts, event sources, measurement data, catalogs, audiences, syndication, property lists)
 - Bundle-based inventory discovery
-- 3 campaign types (discovery, performance, audience)
+- 3 campaign types (discovery, performance, audience) with creative management
 - Reporting and analytics
-- Reporting and sales agents
+- Sales agents
+- Async task tracking
+- Property list checks
 
 ## Setup
 
@@ -130,6 +132,19 @@ Signal-based audience targeting (coming soon).
 await client.campaigns.createAudience({ ... });
 ```
 
+## Campaign Sub-Resources
+
+### Creatives
+
+```typescript
+const creatives = client.campaigns.creatives(campaignId);
+await creatives.list();
+await creatives.list({ quality: 'high', take: 5 });
+await creatives.get('creative-123');
+await creatives.update('creative-123', { /* updates */ });
+await creatives.delete('creative-123');
+```
+
 ## Advertiser Sub-Resources
 
 Access sub-resources scoped to an advertiser.
@@ -158,6 +173,67 @@ await cohorts.list();
 await cohorts.create({ name: 'A/B Test', splitPercentage: 50 });
 ```
 
+### Event Sources
+
+```typescript
+const eventSources = client.advertisers.eventSources(advId);
+await eventSources.sync({ /* event source config */ });
+await eventSources.list();
+await eventSources.create({ /* event source data */ });
+await eventSources.get('es-123');
+await eventSources.update('es-123', { /* updates */ });
+await eventSources.delete('es-123');
+```
+
+### Measurement Data
+
+```typescript
+const measurementData = client.advertisers.measurementData(advId);
+await measurementData.sync({ /* measurement data config */ });
+```
+
+### Catalogs
+
+```typescript
+const catalogs = client.advertisers.catalogs(advId);
+await catalogs.sync({ /* catalog data */ });
+await catalogs.list();
+await catalogs.list({ type: 'product', take: 10 });
+```
+
+### Audiences
+
+```typescript
+const audiences = client.advertisers.audiences(advId);
+await audiences.sync({ /* audience data */ });
+await audiences.list();
+```
+
+### Syndication
+
+```typescript
+const syndication = client.advertisers.syndication(advId);
+await syndication.syndicate({ /* syndication config */ });
+await syndication.status();
+await syndication.status({ resourceType: 'campaign' });
+```
+
+### Property Lists
+
+```typescript
+const propertyLists = client.advertisers.propertyLists(advId);
+await propertyLists.create({ /* property list data */ });
+await propertyLists.list();
+await propertyLists.list({ purpose: 'inclusion' });
+await propertyLists.get('pl-123');
+await propertyLists.update('pl-123', { /* updates */ });
+await propertyLists.delete('pl-123');
+
+// Top-level property list checks (not advertiser-scoped)
+await client.propertyListChecks.check({ domains: ['example.com'] });
+await client.propertyListChecks.getReport('report-123');
+```
+
 ## Signals
 
 ```typescript
@@ -184,8 +260,17 @@ const agents = await client.salesAgents.list();
 
 // Register an account for an agent
 await client.salesAgents.registerAccount('agent-123', {
-  name: 'My Account',
+  advertiserId: 'adv-123',
+  accountIdentifier: 'my-account-id',
 });
+```
+
+## Tasks
+
+Check the status of async tasks.
+
+```typescript
+const task = await client.tasks.get('task-123');
 ```
 
 ## Pagination

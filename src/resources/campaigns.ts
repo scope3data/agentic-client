@@ -16,6 +16,7 @@ import type {
 } from '../types';
 import { campaignSchemas } from '../schemas/registry';
 import { shouldValidateResponse, validateResponse } from '../validation';
+import { CreativesResource } from './creatives';
 
 /**
  * Resource for managing campaigns (Buyer persona)
@@ -171,5 +172,14 @@ export class CampaignsResource {
       'POST',
       `/campaigns/${validateResourceId(id)}/pause`
     );
+  }
+
+  /**
+   * Get the creatives resource for a specific campaign
+   * @param campaignId Campaign ID
+   * @returns CreativesResource scoped to the campaign
+   */
+  creatives(campaignId: string): CreativesResource {
+    return new CreativesResource(this.adapter, validateResourceId(campaignId));
   }
 }

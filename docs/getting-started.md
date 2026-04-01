@@ -1,6 +1,6 @@
 # Getting Started with the Scope3 SDK
 
-The `scope3` npm package provides a TypeScript/JavaScript client for the Scope3 Agentic Platform. It supports REST and MCP (Model Context Protocol) adapters, and organizes functionality around two personas: buyer and partner.
+The `scope3` npm package provides a TypeScript/JavaScript client for the Scope3 Agentic Platform. It provides two clients -- `Scope3Client` for REST consumers and `Scope3McpClient` for AI agents using MCP -- and organizes functionality around two personas: buyer and storefront.
 
 ## Installation
 
@@ -23,8 +23,8 @@ The SDK requires a persona to determine which API surface is available. There ar
 
 | Persona    | Use Case                                                                                      |
 |------------|-----------------------------------------------------------------------------------------------|
-| `buyer`    | Programmatic advertising -- manage advertisers, campaigns, bundles, and inventory discovery.   |
-| `partner`  | Integration partners -- manage partners and agents.                                           |
+| `buyer`       | Programmatic advertising -- manage advertisers, campaigns, bundles, and inventory discovery.   |
+| `storefront`  | Storefronts -- manage your storefront, inventory sources, agents, billing, and readiness.      |
 
 Resources are scoped by persona. Attempting to access a resource outside of your chosen persona will throw an error at runtime.
 
@@ -35,21 +35,21 @@ import { Scope3Client } from 'scope3';
 
 const client = new Scope3Client({
   apiKey: process.env.SCOPE3_API_KEY!,
-  persona: 'buyer', // or 'partner'
+  persona: 'buyer', // or 'storefront'
 });
 ```
 
 ## Configuration Options
 
-The full configuration interface:
+### Scope3Client (REST)
 
 ```typescript
 interface Scope3ClientConfig {
   /** API key (Bearer token) for authentication. Required. */
   apiKey: string;
 
-  /** API persona -- buyer or partner. Required. */
-  persona: 'buyer' | 'partner';
+  /** API persona -- buyer or storefront. Required. */
+  persona: 'buyer' | 'storefront';
 
   /** API version to use. Default: 'v2'. */
   version?: 'v1' | 'v2' | 'latest';
@@ -60,15 +60,33 @@ interface Scope3ClientConfig {
   /** Custom base URL. Overrides the environment setting. */
   baseUrl?: string;
 
-  /** Adapter type: 'rest' for HTTP, 'mcp' for AI agents. Default: 'rest'. */
-  adapter?: 'rest' | 'mcp';
-
   /** Request timeout in milliseconds. Default: 30000. */
   timeout?: number;
 
   /** Enable debug logging. Default: false. */
   debug?: boolean;
 }
+```
+
+### Scope3McpClient (AI Agents)
+
+For AI agents using MCP, use `Scope3McpClient` instead. It connects to the MCP server and gives you direct access to `callTool()`, `readResource()`, and `listTools()`.
+
+```typescript
+import { Scope3McpClient } from 'scope3';
+
+const mcp = new Scope3McpClient({
+  apiKey: process.env.SCOPE3_API_KEY!,
+  // environment?: 'production' | 'staging'
+  // baseUrl?: string
+  // debug?: boolean
+});
+await mcp.connect();
+
+const result = await mcp.callTool('api_call', {
+  method: 'GET',
+  path: '/api/v2/buyer/advertisers',
+});
 ```
 
 ## Environment Setup
@@ -121,19 +139,23 @@ const bundle = await client.bundles.create({
 console.log('Bundle:', bundle);
 ```
 
-### Partner persona
+### Storefront persona
 
 ```typescript
 import { Scope3Client } from 'scope3';
 
 const client = new Scope3Client({
   apiKey: process.env.SCOPE3_API_KEY!,
-  persona: 'partner',
+  persona: 'storefront',
 });
 
-// List partners
-const partners = await client.partners.list();
-console.log('Partners:', partners);
+// Get your storefront
+const sf = await client.storefront.get();
+console.log('Storefront:', sf);
+
+// List inventory sources
+const sources = await client.inventorySources.list();
+console.log('Sources:', sources);
 ```
 
 ## Error Handling
@@ -165,5 +187,5 @@ try {
 ## Next Steps
 
 - [Buyer Guide](./buyer-guide.md) -- Full buyer workflow: advertisers, campaigns, bundles, and inventory discovery.
-- [Partner Guide](./partner-guide.md) -- Partner integration, agent management, and OAuth.
+- [Storefront Guide](./storefront-guide.md) -- Storefront management, inventory sources, billing, and readiness.
 - [CLI Reference](./cli-reference.md) -- Command-line interface usage.

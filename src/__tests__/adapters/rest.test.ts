@@ -255,6 +255,96 @@ describe('RestAdapter', () => {
         status: 408,
       });
     });
+
+    it('should throw timeout error on TimeoutError', async () => {
+      const timeoutError = new Error('The operation timed out');
+      timeoutError.name = 'TimeoutError';
+      mockFetch.mockRejectedValue(timeoutError);
+
+      const adapter = new RestAdapter({
+        apiKey: 'test-key',
+        persona: 'buyer',
+        timeout: 5000,
+      });
+
+      await expect(adapter.request('GET', '/advertisers')).rejects.toMatchObject({
+        status: 408,
+        message: expect.stringContaining('timeout'),
+      });
+    });
+
+    it('should handle non-Error throw from fetch', async () => {
+      mockFetch.mockRejectedValue('something went wrong');
+
+      const adapter = new RestAdapter({ apiKey: 'test-key', persona: 'buyer' });
+
+      await expect(adapter.request('GET', '/advertisers')).rejects.toMatchObject({
+        status: 0,
+        message: 'Unknown error occurred',
+      });
+
+      mockFetch.mockRejectedValue(42);
+
+      await expect(adapter.request('GET', '/advertisers')).rejects.toMatchObject({
+        status: 0,
+        message: 'Unknown error occurred',
+      });
+    });
+
+    it('should extract nested error message and details from error envelope', async () => {
+      mockFetch.mockResolvedValue({
+        ok: false,
+        status: 400,
+        headers: { get: () => 'application/json' },
+        json: async () => ({
+          error: {
+            code: 'VALIDATION_ERROR',
+            message: 'Invalid field',
+            details: { field: 'name' },
+          },
+        }),
+      });
+
+      const adapter = new RestAdapter({ apiKey: 'test-key', persona: 'buyer' });
+
+      await expect(adapter.request('POST', '/advertisers', { name: '' })).rejects.toMatchObject({
+        status: 400,
+        message: 'Invalid field',
+        details: { field: 'name' },
+      });
+    });
+
+    it('should return undefined for 204 No Content response', async () => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        status: 204,
+        headers: { get: () => null },
+      });
+
+      const adapter = new RestAdapter({ apiKey: 'test-key', persona: 'buyer' });
+      const result = await adapter.request('DELETE', '/advertisers/123');
+
+      expect(result).toBeUndefined();
+    });
+
+    it('should call fetch with PATCH method and body', async () => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        headers: { get: (key: string) => (key === 'content-type' ? 'application/json' : null) },
+        json: () => Promise.resolve({ id: '123', name: 'Patched' }),
+      });
+
+      const adapter = new RestAdapter({ apiKey: 'test-key', persona: 'buyer' });
+      await adapter.request('PATCH', '/advertisers/123', { name: 'Patched' });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({
+          method: 'PATCH',
+          body: JSON.stringify({ name: 'Patched' }),
+        })
+      );
+    });
   });
 
   describe('connect/disconnect', () => {

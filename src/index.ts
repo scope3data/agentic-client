@@ -1,70 +1,107 @@
 /**
- * Scope3 SDK - REST and MCP client for the Agentic Platform
+ * Scope3 SDK for the Agentic Platform
  *
- * Supports 2 personas: buyer and partner.
+ * Two entry points for two audiences:
+ *
+ * 1. REST consumers (humans, CLI, programmatic) → Scope3Client
+ *    Typed resource methods: client.advertisers.list(), client.campaigns.create(), etc.
+ *
+ * 2. MCP consumers (AI agents) → Scope3McpClient
+ *    Thin connection helper: connect, callTool, readResource, listTools.
+ *    The MCP server already handles auth, routing, and validation —
+ *    this just wires up the connection and gets out of the way.
  *
  * @example
  * ```typescript
+ * // REST consumer
  * import { Scope3Client } from 'scope3';
+ * const client = new Scope3Client({ apiKey: 'sk_xxx', persona: 'buyer' });
+ * const advertisers = await client.advertisers.list();
  *
- * // Buyer persona
- * const buyer = new Scope3Client({ apiKey: 'sk_xxx', persona: 'buyer' });
- * const advertisers = await buyer.advertisers.list();
- *
- * // Partner persona
- * const partner = new Scope3Client({ apiKey: 'sk_xxx', persona: 'partner' });
- * const partners = await partner.partners.list();
+ * // MCP consumer (AI agent)
+ * import { Scope3McpClient } from 'scope3';
+ * const mcp = new Scope3McpClient({ apiKey: 'sk_xxx' });
+ * await mcp.connect();
+ * const result = await mcp.callTool('api_call', { method: 'GET', path: '/api/v2/buyer/advertisers' });
  * ```
  */
 
-// Main client
+// ── Clients ────────────────────────────────────────────────────────
+
+// REST client with typed resource methods
 export { Scope3Client } from './client';
 
-// Adapters
+// MCP client — thin connection helper for AI agents
+export { Scope3McpClient } from './mcp-client';
+export type {
+  Scope3McpClientConfig,
+  CallToolResult,
+  ReadResourceResult,
+  ListToolsResult,
+} from './mcp-client';
+
+// ── REST Adapter (for advanced use) ────────────────────────────────
+
 export { RestAdapter } from './adapters/rest';
-export { McpAdapter } from './adapters/mcp';
 export { Scope3ApiError } from './adapters/base';
 export type { BaseAdapter } from './adapters/base';
 
-// Resources
+// ── Resources (used by Scope3Client, exported for typing) ──────────
+
 export {
   AdvertisersResource,
   AgentsResource,
+  BillingResource,
   BundlesResource,
   BundleProductsResource,
   CampaignsResource,
   ConversionEventsResource,
   CreativeSetsResource,
-  PartnersResource,
+  InventorySourcesResource,
+  NotificationsResource,
+  ReadinessResource,
   ReportingResource,
   SalesAgentsResource,
   SignalsResource,
+  StorefrontResource,
   TestCohortsResource,
+  EventSourcesResource,
+  MeasurementDataResource,
+  CatalogsResource,
+  AudiencesResource,
+  SyndicationResource,
+  TasksResource,
+  PropertyListsResource,
+  PropertyListChecksResource,
+  CreativesResource,
 } from './resources';
 
-// skill.md support
+// ── skill.md support ───────────────────────────────────────────────
+
 export { fetchSkillMd, parseSkillMd, getBundledSkillMd } from './skill';
 export type { ParsedSkill, SkillCommand, SkillParameter, SkillExample } from './skill';
 
-// Webhook server (optional)
+// ── Webhook server ─────────────────────────────────────────────────
+
 export { WebhookServer } from './webhook-server';
 export type { WebhookEvent, WebhookHandler, WebhookServerConfig } from './webhook-server';
 
-// Validation
+// ── Validation (Zod schemas for optional client-side validation) ───
+
 export { validateInput, validateResponse } from './validation';
 export type { ValidateMode } from './validation';
 
 // Schemas (auto-generated from OpenAPI spec)
 export * from './schemas';
 
-// Types
+// ── Types ──────────────────────────────────────────────────────────
+
 export type {
   // Config
   Scope3ClientConfig,
   ApiVersion,
   Persona,
   Environment,
-  AdapterType,
   // API Response Wrappers
   ApiResponse,
   PaginatedApiResponse,
@@ -148,20 +185,67 @@ export type {
   // Signals
   Signal,
   DiscoverSignalsInput,
-  // Partner
-  Partner,
-  CreatePartnerInput,
-  UpdatePartnerInput,
-  ListPartnersParams,
+  // Storefront
+  Storefront,
+  CreateStorefrontInput,
+  UpdateStorefrontInput,
+  // Inventory Sources
+  InventorySource,
+  InventorySourceExecutionType,
+  CreateInventorySourceInput,
+  UpdateInventorySourceInput,
+  // Storefront Readiness
+  ReadinessStatus,
+  ReadinessCheck,
+  StorefrontReadiness,
+  // Storefront Billing
+  BillingFee,
+  StorefrontBilling,
+  StorefrontBillingConfig,
+  StripeConnectResponse,
+  // Notifications
+  Notification,
+  ListNotificationsParams,
   // Agent
   Agent,
   AgentType,
   AgentStatus,
   AgentAuthenticationType,
   AgentProtocol,
-  RegisterAgentInput,
   UpdateAgentInput,
   ListAgentsParams,
   OAuthAuthorizeResponse,
   OAuthCallbackInput,
+  // Event Sources
+  EventSource,
+  CreateEventSourceInput,
+  UpdateEventSourceInput,
+  // Measurement Data
+  MeasurementDataSync,
+  // Catalogs
+  Catalog,
+  CatalogSync,
+  // Audiences
+  Audience,
+  AudienceSync,
+  // Syndication
+  SyndicationRequest,
+  SyndicationStatus,
+  // Creatives
+  Creative,
+  CreateCreativeInput,
+  UpdateCreativeInput,
+  // Tasks
+  Task,
+  // Property Lists
+  PropertyList,
+  CreatePropertyListInput,
+  UpdatePropertyListInput,
+  PropertyListCheck,
+  PropertyListReport,
+  // Billing
+  BillingStatus,
+  BillingTransaction,
+  BillingPayout,
+  ListBillingParams,
 } from './types';

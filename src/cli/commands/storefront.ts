@@ -1,36 +1,26 @@
 /**
- * Partner and agent commands for the Partner persona
+ * Storefront and agent commands for the Storefront persona
  */
 
 import { Command } from 'commander';
 import { createClient, GlobalOptions } from '../utils';
 import { formatOutput, printError, printSuccess, OutputFormat } from '../format';
 
-export const partnersCommand = new Command('partners').description(
-  'Manage partners and agents (partner persona)'
+export const storefrontCommand = new Command('storefront').description(
+  'Manage storefront and agents (storefront persona)'
 );
 
-// ── Partner CRUD ─────────────────────────────────────────────────
+// ── Storefront CRUD ─────────────────────────────────────────────
 
-partnersCommand
-  .command('list')
-  .description('List all partners')
-  .option('--take <n>', 'Maximum number of results', '50')
-  .option('--skip <n>', 'Number of results to skip', '0')
-  .option('--status <status>', 'Filter by status (ACTIVE, ARCHIVED)')
-  .option('--name <name>', 'Filter by name')
-  .action(async (options, cmd) => {
+storefrontCommand
+  .command('get')
+  .description('Get storefront details')
+  .action(async (_options: unknown, cmd: Command) => {
     try {
       const globalOpts = cmd.optsWithGlobals() as GlobalOptions;
       const client = createClient(globalOpts);
 
-      const result = await client.partners.list({
-        take: parseInt(options.take, 10),
-        skip: parseInt(options.skip, 10),
-        status: options.status,
-        name: options.name,
-      });
-
+      const result = await client.storefront.get();
       formatOutput(result, globalOpts.format as OutputFormat);
     } catch (error) {
       printError(error instanceof Error ? error.message : 'Unknown error');
@@ -38,67 +28,76 @@ partnersCommand
     }
   });
 
-partnersCommand
+storefrontCommand
   .command('create')
-  .description('Create a new partner')
-  .requiredOption('--name <name>', 'Partner name')
-  .option('--description <desc>', 'Partner description')
+  .description('Create a new storefront')
+  .requiredOption('--platform-id <id>', 'Platform ID')
+  .requiredOption('--name <name>', 'Storefront name')
+  .option('--publisher-domain <domain>', 'Publisher domain')
+  .option('--plan <plan>', 'Plan')
   .action(async (options, cmd) => {
     try {
       const globalOpts = cmd.optsWithGlobals() as GlobalOptions;
       const client = createClient(globalOpts);
 
-      const result = await client.partners.create({
+      const result = await client.storefront.create({
+        platformId: options.platformId,
         name: options.name,
-        description: options.description,
+        publisherDomain: options.publisherDomain,
+        plan: options.plan,
       });
 
       formatOutput(result, globalOpts.format as OutputFormat);
-      printSuccess(`Created partner: ${result.data.id}`);
+      printSuccess(`Created storefront: ${result.data.platformId}`);
     } catch (error) {
       printError(error instanceof Error ? error.message : 'Unknown error');
       process.exit(1);
     }
   });
 
-partnersCommand
-  .command('update <id>')
-  .description('Update a partner')
+storefrontCommand
+  .command('update')
+  .description('Update the storefront')
   .option('--name <name>', 'New name')
-  .option('--description <desc>', 'New description')
-  .action(async (id: string, options, cmd) => {
+  .option('--publisher-domain <domain>', 'New publisher domain')
+  .option('--plan <plan>', 'New plan')
+  .option('--enabled <enabled>', 'Enable or disable')
+  .action(async (options, cmd) => {
     try {
       const globalOpts = cmd.optsWithGlobals() as GlobalOptions;
       const client = createClient(globalOpts);
 
-      const updateData: { name?: string; description?: string } = {};
+      const updateData: Record<string, unknown> = {};
       if (options.name) updateData.name = options.name;
-      if (options.description) updateData.description = options.description;
+      if (options.publisherDomain) updateData.publisherDomain = options.publisherDomain;
+      if (options.plan) updateData.plan = options.plan;
+      if (options.enabled !== undefined) updateData.enabled = options.enabled === 'true';
 
       if (Object.keys(updateData).length === 0) {
         printError('No update fields provided');
         process.exit(1);
       }
 
-      const result = await client.partners.update(id, updateData);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = await client.storefront.update(updateData as any);
       formatOutput(result, globalOpts.format as OutputFormat);
-      printSuccess('Partner updated');
+      printSuccess('Storefront updated');
     } catch (error) {
       printError(error instanceof Error ? error.message : 'Unknown error');
       process.exit(1);
     }
   });
 
-partnersCommand
-  .command('archive <id>')
-  .description('Archive a partner')
-  .action(async (id: string, _options: unknown, cmd: Command) => {
+storefrontCommand
+  .command('delete')
+  .description('Delete the storefront')
+  .action(async (_options: unknown, cmd: Command) => {
     try {
       const globalOpts = cmd.optsWithGlobals() as GlobalOptions;
       const client = createClient(globalOpts);
 
-      await client.partners.archive(id);
-      printSuccess(`Archived partner: ${id}`);
+      await client.storefront.delete();
+      printSuccess('Storefront deleted');
     } catch (error) {
       printError(error instanceof Error ? error.message : 'Unknown error');
       process.exit(1);
@@ -150,58 +149,12 @@ agentsCommand
   });
 
 agentsCommand
-  .command('register')
-  .description('Register a new agent')
-  .requiredOption('--partner-id <id>', 'Partner ID')
-  .requiredOption('--type <type>', 'Agent type (SALES, SIGNAL, CREATIVE, OUTCOME)')
-  .requiredOption('--name <name>', 'Agent name')
-  .requiredOption('--endpoint-url <url>', 'Agent endpoint URL')
-  .requiredOption('--protocol <proto>', 'Protocol (MCP, A2A)')
-  .requiredOption(
-    '--account-policy <policy>',
-    'Account policy (comma-separated: advertiser_account,marketplace_account)'
-  )
-  .requiredOption('--auth-type <type>', 'Authentication type (API_KEY, NO_AUTH, JWT, OAUTH)')
-  .option('--auth-token <token>', 'Bearer token for API_KEY auth')
-  .option('--description <desc>', 'Agent description')
-  .action(async (options, cmd) => {
-    try {
-      const globalOpts = cmd.optsWithGlobals() as GlobalOptions;
-      const client = createClient(globalOpts);
-
-      const data: Record<string, unknown> = {
-        partnerId: options.partnerId,
-        type: options.type,
-        name: options.name,
-        endpointUrl: options.endpointUrl,
-        protocol: options.protocol,
-        accountPolicy: options.accountPolicy.split(',').map((p: string) => p.trim()),
-        authenticationType: options.authType,
-        description: options.description,
-      };
-
-      if (options.authToken) {
-        data.auth = { type: 'bearer', token: options.authToken };
-      }
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = await client.agents.register(data as any);
-      formatOutput(result, globalOpts.format as OutputFormat);
-      printSuccess(`Registered agent: ${result.data.agentId}`);
-    } catch (error) {
-      printError(error instanceof Error ? error.message : 'Unknown error');
-      process.exit(1);
-    }
-  });
-
-agentsCommand
   .command('update <agentId>')
   .description('Update an agent')
   .option('--name <name>', 'New name')
   .option('--description <desc>', 'New description')
   .option('--status <status>', 'New status (PENDING, ACTIVE, DISABLED)')
   .option('--endpoint-url <url>', 'New endpoint URL')
-  .option('--account-policy <policy>', 'New account policy (comma-separated)')
   .action(async (agentId: string, options, cmd) => {
     try {
       const globalOpts = cmd.optsWithGlobals() as GlobalOptions;
@@ -212,9 +165,6 @@ agentsCommand
       if (options.description) data.description = options.description;
       if (options.status) data.status = options.status;
       if (options.endpointUrl) data.endpointUrl = options.endpointUrl;
-      if (options.accountPolicy) {
-        data.accountPolicy = options.accountPolicy.split(',').map((p: string) => p.trim());
-      }
 
       if (Object.keys(data).length === 0) {
         printError('No update fields provided');
@@ -288,6 +238,6 @@ agentsCommand
     }
   });
 
-partnersCommand.addCommand(agentsCommand);
+storefrontCommand.addCommand(agentsCommand);
 
 export { agentsCommand };

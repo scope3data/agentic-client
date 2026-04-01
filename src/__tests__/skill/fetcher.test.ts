@@ -78,15 +78,18 @@ describe('fetchSkillMd', () => {
     );
   });
 
-  it('should fetch partner persona skill.md', async () => {
+  it('should fetch storefront persona skill.md', async () => {
     mockFetch.mockResolvedValue({
       ok: true,
-      text: () => Promise.resolve('# Partner Skill'),
+      text: () => Promise.resolve('# Storefront Skill'),
     });
 
-    await fetchSkillMd({ persona: 'partner' });
+    await fetchSkillMd({ persona: 'storefront' });
 
-    expect(mockFetch).toHaveBeenCalledWith(`${baseUrl}/api/v2/partner/skill.md`, expect.anything());
+    expect(mockFetch).toHaveBeenCalledWith(
+      `${baseUrl}/api/v2/storefront/skill.md`,
+      expect.anything()
+    );
   });
 
   it('should fall back to bundled buyer skill on non-200 response', async () => {
@@ -126,15 +129,15 @@ describe('fetchSkillMd', () => {
     expect(result).toBe(getBundledSkillMdFromBundled('buyer'));
   });
 
-  it('should fall back to bundled partner skill on non-200 for partner persona', async () => {
+  it('should fall back to bundled storefront skill on non-200 for storefront persona', async () => {
     mockFetch.mockResolvedValue({
       ok: false,
       status: 500,
     });
 
-    const result = await fetchSkillMd({ persona: 'partner' });
+    const result = await fetchSkillMd({ persona: 'storefront' });
 
-    expect(result).toBe(getBundledSkillMdFromBundled('partner'));
+    expect(result).toBe(getBundledSkillMdFromBundled('storefront'));
   });
 });
 
@@ -149,9 +152,9 @@ describe('getBundledSkillMd', () => {
     expect(result).toContain('scope3-agentic-buyer');
   });
 
-  it('should return partner skill.md content with partner persona', () => {
-    const result = getBundledSkillMd('partner');
-    expect(result).toContain('scope3-agentic-partner');
+  it('should return storefront skill.md content with storefront persona', () => {
+    const result = getBundledSkillMd('storefront');
+    expect(result).toContain('scope3-agentic-storefront');
   });
 
   it('should contain expected version header', () => {

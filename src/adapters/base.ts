@@ -101,7 +101,13 @@ export function validateResourceId(id: string): string {
   if (!id || typeof id !== 'string') {
     throw new Scope3ApiError(400, 'Resource ID is required');
   }
-  if (id.includes('/') || id.includes('\\') || id.includes('?') || id.includes('#')) {
+  if (
+    id.includes('/') ||
+    id.includes('\\') ||
+    id.includes('?') ||
+    id.includes('#') ||
+    id.includes('..')
+  ) {
     throw new Scope3ApiError(400, 'Invalid resource ID format');
   }
   return encodeURIComponent(id);

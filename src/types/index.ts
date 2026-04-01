@@ -10,21 +10,20 @@
 export type ApiVersion = 'v1' | 'v2' | 'latest';
 
 /** API persona - determines which API surface to use */
-export type Persona = 'buyer' | 'partner';
+export type Persona = 'buyer' | 'storefront';
 
 /** Environment for API endpoints */
 export type Environment = 'production' | 'staging';
 
-/** Adapter type for communication protocol */
-export type AdapterType = 'rest' | 'mcp';
-
 /**
- * Configuration for Scope3Client
+ * Configuration for Scope3Client (REST client)
+ *
+ * For MCP consumers, use Scope3McpClient with Scope3McpClientConfig instead.
  */
 export interface Scope3ClientConfig {
   /** API key (Bearer token) for authentication */
   apiKey: string;
-  /** API persona - buyer or partner */
+  /** API persona - buyer or storefront */
   persona: Persona;
   /** API version to use (default: 'v2') */
   version?: ApiVersion;
@@ -32,8 +31,6 @@ export interface Scope3ClientConfig {
   environment?: Environment;
   /** Custom base URL (overrides environment) */
   baseUrl?: string;
-  /** Adapter type: 'rest' for HTTP, 'mcp' for AI agents (default: 'rest') */
-  adapter?: AdapterType;
   /** Request timeout in ms (default: 30000) */
   timeout?: number;
   /** Enable debug logging */
@@ -665,35 +662,163 @@ export interface DiscoverSignalsInput {
 }
 
 // ============================================================================
-// Partner Types (Partner Persona)
+// Storefront Types (Storefront Persona)
 // ============================================================================
 
-export interface Partner {
-  id: string;
+export interface Storefront {
+  platformId: string;
   name: string;
-  description?: string;
-  status: string;
+  publisherDomain?: string;
+  plan?: string;
+  enabled: boolean;
   createdAt: string;
   updatedAt: string;
 }
 
-export interface CreatePartnerInput {
+export interface CreateStorefrontInput {
+  platformId: string;
   name: string;
-  description?: string;
+  publisherDomain?: string;
+  plan?: string;
 }
 
-export interface UpdatePartnerInput {
+export interface UpdateStorefrontInput {
   name?: string;
-  description?: string;
-}
-
-export interface ListPartnersParams extends PaginationParams {
-  status?: string;
-  name?: string;
+  publisherDomain?: string;
+  platformId?: string;
+  plan?: string;
+  enabled?: boolean;
 }
 
 // ============================================================================
-// Agent Types (Partner Persona)
+// Inventory Source Types (Storefront Persona)
+// ============================================================================
+
+export type InventorySourceExecutionType = 'agent';
+
+export interface InventorySource {
+  sourceId: string;
+  name: string;
+  executionType?: InventorySourceExecutionType;
+  status: string;
+  agentId?: string;
+  type?: AgentType;
+  endpointUrl?: string;
+  protocol?: AgentProtocol;
+  authenticationType?: AgentAuthenticationType;
+  authConfigured?: boolean;
+  executionConfig?: Record<string, unknown>;
+  description?: string;
+  oauth?: {
+    authorizationUrl: string;
+    agentId: string;
+    agentName: string;
+  };
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateInventorySourceInput {
+  sourceId: string;
+  name: string;
+  executionType?: InventorySourceExecutionType;
+  type?: AgentType;
+  endpointUrl?: string;
+  protocol?: AgentProtocol;
+  authenticationType?: AgentAuthenticationType;
+  auth?: {
+    type: string;
+    token?: string;
+    privateKey?: string;
+  };
+  executionConfig?: Record<string, unknown>;
+  description?: string;
+}
+
+export interface UpdateInventorySourceInput {
+  name?: string;
+  executionType?: InventorySourceExecutionType;
+  executionConfig?: Record<string, unknown>;
+  status?: string;
+}
+
+// ============================================================================
+// Storefront Readiness Types
+// ============================================================================
+
+export type ReadinessStatus = 'ready' | 'blocked';
+
+export interface ReadinessCheck {
+  id: string;
+  name: string;
+  description: string;
+  category: string;
+  status: ReadinessStatus;
+  isBlocker: boolean;
+  details?: string;
+}
+
+export interface StorefrontReadiness {
+  platformId: string;
+  status: ReadinessStatus;
+  checks: ReadinessCheck[];
+}
+
+// ============================================================================
+// Storefront Billing Types (Stripe Connect)
+// ============================================================================
+
+export interface BillingFee {
+  name: string;
+  feePercent: number;
+}
+
+export interface StorefrontBilling {
+  stripeConnectedAccountId: string;
+  onboardingStatus: string;
+  platformFeePercent?: number;
+  fees?: BillingFee[];
+  currency?: string;
+  defaultNetDays?: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface StorefrontBillingConfig {
+  platformId: string;
+  billing: StorefrontBilling | null;
+}
+
+export interface StripeConnectResponse {
+  platformId: string;
+  stripeConnectedAccountId: string;
+  onboardingUrl: string;
+}
+
+// ============================================================================
+// Notification Types (Storefront Persona)
+// ============================================================================
+
+export interface Notification {
+  id: string;
+  type: string;
+  message: string;
+  read: boolean;
+  acknowledged: boolean;
+  brandAgentId?: number;
+  createdAt: string;
+}
+
+export interface ListNotificationsParams {
+  unreadOnly?: boolean;
+  brandAgentId?: number;
+  types?: string;
+  limit?: number;
+  offset?: number;
+}
+
+// ============================================================================
+// Agent Types (Storefront Persona)
 // ============================================================================
 
 export type AgentType = 'SALES' | 'SIGNAL' | 'CREATIVE' | 'OUTCOME';
@@ -727,24 +852,6 @@ export interface Agent {
   updatedAt?: string;
 }
 
-export interface RegisterAgentInput {
-  partnerId: string;
-  type: AgentType;
-  name: string;
-  endpointUrl: string;
-  protocol: AgentProtocol;
-  accountPolicy: string[];
-  authenticationType: AgentAuthenticationType;
-  auth?: {
-    type: string;
-    token?: string;
-    privateKey?: string;
-  };
-  description?: string;
-  reportingType?: string;
-  reportingPollingCadence?: string;
-}
-
 export interface UpdateAgentInput {
   name?: string;
   description?: string;
@@ -776,4 +883,218 @@ export interface OAuthAuthorizeResponse {
 export interface OAuthCallbackInput {
   code: string;
   state: string;
+}
+
+// ============================================================================
+// Event Source Types (Buyer Persona)
+// ============================================================================
+
+export interface EventSource {
+  id: string;
+  advertiserId: string;
+  name: string;
+  type: string;
+  status: string;
+  config: Record<string, unknown>;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateEventSourceInput {
+  name: string;
+  type: string;
+  config?: Record<string, unknown>;
+}
+
+export interface UpdateEventSourceInput {
+  name?: string;
+  type?: string;
+  config?: Record<string, unknown>;
+}
+
+// ============================================================================
+// Measurement Data Types (Buyer Persona)
+// ============================================================================
+
+export interface MeasurementDataSync {
+  type?: string;
+  source?: string;
+  data?: Record<string, unknown>;
+  measurements?: Record<string, unknown>[];
+  [key: string]: unknown;
+}
+
+// ============================================================================
+// Catalog Types (Buyer Persona)
+// ============================================================================
+
+export interface Catalog {
+  id: string;
+  advertiserId: string;
+  name: string;
+  status: string;
+  itemCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CatalogSync {
+  source?: string;
+  data?: Record<string, unknown>;
+  catalogs?: Record<string, unknown>[];
+  [key: string]: unknown;
+}
+
+// ============================================================================
+// Audience Types (Buyer Persona)
+// ============================================================================
+
+export interface Audience {
+  id: string;
+  advertiserId: string;
+  name: string;
+  size: number;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AudienceSync {
+  source?: string;
+  data?: Record<string, unknown>;
+  audiences?: Record<string, unknown>[];
+  [key: string]: unknown;
+}
+
+// ============================================================================
+// Syndication Types (Buyer Persona)
+// ============================================================================
+
+export interface SyndicationRequest {
+  targets?: string[];
+  resourceType?: string;
+  resourceId?: string;
+  config?: Record<string, unknown>;
+  [key: string]: unknown;
+}
+
+export interface SyndicationStatus {
+  id: string;
+  status: string;
+  targets: string[];
+  createdAt: string;
+}
+
+// ============================================================================
+// Creative Types (Buyer Persona)
+// ============================================================================
+
+export interface Creative {
+  id: string;
+  campaignId: string;
+  name: string;
+  type: string;
+  status: string;
+  metadata?: Record<string, unknown>;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateCreativeInput {
+  name: string;
+  type: string;
+  metadata?: Record<string, unknown>;
+}
+
+export interface UpdateCreativeInput {
+  name?: string;
+  type?: string;
+  metadata?: Record<string, unknown>;
+}
+
+// ============================================================================
+// Task Types (Buyer Persona)
+// ============================================================================
+
+export interface Task {
+  id: string;
+  type: string;
+  status: string;
+  progress?: number;
+  result?: Record<string, unknown>;
+  error?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// ============================================================================
+// Property List Types (Buyer Persona)
+// ============================================================================
+
+export interface PropertyList {
+  id: string;
+  advertiserId: string;
+  name: string;
+  properties: string[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreatePropertyListInput {
+  name: string;
+  properties?: string[];
+  purpose?: string;
+  [key: string]: unknown;
+}
+
+export interface UpdatePropertyListInput {
+  name?: string;
+  properties?: string[];
+}
+
+export interface PropertyListCheck {
+  id: string;
+  status: string;
+  results?: Record<string, unknown>;
+  createdAt: string;
+}
+
+export interface PropertyListReport {
+  id: string;
+  checkId: string;
+  data: Record<string, unknown>;
+  createdAt: string;
+}
+
+// ============================================================================
+// Billing Types (Storefront Persona)
+// ============================================================================
+
+export interface BillingStatus {
+  status: string;
+  connected: boolean;
+  accountId?: string;
+}
+
+export interface BillingTransaction {
+  id: string;
+  amount: number;
+  currency: string;
+  description: string;
+  createdAt: string;
+}
+
+export interface BillingPayout {
+  id: string;
+  amount: number;
+  currency: string;
+  status: string;
+  createdAt: string;
+}
+
+export interface ListBillingParams {
+  limit?: number;
+  offset?: number;
+  startDate?: string;
+  endDate?: string;
 }

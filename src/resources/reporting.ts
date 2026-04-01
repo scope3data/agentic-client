@@ -31,7 +31,7 @@ export class ReportingResource {
       },
     });
     if (shouldValidateResponse(this.adapter.validate)) {
-      validateResponse(reportingSchemas.response, result);
+      return validateResponse(reportingSchemas.response, result) as T;
     }
     return result;
   }

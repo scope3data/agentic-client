@@ -8,7 +8,7 @@ Run the test suite:
 npm test
 ```
 
-This runs 211 unit tests covering:
+This runs 384+ unit tests covering:
 - Client initialization
 - REST and MCP adapters
 - All resource classes
@@ -28,8 +28,8 @@ export SCOPE3_API_KEY=your_api_key
 ./dist/cli/index.js campaigns list
 ./dist/cli/index.js bundles create --advertiser-id <id> --channels display
 
-# Test partner persona
-./dist/cli/index.js --persona partner partners list
+# Test storefront persona
+./dist/cli/index.js --persona storefront storefront get
 
 # Test config
 ./dist/cli/index.js config set apiKey your_key
@@ -48,7 +48,7 @@ export SCOPE3_API_KEY=your_api_key
 
 # CLI workflow tests
 npm run test:buyer     # Buyer persona: advertisers, bundles, campaigns
-npm run test:partner   # Partner persona: health check
+npm run test:storefront   # Storefront persona: health check
 
 # TypeScript SDK test
 npm run test:sdk
@@ -75,9 +75,10 @@ export SCOPE3_ENVIRONMENT=staging
 - Bundle creation and product discovery
 - Campaign creation and lifecycle
 
-### Partner Workflow (`test-partner-workflow.sh`)
-- Partner listing
+### Storefront Workflow (`test-storefront-workflow.sh`)
+- Storefront get
 - Agent listing
+- Inventory source listing
 - Config management
 - Skill.md fetching
 

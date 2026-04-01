@@ -32,5 +32,7 @@ export function validateResponse<T>(schema: ZodSchema<T>, data: unknown): T {
 }
 
 function formatZodError(error: ZodError): string {
-  return error.issues.map((i) => `${i.path.join('.')}: ${i.message}`).join('; ');
+  return error.issues
+    .map((i) => `${i.path.length ? i.path.join('.') : '(root)'}: ${i.message}`)
+    .join('; ');
 }

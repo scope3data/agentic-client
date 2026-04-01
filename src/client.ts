@@ -1,37 +1,44 @@
 /**
- * Scope3Client - Unified client for the Scope3 Agentic Platform
+ * Scope3Client - REST client for the Scope3 Agentic Platform
  *
- * Supports both REST (for humans/CLI) and MCP (for AI agents) adapters.
- * Requires a persona to determine which API surface to use.
+ * Provides typed resource methods for REST consumers (humans, CLI, programmatic use).
+ *
+ * For MCP consumers (AI agents), use Scope3McpClient instead — it's a thin
+ * connection helper that gives you direct access to callTool/readResource
+ * without unnecessary abstraction layers.
  */
 
 import type { Scope3ClientConfig, ApiVersion, Persona } from './types';
-import { BaseAdapter } from './adapters/base';
 import { RestAdapter } from './adapters/rest';
-import { McpAdapter } from './adapters/mcp';
 import { AdvertisersResource } from './resources/advertisers';
 import { CampaignsResource } from './resources/campaigns';
 import { BundlesResource } from './resources/bundles';
 import { SignalsResource } from './resources/signals';
 import { ReportingResource } from './resources/reporting';
 import { SalesAgentsResource } from './resources/sales-agents';
-import { PartnersResource } from './resources/partners';
+import { StorefrontResource } from './resources/storefront';
+import { InventorySourcesResource } from './resources/inventory-sources';
 import { AgentsResource } from './resources/agents';
+import { ReadinessResource } from './resources/readiness';
+import { BillingResource } from './resources/billing';
+import { NotificationsResource } from './resources/notifications';
+import { TasksResource } from './resources/tasks';
+import { PropertyListChecksResource } from './resources/property-lists';
 import { fetchSkillMd, parseSkillMd, ParsedSkill } from './skill';
 
 /**
- * Main client for interacting with the Scope3 Agentic Platform
+ * REST client for interacting with the Scope3 Agentic Platform.
+ * Provides typed resource methods for each API surface.
  *
  * @example
  * ```typescript
  * // Buyer persona
  * const client = new Scope3Client({ apiKey: 'token', persona: 'buyer' });
  * const advertisers = await client.advertisers.list();
- * const bundle = await client.bundles.create({ advertiserId: '123', channels: ['display'] });
  *
- * // Partner persona
- * const partnerClient = new Scope3Client({ apiKey: 'token', persona: 'partner' });
- * const partners = await partnerClient.partners.list();
+ * // Storefront persona
+ * const sfClient = new Scope3Client({ apiKey: 'token', persona: 'storefront' });
+ * const sf = await sfClient.storefront.get();
  * ```
  */
 export class Scope3Client {
@@ -42,42 +49,37 @@ export class Scope3Client {
   private _signals?: SignalsResource;
   private _reporting?: ReportingResource;
   private _salesAgents?: SalesAgentsResource;
+  private _tasks?: TasksResource;
+  private _propertyListChecks?: PropertyListChecksResource;
 
-  // Partner persona resources
-  private _partners?: PartnersResource;
+  // Storefront persona resources
+  private _storefront?: StorefrontResource;
+  private _inventorySources?: InventorySourcesResource;
   private _agents?: AgentsResource;
+  private _readiness?: ReadinessResource;
+  private _billing?: BillingResource;
+  private _notifications?: NotificationsResource;
 
-  /** The adapter used for API communication */
-  private readonly adapter: BaseAdapter;
+  private readonly adapter: RestAdapter;
 
-  /** API version being used */
   public readonly version: ApiVersion;
-
-  /** API persona being used */
   public readonly persona: Persona;
 
-  /** Cached parsed skill.md */
   private skillPromise: Promise<ParsedSkill> | null = null;
 
   constructor(config: Scope3ClientConfig) {
-    if (!config.apiKey) {
+    const trimmedKey = config.apiKey?.trim();
+    if (!trimmedKey) {
       throw new Error('apiKey is required');
     }
     if (!config.persona) {
-      throw new Error('persona is required (buyer or partner)');
+      throw new Error('persona is required (buyer or storefront)');
     }
 
     this.version = config.version ?? 'v2';
     this.persona = config.persona;
+    this.adapter = new RestAdapter({ ...config, apiKey: trimmedKey });
 
-    // Select adapter based on config
-    if (config.adapter === 'mcp') {
-      this.adapter = new McpAdapter(config);
-    } else {
-      this.adapter = new RestAdapter(config);
-    }
-
-    // Initialize persona-specific resources
     switch (this.persona) {
       case 'buyer':
         this._advertisers = new AdvertisersResource(this.adapter);
@@ -86,17 +88,26 @@ export class Scope3Client {
         this._signals = new SignalsResource(this.adapter);
         this._reporting = new ReportingResource(this.adapter);
         this._salesAgents = new SalesAgentsResource(this.adapter);
+        this._tasks = new TasksResource(this.adapter);
+        this._propertyListChecks = new PropertyListChecksResource(this.adapter);
         break;
-      case 'partner':
-        this._partners = new PartnersResource(this.adapter);
+      case 'storefront':
+        this._storefront = new StorefrontResource(this.adapter);
+        this._inventorySources = new InventorySourcesResource(this.adapter);
         this._agents = new AgentsResource(this.adapter);
+        this._readiness = new ReadinessResource(this.adapter);
+        this._billing = new BillingResource(this.adapter);
+        this._notifications = new NotificationsResource(this.adapter);
         break;
+      default: {
+        const _exhaustive: never = this.persona;
+        throw new Error(`Unknown persona: ${_exhaustive}`);
+      }
     }
   }
 
   // ── Buyer persona resources ──────────────────────────────────────
 
-  /** Advertiser management (buyer persona) */
   get advertisers(): AdvertisersResource {
     if (!this._advertisers) {
       throw new Error('advertisers is only available with the buyer persona');
@@ -104,7 +115,6 @@ export class Scope3Client {
     return this._advertisers;
   }
 
-  /** Campaign management (buyer persona) */
   get campaigns(): CampaignsResource {
     if (!this._campaigns) {
       throw new Error('campaigns is only available with the buyer persona');
@@ -112,7 +122,6 @@ export class Scope3Client {
     return this._campaigns;
   }
 
-  /** Bundle management for inventory selection (buyer persona) */
   get bundles(): BundlesResource {
     if (!this._bundles) {
       throw new Error('bundles is only available with the buyer persona');
@@ -120,7 +129,6 @@ export class Scope3Client {
     return this._bundles;
   }
 
-  /** Signal discovery (buyer persona) */
   get signals(): SignalsResource {
     if (!this._signals) {
       throw new Error('signals is only available with the buyer persona');
@@ -128,7 +136,6 @@ export class Scope3Client {
     return this._signals;
   }
 
-  /** Reporting metrics (buyer persona) */
   get reporting(): ReportingResource {
     if (!this._reporting) {
       throw new Error('reporting is only available with the buyer persona');
@@ -136,7 +143,6 @@ export class Scope3Client {
     return this._reporting;
   }
 
-  /** Sales agents (buyer persona) */
   get salesAgents(): SalesAgentsResource {
     if (!this._salesAgents) {
       throw new Error('salesAgents is only available with the buyer persona');
@@ -144,29 +150,66 @@ export class Scope3Client {
     return this._salesAgents;
   }
 
-  // ── Partner persona resources ────────────────────────────────────
-
-  /** Partner management (partner persona) */
-  get partners(): PartnersResource {
-    if (!this._partners) {
-      throw new Error('partners is only available with the partner persona');
+  get tasks(): TasksResource {
+    if (!this._tasks) {
+      throw new Error('tasks is only available with the buyer persona');
     }
-    return this._partners;
+    return this._tasks;
   }
 
-  /** Agent management (partner persona) */
+  get propertyListChecks(): PropertyListChecksResource {
+    if (!this._propertyListChecks) {
+      throw new Error('propertyListChecks is only available with the buyer persona');
+    }
+    return this._propertyListChecks;
+  }
+
+  // ── Storefront persona resources ─────────────────────────────────
+
+  get storefront(): StorefrontResource {
+    if (!this._storefront) {
+      throw new Error('storefront is only available with the storefront persona');
+    }
+    return this._storefront;
+  }
+
+  get inventorySources(): InventorySourcesResource {
+    if (!this._inventorySources) {
+      throw new Error('inventorySources is only available with the storefront persona');
+    }
+    return this._inventorySources;
+  }
+
   get agents(): AgentsResource {
     if (!this._agents) {
-      throw new Error('agents is only available with the partner persona');
+      throw new Error('agents is only available with the storefront persona');
     }
     return this._agents;
   }
 
+  get readiness(): ReadinessResource {
+    if (!this._readiness) {
+      throw new Error('readiness is only available with the storefront persona');
+    }
+    return this._readiness;
+  }
+
+  get billing(): BillingResource {
+    if (!this._billing) {
+      throw new Error('billing is only available with the storefront persona');
+    }
+    return this._billing;
+  }
+
+  get notifications(): NotificationsResource {
+    if (!this._notifications) {
+      throw new Error('notifications is only available with the storefront persona');
+    }
+    return this._notifications;
+  }
+
   // ── Shared methods ───────────────────────────────────────────────
 
-  /**
-   * Get the parsed skill.md for this persona and API version
-   */
   async getSkill(): Promise<ParsedSkill> {
     if (!this.skillPromise) {
       this.skillPromise = fetchSkillMd({
@@ -183,26 +226,10 @@ export class Scope3Client {
     return this.skillPromise;
   }
 
-  /**
-   * Connect to the API (required for MCP adapter)
-   */
-  async connect(): Promise<void> {
-    await this.adapter.connect();
-  }
-
-  /**
-   * Disconnect from the API (for cleanup)
-   */
-  async disconnect(): Promise<void> {
-    await this.adapter.disconnect();
-  }
-
-  /** Get the base URL being used */
   get baseUrl(): string {
     return this.adapter.baseUrl;
   }
 
-  /** Check if debug mode is enabled */
   get debug(): boolean {
     return this.adapter.debug;
   }

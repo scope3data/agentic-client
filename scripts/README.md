@@ -14,17 +14,15 @@ export SCOPE3_API_KEY=your_api_key     # get from agentic.scope3.com -> Manage A
 | Script | Persona | What it tests |
 |--------|---------|---------------|
 | `test-buyer-workflow.sh` | buyer | Advertisers, bundles, product discovery, campaigns |
-| `test-brand-workflow.sh` | brand | Brand CRUD with manifest URL and inline JSON |
-| `test-partner-workflow.sh` | partner | Health check, config, skill.md |
-| `test-sdk-workflow.ts` | all 3 | Full TypeScript SDK test (not CLI) |
+| `test-storefront-workflow.sh` | storefront | Health check, config, skill.md |
+| `test-sdk-workflow.ts` | both | Full TypeScript SDK test (not CLI) |
 
 ## Usage
 
 ```bash
 # CLI workflow tests (bash)
 ./scripts/test-buyer-workflow.sh
-./scripts/test-brand-workflow.sh
-./scripts/test-partner-workflow.sh
+./scripts/test-storefront-workflow.sh
 
 # Use staging
 ./scripts/test-buyer-workflow.sh --staging
@@ -35,12 +33,11 @@ npx ts-node scripts/test-sdk-workflow.ts --staging
 
 # Or via npm scripts
 npm run test:buyer
-npm run test:brand
-npm run test:partner
+npm run test:storefront
 npm run test:sdk
-npm run test:all                       # runs all 4
+npm run test:all                       # runs both
 ```
 
 ## Cleanup
 
-The buyer and brand scripts auto-clean test resources on exit. If a script is interrupted, check your dashboard for leftover test advertisers/brands.
+The buyer script auto-cleans test resources on exit. If a script is interrupted, check your dashboard for leftover test advertisers.
