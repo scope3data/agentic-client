@@ -173,6 +173,118 @@ describe('formatOutput', () => {
       expect(output).toContain('hello');
       expect(output).toContain('world');
     });
+
+    it('should render data array response with meta.pagination envelope', () => {
+      formatOutput(
+        {
+          data: [
+            { id: '1', name: 'Campaign A' },
+            { id: '2', name: 'Campaign B' },
+          ],
+          meta: {
+            pagination: { total: 50, take: 10, skip: 0, hasMore: true },
+          },
+        },
+        'table'
+      );
+      const output = consoleOutput.join('\n');
+      expect(output).toContain('id');
+      expect(output).toContain('Campaign A');
+      expect(output).toContain('Campaign B');
+      expect(output).toContain('Showing 2 of 50');
+    });
+
+    it('should render data array response with direct pagination', () => {
+      formatOutput(
+        {
+          data: [
+            { id: '1', name: 'Item One' },
+            { id: '2', name: 'Item Two' },
+            { id: '3', name: 'Item Three' },
+          ],
+          pagination: { total: 200, take: 25, skip: 0, hasMore: true },
+        },
+        'table'
+      );
+      const output = consoleOutput.join('\n');
+      expect(output).toContain('Item One');
+      expect(output).toContain('Item Three');
+      expect(output).toContain('Showing 3 of 200');
+    });
+
+    it('should render nested data response with known array key', () => {
+      formatOutput(
+        {
+          data: {
+            campaigns: [
+              { id: 'c1', name: 'Spring Sale', status: 'ACTIVE' },
+              { id: 'c2', name: 'Summer Sale', status: 'PAUSED' },
+            ],
+            total: 2,
+          },
+        },
+        'table'
+      );
+      const output = consoleOutput.join('\n');
+      expect(output).toContain('Spring Sale');
+      expect(output).toContain('Summer Sale');
+      expect(output).toContain('Showing 2 of 2');
+    });
+
+    it('should unwrap single data object response', () => {
+      formatOutput(
+        {
+          data: { id: '1', name: 'Test', status: 'ACTIVE' },
+        },
+        'table'
+      );
+      const output = consoleOutput.join('\n');
+      expect(output).toContain('id');
+      expect(output).toContain('1');
+      expect(output).toContain('name');
+      expect(output).toContain('Test');
+    });
+  });
+
+  describe('formatValue edge cases', () => {
+    it('should render boolean values', () => {
+      formatOutput([{ active: true, deleted: false }], 'table');
+      const output = consoleOutput.join('\n');
+      expect(output).toContain('true');
+      expect(output).toContain('false');
+    });
+
+    it('should render array with more than 3 items as count', () => {
+      formatOutput([{ tags: ['a', 'b', 'c', 'd'] }], 'table');
+      const output = consoleOutput.join('\n');
+      expect(output).toContain('4 items');
+    });
+
+    it('should render array with 3 or fewer primitive items as comma-separated', () => {
+      formatOutput([{ tags: ['x', 'y', 'z'] }], 'table');
+      const output = consoleOutput.join('\n');
+      expect(output).toContain('x, y, z');
+    });
+
+    it('should render object with more than 2 keys as field count', () => {
+      formatOutput([{ meta: { a: 1, b: 2, c: 3 } }], 'table');
+      const output = consoleOutput.join('\n');
+      expect(output).toContain('3 fields');
+    });
+
+    it('should truncate strings longer than 50 characters', () => {
+      const longString = 'A'.repeat(60);
+      formatOutput([{ description: longString }], 'table');
+      const output = consoleOutput.join('\n');
+      expect(output).toContain('A'.repeat(47) + '...');
+      expect(output).not.toContain('A'.repeat(60));
+    });
+
+    it('should render null values as dash', () => {
+      formatOutput([{ value: null }], 'table');
+      const output = consoleOutput.join('\n');
+      expect(output).toContain('-');
+    });
   });
 });
 

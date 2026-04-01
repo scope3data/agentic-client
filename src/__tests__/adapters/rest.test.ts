@@ -256,6 +256,64 @@ describe('RestAdapter', () => {
       });
     });
 
+    it('should throw timeout error on TimeoutError', async () => {
+      const timeoutError = new Error('The operation timed out');
+      timeoutError.name = 'TimeoutError';
+      mockFetch.mockRejectedValue(timeoutError);
+
+      const adapter = new RestAdapter({
+        apiKey: 'test-key',
+        persona: 'buyer',
+        timeout: 5000,
+      });
+
+      await expect(adapter.request('GET', '/advertisers')).rejects.toMatchObject({
+        status: 408,
+        message: expect.stringContaining('timeout'),
+      });
+    });
+
+    it('should handle non-Error throw from fetch', async () => {
+      mockFetch.mockRejectedValue('something went wrong');
+
+      const adapter = new RestAdapter({ apiKey: 'test-key', persona: 'buyer' });
+
+      await expect(adapter.request('GET', '/advertisers')).rejects.toMatchObject({
+        status: 0,
+        message: 'Unknown error occurred',
+      });
+
+      mockFetch.mockRejectedValue(42);
+
+      await expect(adapter.request('GET', '/advertisers')).rejects.toMatchObject({
+        status: 0,
+        message: 'Unknown error occurred',
+      });
+    });
+
+    it('should extract nested error message and details from error envelope', async () => {
+      mockFetch.mockResolvedValue({
+        ok: false,
+        status: 400,
+        headers: { get: () => 'application/json' },
+        json: async () => ({
+          error: {
+            code: 'VALIDATION_ERROR',
+            message: 'Invalid field',
+            details: { field: 'name' },
+          },
+        }),
+      });
+
+      const adapter = new RestAdapter({ apiKey: 'test-key', persona: 'buyer' });
+
+      await expect(adapter.request('POST', '/advertisers', { name: '' })).rejects.toMatchObject({
+        status: 400,
+        message: 'Invalid field',
+        details: { field: 'name' },
+      });
+    });
+
     it('should return undefined for 204 No Content response', async () => {
       mockFetch.mockResolvedValue({
         ok: true,

@@ -420,5 +420,73 @@ describe('Scope3McpClient', () => {
 
       expect(mockCallTool).toHaveBeenCalledTimes(1);
     });
+
+    it('should throw when tokenExpiresAt is a Date object in the past', async () => {
+      const pastDate = new Date(Date.now() - 5000);
+      const client = new Scope3McpClient({
+        apiKey: 'test-key',
+        tokenExpiresAt: pastDate,
+      });
+      mockCallTool.mockResolvedValue({ content: [] });
+
+      await client.connect();
+
+      await expect(client.callTool('health')).rejects.toThrow(
+        'API token has expired. Please provide a fresh token.'
+      );
+    });
+  });
+
+  describe('idle timer fires and disconnects', () => {
+    it('should invoke disconnect when idle timeout elapses after callTool', async () => {
+      const client = new Scope3McpClient({ apiKey: 'test-key', idleTimeoutMs: 10_000 });
+      mockCallTool.mockResolvedValue({ content: [{ type: 'text', text: 'ok' }] });
+      const disconnectSpy = jest.spyOn(client, 'disconnect');
+
+      await client.callTool('health');
+      expect(disconnectSpy).not.toHaveBeenCalled();
+
+      jest.advanceTimersByTime(10_000);
+
+      expect(disconnectSpy).toHaveBeenCalledTimes(1);
+      disconnectSpy.mockRestore();
+    });
+  });
+
+  describe('readResource and listTools reset idle timer', () => {
+    it('should reset idle timer after readResource', async () => {
+      const setTimeoutSpy = jest.spyOn(global, 'setTimeout');
+      const client = new Scope3McpClient({ apiKey: 'test-key' });
+      mockReadResource.mockResolvedValue({ contents: [] });
+
+      await client.readResource('scope3://schema/advertiser');
+
+      expect(setTimeoutSpy).toHaveBeenCalledWith(expect.any(Function), 300_000);
+      setTimeoutSpy.mockRestore();
+    });
+
+    it('should reset idle timer after listTools', async () => {
+      const setTimeoutSpy = jest.spyOn(global, 'setTimeout');
+      const client = new Scope3McpClient({ apiKey: 'test-key' });
+      mockListTools.mockResolvedValue({ tools: [] });
+
+      await client.listTools();
+
+      expect(setTimeoutSpy).toHaveBeenCalledWith(expect.any(Function), 300_000);
+      setTimeoutSpy.mockRestore();
+    });
+  });
+
+  describe('debug logging', () => {
+    it('should not throw when debug mode is enabled during connect and callTool', async () => {
+      const client = new Scope3McpClient({ apiKey: 'test-key', debug: true });
+      mockCallTool.mockResolvedValue({ content: [{ type: 'text', text: 'ok' }] });
+
+      await client.connect();
+      const result = await client.callTool('health');
+
+      expect(client.isConnected).toBe(true);
+      expect(result).toEqual({ content: [{ type: 'text', text: 'ok' }] });
+    });
   });
 });
