@@ -60,6 +60,10 @@ export interface Scope3McpClientConfig {
   baseUrl?: string;
   /** Enable debug logging */
   debug?: boolean;
+  /** Idle timeout in ms before auto-disconnect (default: 300000 = 5 min, 0 to disable) */
+  idleTimeoutMs?: number;
+  /** Token expiry time — epoch ms or Date object. If set, expired tokens cause disconnect + error. */
+  tokenExpiresAt?: Date | number;
 }
 
 /**
@@ -78,6 +82,9 @@ export class Scope3McpClient {
   private connectPromise: Promise<void> | null = null;
   private readonly debugMode: boolean;
   private readonly apiKey: string;
+  private readonly idleTimeoutMs: number;
+  private readonly tokenExpiresAt: number | null;
+  private idleTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor(config: Scope3McpClientConfig) {
     const trimmedKey = config.apiKey?.trim();
@@ -87,6 +94,13 @@ export class Scope3McpClient {
 
     this.apiKey = trimmedKey;
     this.debugMode = config.debug ?? false;
+    this.idleTimeoutMs = config.idleTimeoutMs ?? 300_000;
+    this.tokenExpiresAt =
+      config.tokenExpiresAt != null
+        ? config.tokenExpiresAt instanceof Date
+          ? config.tokenExpiresAt.getTime()
+          : config.tokenExpiresAt
+        : null;
     this.baseUrl = config.baseUrl?.replace(/\/$/, '') ?? getDefaultBaseUrl(config.environment);
 
     if (this.debugMode) {
@@ -110,7 +124,7 @@ export class Scope3McpClient {
     try {
       this.mcpClient = new Client(
         { name: 'scope3-sdk', version: SDK_VERSION },
-        { capabilities: { tools: {} } }
+        { capabilities: { tools: {}, experimental: { apps: {} } } }
       );
 
       this.transport = new StreamableHTTPClientTransport(new URL(`${this.baseUrl}/mcp`), {
@@ -142,6 +156,7 @@ export class Scope3McpClient {
    */
   async disconnect(): Promise<void> {
     if (!this.connected) return;
+    this.clearIdleTimer();
     try {
       await this.mcpClient?.close();
       await this.transport?.close();
@@ -158,6 +173,35 @@ export class Scope3McpClient {
     }
   }
 
+  private resetIdleTimer(): void {
+    this.clearIdleTimer();
+    if (this.idleTimeoutMs > 0) {
+      this.idleTimer = setTimeout(() => {
+        void this.disconnect();
+      }, this.idleTimeoutMs);
+    }
+  }
+
+  private clearIdleTimer(): void {
+    if (this.idleTimer !== null) {
+      clearTimeout(this.idleTimer);
+      this.idleTimer = null;
+    }
+  }
+
+  private isTokenExpired(): boolean {
+    if (this.tokenExpiresAt === null) return false;
+    return Date.now() >= this.tokenExpiresAt;
+  }
+
+  private async ensureValidConnection(): Promise<void> {
+    if (this.connected && this.isTokenExpired()) {
+      await this.disconnect();
+      throw new Scope3ApiError(0, 'API token has expired. Please provide a fresh token.');
+    }
+    if (!this.connected) await this.connect();
+  }
+
   private getClient(): Client {
     if (!this.mcpClient) {
       throw new Scope3ApiError(0, 'MCP client is not connected');
@@ -171,7 +215,7 @@ export class Scope3McpClient {
    * The v2 buyer surface exposes: api_call, ask_about_capability, help, health.
    */
   async callTool(name: string, args?: Record<string, unknown>): Promise<CallToolResult> {
-    if (!this.connected) await this.connect();
+    await this.ensureValidConnection();
 
     if (this.debugMode) {
       logger.debug('callTool', { name, args: sanitizeForLogging(args) });
@@ -182,6 +226,7 @@ export class Scope3McpClient {
       arguments: args,
     });
 
+    this.resetIdleTimer();
     return result as CallToolResult;
   }
 
@@ -189,21 +234,25 @@ export class Scope3McpClient {
    * Read an MCP resource directly. Auto-connects on first call.
    */
   async readResource(uri: string): Promise<ReadResourceResult> {
-    if (!this.connected) await this.connect();
+    await this.ensureValidConnection();
 
     if (this.debugMode) {
       logger.debug('readResource', { uri });
     }
 
-    return this.getClient().readResource({ uri });
+    const result = await this.getClient().readResource({ uri });
+    this.resetIdleTimer();
+    return result;
   }
 
   /**
    * List all available MCP tools. Auto-connects on first call.
    */
   async listTools(): Promise<ListToolsResult> {
-    if (!this.connected) await this.connect();
-    return this.getClient().listTools();
+    await this.ensureValidConnection();
+    const result = await this.getClient().listTools();
+    this.resetIdleTimer();
+    return result;
   }
 
   /** Whether the client is currently connected */

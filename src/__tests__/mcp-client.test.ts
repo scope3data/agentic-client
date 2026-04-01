@@ -22,6 +22,9 @@ jest.mock('@modelcontextprotocol/sdk/client/index.js', () => ({
   })),
 }));
 
+// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
+const { Client: MockClient } = require('@modelcontextprotocol/sdk/client/index.js');
+
 jest.mock('@modelcontextprotocol/sdk/client/streamableHttp.js', () => ({
   StreamableHTTPClientTransport: jest.fn().mockImplementation(() => ({
     close: jest.fn(),
@@ -30,11 +33,17 @@ jest.mock('@modelcontextprotocol/sdk/client/streamableHttp.js', () => ({
 
 describe('Scope3McpClient', () => {
   beforeEach(() => {
+    jest.useFakeTimers();
     mockConnect.mockReset();
     mockClose.mockReset();
     mockCallTool.mockReset();
     mockReadResource.mockReset();
     mockListTools.mockReset();
+    MockClient.mockClear();
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
   });
 
   describe('initialization', () => {
@@ -284,6 +293,132 @@ describe('Scope3McpClient', () => {
       const result = await client.listTools();
       expect(result.tools).toHaveLength(4);
       expect(result.tools[0].name).toBe('api_call');
+    });
+  });
+
+  describe('MCP Apps capability', () => {
+    it('should declare apps in experimental capabilities', async () => {
+      const client = new Scope3McpClient({ apiKey: 'test-key' });
+      await client.connect();
+
+      expect(MockClient).toHaveBeenCalledWith(
+        { name: 'scope3-sdk', version: expect.any(String) },
+        { capabilities: { tools: {}, experimental: { apps: {} } } }
+      );
+    });
+  });
+
+  describe('idle timeout', () => {
+    it('should set a timer after callTool with default timeout', async () => {
+      const setTimeoutSpy = jest.spyOn(global, 'setTimeout');
+      const client = new Scope3McpClient({ apiKey: 'test-key' });
+      mockCallTool.mockResolvedValue({ content: [] });
+
+      await client.callTool('health');
+
+      expect(setTimeoutSpy).toHaveBeenCalledWith(expect.any(Function), 300_000);
+      setTimeoutSpy.mockRestore();
+    });
+
+    it('should set a timer with custom timeout', async () => {
+      const setTimeoutSpy = jest.spyOn(global, 'setTimeout');
+      const client = new Scope3McpClient({ apiKey: 'test-key', idleTimeoutMs: 60_000 });
+      mockCallTool.mockResolvedValue({ content: [] });
+
+      await client.callTool('health');
+
+      expect(setTimeoutSpy).toHaveBeenCalledWith(expect.any(Function), 60_000);
+      setTimeoutSpy.mockRestore();
+    });
+
+    it('should clear the timer on disconnect', async () => {
+      const clearTimeoutSpy = jest.spyOn(global, 'clearTimeout');
+      const client = new Scope3McpClient({ apiKey: 'test-key' });
+      mockCallTool.mockResolvedValue({ content: [] });
+
+      await client.callTool('health');
+      await client.disconnect();
+
+      expect(clearTimeoutSpy).toHaveBeenCalled();
+      clearTimeoutSpy.mockRestore();
+    });
+
+    it('should not set a timer when idleTimeoutMs is 0', async () => {
+      const setTimeoutSpy = jest.spyOn(global, 'setTimeout');
+      const client = new Scope3McpClient({ apiKey: 'test-key', idleTimeoutMs: 0 });
+      mockCallTool.mockResolvedValue({ content: [] });
+
+      const callsBefore = setTimeoutSpy.mock.calls.length;
+      await client.callTool('health');
+
+      // No new setTimeout calls should have been made for idle timeout
+      const newCalls = setTimeoutSpy.mock.calls.slice(callsBefore);
+      const hasIdleTimeout = newCalls.some(([, ms]) => typeof ms === 'number' && ms > 0);
+      expect(hasIdleTimeout).toBe(false);
+      setTimeoutSpy.mockRestore();
+    });
+  });
+
+  describe('token expiry', () => {
+    it('should throw when token is expired on callTool', async () => {
+      const client = new Scope3McpClient({
+        apiKey: 'test-key',
+        tokenExpiresAt: Date.now() - 1000, // already expired
+      });
+      mockCallTool.mockResolvedValue({ content: [] });
+
+      await client.connect();
+
+      await expect(client.callTool('health')).rejects.toThrow(
+        'API token has expired. Please provide a fresh token.'
+      );
+    });
+
+    it('should throw a Scope3ApiError when token is expired', async () => {
+      const client = new Scope3McpClient({
+        apiKey: 'test-key',
+        tokenExpiresAt: Date.now() - 1000,
+      });
+      mockCallTool.mockResolvedValue({ content: [] });
+
+      await client.connect();
+
+      await expect(client.callTool('health')).rejects.toThrow(Scope3ApiError);
+    });
+
+    it('should disconnect when token expires', async () => {
+      const client = new Scope3McpClient({
+        apiKey: 'test-key',
+        tokenExpiresAt: Date.now() - 1000,
+      });
+      mockCallTool.mockResolvedValue({ content: [] });
+
+      await client.connect();
+      expect(client.isConnected).toBe(true);
+
+      await expect(client.callTool('health')).rejects.toThrow();
+      expect(client.isConnected).toBe(false);
+    });
+
+    it('should work fine when tokenExpiresAt is not set', async () => {
+      const client = new Scope3McpClient({ apiKey: 'test-key' });
+      mockCallTool.mockResolvedValue({ content: [{ type: 'text', text: 'ok' }] });
+
+      await client.callTool('health');
+
+      expect(mockCallTool).toHaveBeenCalledTimes(1);
+    });
+
+    it('should work fine when token is not yet expired', async () => {
+      const client = new Scope3McpClient({
+        apiKey: 'test-key',
+        tokenExpiresAt: Date.now() + 60_000, // expires in 1 min
+      });
+      mockCallTool.mockResolvedValue({ content: [{ type: 'text', text: 'ok' }] });
+
+      await client.callTool('health');
+
+      expect(mockCallTool).toHaveBeenCalledTimes(1);
     });
   });
 });
