@@ -62,7 +62,7 @@
   "homepage": "https://github.com/scope3data/agentic-client#readme",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.20.1",
-    "chalk": "^4.1.2",
+    "chalk": "^5.6.2",
     "cli-table3": "^0.6.5",
     "commander": "^14.0.2",
     "express": "^4.18.0",
