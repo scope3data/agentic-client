@@ -12,7 +12,7 @@ jobs:
     outputs:
       drift_detected: ${{ steps.drift.outputs.exit_code == '1' }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - uses: scope3data/actions/node/install@node/install/v1
 
