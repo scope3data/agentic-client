@@ -12,13 +12,15 @@ jobs:
     name: Release
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
+      pull-requests: write
       id-token: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
         with:
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Generate GitHub App token
         id: app-token
@@ -28,7 +30,10 @@ jobs:
           private-key: ${{ secrets.SCOPE3_WIZARD_APP_PRIVATE_KEY }}
 
       - name: Configure git for app token
-        run: git remote set-url origin "https://x-access-token:${{ steps.app-token.outputs.token }}@github.com/${{ github.repository }}"
+        run: |
+          git remote set-url origin "https://x-access-token:${{ steps.app-token.outputs.token }}@github.com/${{ github.repository }}"
+          git config user.name "scope3-wizard[bot]"
+          git config user.email "${{ vars.SCOPE3_WIZARD_APP_ID }}+scope3-wizard[bot]@users.noreply.github.com"
 
       # setup-node used directly: internal action doesn't support registry-url
       - name: Setup Node.js
@@ -48,6 +53,8 @@ jobs:
           version: npm run version
           commit: 'chore: version packages'
           title: 'chore: version packages'
+          setupGitUser: false
+          github-token: ${{ steps.app-token.outputs.token }}
         env:
           GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
 
