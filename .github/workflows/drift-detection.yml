@@ -14,7 +14,13 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - uses: scope3data/actions/node/install@node/install/v1
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund --ignore-scripts
 
       - name: Run drift detection
         id: drift
@@ -49,29 +55,27 @@ jobs:
 
       - name: Alert on drift
         if: steps.drift.outputs.exit_code == '1'
+        uses: ./.github/actions/slack-post
         env:
           SLACK_TOKEN: ${{ secrets.SLACK_NOTIF_BOT_TOKEN }}
-        uses: scope3data/actions/slack/post@slack/post/v2
         with:
           channel: '#agentic-service-alerts'
           header: 'SDK API Drift Detected'
           content: |
             [
-              {
-                "type": "section",
-                "text": {
-                  "type": "mrkdwn",
-                  "text": "*${{ steps.parse.outputs.total }} endpoint(s) out of sync*\n\n*skill.md vs spec:*\n• Missing from skill.md: ${{ steps.parse.outputs.skill_missing }}\n• Extra in skill.md: ${{ steps.parse.outputs.skill_extra }}\n\n*SDK vs spec:*\n• Missing from SDK: ${{ steps.parse.outputs.sdk_missing }}\n• Extra in SDK: ${{ steps.parse.outputs.sdk_extra }}"
-                }
-              },
-              {
-                "type": "section",
-                "text": {
-                  "type": "mrkdwn",
-                  "text": "<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View full report>"
-                }
-              }
+              {"type": "section", "text": {"type": "mrkdwn", "text": "*${{ steps.parse.outputs.total }} endpoint(s) out of sync*\n\n*skill.md vs spec:*\n• Missing from skill.md: ${{ steps.parse.outputs.skill_missing }}\n• Extra in skill.md: ${{ steps.parse.outputs.skill_extra }}\n\n*SDK vs spec:*\n• Missing from SDK: ${{ steps.parse.outputs.sdk_missing }}\n• Extra in SDK: ${{ steps.parse.outputs.sdk_extra }}"}},
+              {"type": "section", "text": {"type": "mrkdwn", "text": "<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View full report>"}}
             ]
+
+      - name: Notify on failure
+        if: failure()
+        uses: ./.github/actions/slack-post
+        env:
+          SLACK_TOKEN: ${{ secrets.SLACK_NOTIF_BOT_TOKEN }}
+        with:
+          channel: '#agentic-service-alerts'
+          header: 'API Drift Detection Failed'
+          content: '[{"type": "section", "text": {"type": "mrkdwn", "text": "The drift detection workflow failed. <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View run>"}}]'
 
   regenerate:
     name: Regenerate Schemas

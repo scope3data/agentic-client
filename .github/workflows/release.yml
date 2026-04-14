@@ -51,3 +51,13 @@ jobs:
           title: 'chore: version packages'
         env:
           GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
+
+      - name: Notify on failure
+        if: failure()
+        uses: ./.github/actions/slack-post
+        env:
+          SLACK_TOKEN: ${{ secrets.SLACK_NOTIF_BOT_TOKEN }}
+        with:
+          channel: '#agentic-service-alerts'
+          header: 'Release Failed'
+          content: '[{"type": "section", "text": {"type": "mrkdwn", "text": "The release workflow failed. <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View run>"}}]'
