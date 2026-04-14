@@ -24,7 +24,13 @@ jobs:
         with:
           token: ${{ steps.app-token.outputs.token }}
 
-      - uses: scope3data/actions/node/install@node/install/v1
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund --ignore-scripts
 
       - name: Regenerate schemas
         run: npm run generate-schemas
@@ -83,24 +89,34 @@ jobs:
         if: steps.create-pr.outputs.pr_url
         env:
           SLACK_TOKEN: ${{ secrets.SLACK_NOTIF_BOT_TOKEN }}
-        uses: scope3data/actions/slack/post@slack/post/v2
-        with:
-          channel: '#agentic-service-alerts'
-          header: 'SDK Schemas Regenerated'
-          content: |
-            [
-              {
-                "type": "section",
-                "text": {
-                  "type": "mrkdwn",
-                  "text": "A PR has been created to update Zod schemas from the latest OpenAPI specification."
-                }
-              },
-              {
-                "type": "section",
-                "text": {
-                  "type": "mrkdwn",
-                  "text": "<${{ steps.create-pr.outputs.pr_url }}|View Pull Request>"
-                }
-              }
-            ]
+        run: |
+          TIMESTAMP=$(date +%s)
+          TIMESTAMP_FMT=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          PAYLOAD=$(jq -n \
+            --arg channel "#agentic-service-alerts" \
+            --arg header "SDK Schemas Regenerated" \
+            --arg repo "${{ github.repository }}" \
+            --arg server "${{ github.server_url }}" \
+            --arg run_id "${{ github.run_id }}" \
+            --arg pr_url "${{ steps.create-pr.outputs.pr_url }}" \
+            --argjson ts "$TIMESTAMP" \
+            --arg ts_fmt "$TIMESTAMP_FMT" \
+            '{
+              channel: $channel,
+              text: $header,
+              blocks: [
+                {type: "header", text: {type: "plain_text", text: $header}},
+                {type: "context", elements: [{type: "mrkdwn", text: "<\($server)/\($repo)|\($repo)> | <\($server)/\($repo)/actions/runs/\($run_id)|Run #\($run_id)>"}]},
+                {type: "section", text: {type: "mrkdwn", text: "A PR has been created to update Zod schemas from the latest OpenAPI specification."}},
+                {type: "section", text: {type: "mrkdwn", text: "<\($pr_url)|View Pull Request>"}},
+                {type: "context", elements: [{type: "mrkdwn", text: "Posted at <!date^\($ts)^{date_num} {time_secs}|\($ts_fmt)>"}]}
+              ]
+            }')
+          RESPONSE=$(curl -s -X POST https://slack.com/api/chat.postMessage \
+            -H "Authorization: Bearer $SLACK_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d "$PAYLOAD")
+          if [ "$(echo "$RESPONSE" | jq -r '.ok')" != "true" ]; then
+            echo "Slack API error: $(echo "$RESPONSE" | jq -r '.error')"
+            exit 1
+          fi
