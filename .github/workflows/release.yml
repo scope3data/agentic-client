@@ -15,6 +15,11 @@ jobs:
       contents: read
       id-token: write
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
       - name: Generate GitHub App token
         id: app-token
         uses: actions/create-github-app-token@v3
@@ -22,11 +27,8 @@ jobs:
           client-id: ${{ vars.SCOPE3_WIZARD_CLIENT_ID }}
           private-key: ${{ secrets.SCOPE3_WIZARD_APP_PRIVATE_KEY }}
 
-      - name: Checkout code
-        uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
-          token: ${{ steps.app-token.outputs.token }}
+      - name: Configure git for app token
+        run: git remote set-url origin "https://x-access-token:${{ steps.app-token.outputs.token }}@github.com/${{ github.repository }}"
 
       # setup-node used directly: internal action doesn't support registry-url
       - name: Setup Node.js
@@ -34,9 +36,6 @@ jobs:
         with:
           node-version: '22'
           registry-url: 'https://registry.npmjs.org'
-
-      - name: Update npm
-        run: npm install -g npm@latest
 
       - name: Install dependencies
         run: npm ci
