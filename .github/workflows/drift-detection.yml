@@ -55,43 +55,27 @@ jobs:
 
       - name: Alert on drift
         if: steps.drift.outputs.exit_code == '1'
+        uses: ./.github/actions/slack-post
         env:
           SLACK_TOKEN: ${{ secrets.SLACK_NOTIF_BOT_TOKEN }}
-        run: |
-          TIMESTAMP=$(date +%s)
-          TIMESTAMP_FMT=$(date -u +%Y-%m-%dT%H:%M:%SZ)
-          PAYLOAD=$(jq -n \
-            --arg channel "#agentic-service-alerts" \
-            --arg header "SDK API Drift Detected" \
-            --arg repo "${{ github.repository }}" \
-            --arg server "${{ github.server_url }}" \
-            --arg run_id "${{ github.run_id }}" \
-            --arg total "${{ steps.parse.outputs.total }}" \
-            --arg skill_missing "${{ steps.parse.outputs.skill_missing }}" \
-            --arg skill_extra "${{ steps.parse.outputs.skill_extra }}" \
-            --arg sdk_missing "${{ steps.parse.outputs.sdk_missing }}" \
-            --arg sdk_extra "${{ steps.parse.outputs.sdk_extra }}" \
-            --argjson ts "$TIMESTAMP" \
-            --arg ts_fmt "$TIMESTAMP_FMT" \
-            '{
-              channel: $channel,
-              text: $header,
-              blocks: [
-                {type: "header", text: {type: "plain_text", text: $header}},
-                {type: "context", elements: [{type: "mrkdwn", text: "<\($server)/\($repo)|\($repo)> | <\($server)/\($repo)/actions/runs/\($run_id)|Run #\($run_id)>"}]},
-                {type: "section", text: {type: "mrkdwn", text: ("*\($total) endpoint(s) out of sync*\n\n*skill.md vs spec:*\n• Missing from skill.md: \($skill_missing)\n• Extra in skill.md: \($skill_extra)\n\n*SDK vs spec:*\n• Missing from SDK: \($sdk_missing)\n• Extra in SDK: \($sdk_extra)")}},
-                {type: "section", text: {type: "mrkdwn", text: "<\($server)/\($repo)/actions/runs/\($run_id)|View full report>"}},
-                {type: "context", elements: [{type: "mrkdwn", text: "Posted at <!date^\($ts)^{date_num} {time_secs}|\($ts_fmt)>"}]}
-              ]
-            }')
-          RESPONSE=$(curl -s -X POST https://slack.com/api/chat.postMessage \
-            -H "Authorization: Bearer $SLACK_TOKEN" \
-            -H "Content-Type: application/json" \
-            -d "$PAYLOAD")
-          if [ "$(echo "$RESPONSE" | jq -r '.ok')" != "true" ]; then
-            echo "Slack API error: $(echo "$RESPONSE" | jq -r '.error')"
-            exit 1
-          fi
+        with:
+          channel: '#agentic-service-alerts'
+          header: 'SDK API Drift Detected'
+          content: |
+            [
+              {"type": "section", "text": {"type": "mrkdwn", "text": "*${{ steps.parse.outputs.total }} endpoint(s) out of sync*\n\n*skill.md vs spec:*\n• Missing from skill.md: ${{ steps.parse.outputs.skill_missing }}\n• Extra in skill.md: ${{ steps.parse.outputs.skill_extra }}\n\n*SDK vs spec:*\n• Missing from SDK: ${{ steps.parse.outputs.sdk_missing }}\n• Extra in SDK: ${{ steps.parse.outputs.sdk_extra }}"}},
+              {"type": "section", "text": {"type": "mrkdwn", "text": "<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View full report>"}}
+            ]
+
+      - name: Notify on failure
+        if: failure()
+        uses: ./.github/actions/slack-post
+        env:
+          SLACK_TOKEN: ${{ secrets.SLACK_NOTIF_BOT_TOKEN }}
+        with:
+          channel: '#agentic-service-alerts'
+          header: 'API Drift Detection Failed'
+          content: '[{"type": "section", "text": {"type": "mrkdwn", "text": "The drift detection workflow failed. <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View run>"}}]'
 
   regenerate:
     name: Regenerate Schemas
