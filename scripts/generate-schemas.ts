@@ -31,10 +31,19 @@ function postProcessSchemas(filePath: string) {
 
   // Fix path params: generator always uses 'id', needs the specific param name
   const pathParamFixes: Array<[RegExp, string]> = [
-    [/path: '\/campaigns\/:campaignId',([\s\S]*?)name: 'id',/g, "path: '/campaigns/:campaignId',$1name: 'campaignId',"],
-    [/path: '\/advertisers\/:advertiserId',([\s\S]*?)name: 'id',/g, "path: '/advertisers/:advertiserId',$1name: 'advertiserId',"],
+    [
+      /path: '\/campaigns\/:campaignId',([\s\S]*?)name: 'id',/g,
+      "path: '/campaigns/:campaignId',$1name: 'campaignId',",
+    ],
+    [
+      /path: '\/advertisers\/:advertiserId',([\s\S]*?)name: 'id',/g,
+      "path: '/advertisers/:advertiserId',$1name: 'advertiserId',",
+    ],
     [/path: '\/tasks\/:taskId',([\s\S]*?)name: 'id',/g, "path: '/tasks/:taskId',$1name: 'taskId',"],
-    [/path: '\/sales-agents\/:agentId',([\s\S]*?)name: 'id',/g, "path: '/sales-agents/:agentId',$1name: 'agentId',"],
+    [
+      /path: '\/sales-agents\/:agentId',([\s\S]*?)name: 'id',/g,
+      "path: '/sales-agents/:agentId',$1name: 'agentId',",
+    ],
   ];
   for (const [pattern, replacement] of pathParamFixes) {
     content = content.replace(pattern, replacement);
@@ -75,16 +84,19 @@ function postProcessSchemas(filePath: string) {
   content = content.replace(/^const (\w+) = \1;\n/gm, '');
   // Remove duplicate export keys
   const exportLines = new Set<string>();
+  content = content.replace(/(export const schemas = \{[\s\S]*?\};)/, (exportBlock) => {
+    return exportBlock.replace(/^(\s+\w+,?)$/gm, (line) => {
+      const key = line.trim().replace(/,$/, '');
+      if (exportLines.has(key)) return '';
+      exportLines.add(key);
+      return line;
+    });
+  });
+
+  // Add explicit type annotation to avoid TS7056 (inferred type too large for declaration files)
   content = content.replace(
-    /(export const schemas = \{[\s\S]*?\};)/,
-    (exportBlock) => {
-      return exportBlock.replace(/^(\s+\w+,?)$/gm, (line) => {
-        const key = line.trim().replace(/,$/, '');
-        if (exportLines.has(key)) return '';
-        exportLines.add(key);
-        return line;
-      });
-    }
+    'export const schemas = {',
+    'export const schemas: Record<string, z.ZodTypeAny> = {'
   );
 
   writeFileSync(filePath, content);

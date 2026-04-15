@@ -1800,7 +1800,7 @@ const McpAskCapabilityRequest = z
   })
   .passthrough();
 
-export const schemas = {
+export const schemas: Record<string, z.ZodTypeAny> = {
   ApiError,
   LinkedAccountInput,
   OptimizationApplyMode,
