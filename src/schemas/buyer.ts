@@ -21,6 +21,17 @@ const CreateAdvertiserBody = z
     linkedAccounts: z.array(LinkedAccountInput).optional(),
     optimizationApplyMode: OptimizationApplyMode.optional(),
     sandbox: z.boolean().optional().default(false),
+    utmConfig: z
+      .array(
+        z
+          .object({
+            paramKey: z.string().regex(/^[a-zA-Z0-9_-]{1,100}$/),
+            paramValue: z.string().min(1).max(200),
+          })
+          .passthrough()
+      )
+      .max(20)
+      .optional(),
   })
   .passthrough();
 const UpdateAdvertiserBody = z
@@ -30,9 +41,38 @@ const UpdateAdvertiserBody = z
     brand: z.string().min(1),
     linkedAccounts: z.array(LinkedAccountInput),
     optimizationApplyMode: OptimizationApplyMode,
+    utmConfig: z
+      .array(
+        z
+          .object({
+            paramKey: z.string().regex(/^[a-zA-Z0-9_-]{1,100}$/),
+            paramValue: z.string().min(1).max(200),
+          })
+          .passthrough()
+      )
+      .max(20),
   })
   .partial()
   .passthrough();
+const DiscoveryRefinementItem = z.union([
+  z.object({ scope: z.literal('request'), ask: z.string().min(1).max(2000) }).passthrough(),
+  z
+    .object({
+      scope: z.literal('product'),
+      id: z.string().min(1),
+      action: z.enum(['include', 'omit', 'more_like_this']),
+      ask: z.string().max(2000).optional(),
+    })
+    .passthrough(),
+  z
+    .object({
+      scope: z.literal('proposal'),
+      id: z.string().min(1),
+      action: z.enum(['include', 'omit', 'finalize']),
+      ask: z.string().max(2000).optional(),
+    })
+    .passthrough(),
+]);
 const DiscoverProductsBody = z
   .object({
     advertiserId: z.number().int().lte(9007199254740991),
@@ -60,20 +100,22 @@ const DiscoverProductsBody = z
     groupOffset: z.number().int().gte(0).lte(9007199254740991).optional().default(0),
     productsPerGroup: z.number().int().lte(15).optional().default(10),
     productOffset: z.number().int().gte(0).lte(1000).optional().default(0),
+    Debug: z.boolean().optional(),
+    refine: z.array(DiscoveryRefinementItem).min(1).max(100).optional(),
   })
   .passthrough();
 const ProductCardData = z.object({
-  format_id: z.object({ agent_url: z.string(), id: z.string() }),
+  formatId: z.object({ agentUrl: z.string(), id: z.string() }),
   manifest: z.object({}).partial().passthrough(),
 });
 const PricingOptionData = z
   .object({
-    pricing_option_id: z.string(),
-    pricing_model: z.string(),
-    is_fixed: z.boolean(),
+    pricingOptionId: z.string(),
+    pricingModel: z.string(),
+    isFixed: z.boolean(),
     rate: z.number(),
-    floor_price: z.number(),
-    fixed_price: z.number(),
+    floorPrice: z.number(),
+    fixedPrice: z.number(),
     currency: z.string(),
   })
   .partial();
@@ -97,10 +139,10 @@ const Product = z.object({
     .array(
       z
         .object({
-          publisher_domain: z.string(),
-          property_type: z.string(),
+          publisherDomain: z.string(),
+          propertyType: z.string(),
           name: z.string(),
-          selection_type: z.string(),
+          selectionType: z.string(),
           identifiers: z.array(z.object({}).partial().passthrough()),
         })
         .partial()
@@ -152,6 +194,30 @@ const Proposal = z.object({
     .partial()
     .optional(),
 });
+const AgentDebugLog = z
+  .object({
+    timestamp: z.string(),
+    type: z.string(),
+    message: z.string(),
+    request: z.object({}).partial().passthrough(),
+    response: z.object({}).partial().passthrough(),
+  })
+  .partial();
+const AgentDiscoveryResult = z.object({
+  agentId: z.string(),
+  agentName: z.string(),
+  success: z.boolean(),
+  productCount: z.number().int().gte(0).lte(9007199254740991),
+  error: z.string().optional(),
+  rawResponseData: z.unknown().optional(),
+  debugLogs: z.array(AgentDebugLog).optional(),
+});
+const RefinementApplied = z.object({
+  scope: z.enum(['request', 'product', 'proposal']).optional(),
+  id: z.string().optional(),
+  Status: z.enum(['applied', 'partial', 'unable']),
+  notes: z.string().optional(),
+});
 const DiscoverProductsResponse = z.object({
   discoveryId: z.string(),
   productGroups: z.array(ProductGroup),
@@ -160,8 +226,11 @@ const DiscoverProductsResponse = z.object({
   summary: DiscoverySummary,
   budgetContext: BudgetContextResponse.optional(),
   proposals: z.array(Proposal).optional(),
+  agentResults: z.array(AgentDiscoveryResult).optional(),
+  refinementApplied: z.array(RefinementApplied).optional(),
 });
 const SalesAgentIds = z.union([z.array(z.string().max(255)), z.string()]).optional();
+const Debug = z.union([z.boolean(), z.string()]).optional();
 const SelectedProduct = z.object({
   productId: z.string(),
   salesAgentId: z.string(),
@@ -183,7 +252,7 @@ const ProductSelection = z
     salesAgentId: z.string(),
     groupId: z.string(),
     groupName: z.string(),
-    bid_price: z.number().optional(),
+    bidPrice: z.number().optional(),
     budget: z.number().optional(),
     pricingOptionId: z.string().optional(),
   })
@@ -214,13 +283,49 @@ const ApplyProposalResponse = z.object({
   totalProducts: z.number().int().gte(-9007199254740991).lte(9007199254740991),
   budgetContext: BudgetContextResponse.optional(),
 });
+const Status = z
+  .union([
+    z.enum(['DRAFT', 'ACTIVE', 'PAUSED', 'COMPLETED', 'ARCHIVED']),
+    z.array(z.enum(['DRAFT', 'ACTIVE', 'PAUSED', 'COMPLETED', 'ARCHIVED'])),
+  ])
+  .optional();
+const MediaBuyStatus = z
+  .union([
+    z.array(
+      z.enum([
+        'DRAFT',
+        'PENDING_APPROVAL',
+        'INPUT_REQUIRED',
+        'ACTIVE',
+        'PAUSED',
+        'COMPLETED',
+        'CANCELED',
+        'FAILED',
+        'REJECTED',
+        'ARCHIVED',
+      ])
+    ),
+    z.enum([
+      'DRAFT',
+      'PENDING_APPROVAL',
+      'INPUT_REQUIRED',
+      'ACTIVE',
+      'PAUSED',
+      'COMPLETED',
+      'CANCELED',
+      'FAILED',
+      'REJECTED',
+      'ARCHIVED',
+    ]),
+  ])
+  .optional();
 const DurationOutput = z.object({
   interval: z.number().int().lte(9007199254740991),
   unit: z.enum(['minutes', 'hours', 'days', 'campaign']),
 });
 const OptimizationAttributionWindowOutput = z.object({
-  post_click: DurationOutput,
-  post_view: DurationOutput.optional(),
+  postClick: DurationOutput,
+  postView: DurationOutput.optional(),
 });
 const EventGoalOutput = z.object({
   kind: z.literal('event'),
@@ -228,7 +333,7 @@ const EventGoalOutput = z.object({
     .array(
       z.object({
         eventSourceId: z.string().min(1),
-        eventType: z.enum([
+        EventType: z.enum([
           'page_view',
           'view_content',
           'select_content',
@@ -305,7 +410,7 @@ const Campaign = z.object({
   campaignId: z.string(),
   advertiserId: z.string(),
   name: z.string(),
-  status: z.enum(['DRAFT', 'ACTIVE', 'PAUSED', 'COMPLETED', 'ARCHIVED']),
+  Status: z.enum(['DRAFT', 'ACTIVE', 'PAUSED', 'COMPLETED', 'ARCHIVED']),
   brief: z.string().optional(),
   flightDates: z
     .object({
@@ -330,13 +435,16 @@ const Campaign = z.object({
     .optional(),
   performanceConfig: PerformanceConfigOutput.optional(),
   optimizationApplyMode: OptimizationApplyMode,
+  catalogId: z.number().int().lte(9007199254740991).optional(),
+  discoveryId: z.string().optional(),
   productCount: z.number().int().gte(0).lte(9007199254740991).optional(),
+  products: z.array(z.object({ productId: z.string() })).optional(),
   audiences: z
     .array(
       z.object({
         audienceId: z.string(),
         name: z.string().nullable(),
-        status: z.enum(['PROCESSING', 'ERROR', 'READY', 'TOO_SMALL']),
+        Status: z.enum(['PROCESSING', 'ERROR', 'READY', 'TOO_SMALL']),
         type: z.enum(['TARGET', 'SUPPRESS']),
         enabledAt: z.string().datetime({ offset: true }),
       })
@@ -347,7 +455,7 @@ const Campaign = z.object({
       z.object({
         mediaBuyId: z.string(),
         name: z.string(),
-        status: z.string(),
+        Status: z.string(),
         products: z
           .array(
             z.object({
@@ -362,7 +470,11 @@ const Campaign = z.object({
           .array(
             z.object({
               packageId: z.string(),
-              status: z.string(),
+              Status: z.string(),
+              budget: z.number().optional(),
+              budgetCurrency: z.string().optional(),
+              pacing: z.string().optional(),
+              bidPrice: z.number().optional(),
               productIds: z.array(z.string()),
               delivery: z
                 .object({
@@ -393,7 +505,7 @@ const Duration = z
   })
   .passthrough();
 const OptimizationAttributionWindow = z
-  .object({ post_click: Duration, post_view: Duration.optional() })
+  .object({ postClick: Duration, postView: Duration.optional() })
   .passthrough();
 const EventGoal = z
   .object({
@@ -403,7 +515,7 @@ const EventGoal = z
         z
           .object({
             eventSourceId: z.string().min(1),
-            eventType: z.enum([
+            EventType: z.enum([
               'page_view',
               'view_content',
               'select_content',
@@ -480,6 +592,21 @@ const OptimizationGoal = z.discriminatedUnion('kind', [EventGoal, MetricGoal]);
 const PerformanceConfig = z
   .object({ optimizationGoals: z.array(OptimizationGoal).min(1) })
   .passthrough();
+const CampaignUtmConfig = z
+  .object({
+    params: z
+      .array(
+        z
+          .object({
+            paramKey: z.string().regex(/^[a-zA-Z0-9_-]{1,100}$/),
+            paramValue: z.string().min(1).max(200),
+          })
+          .passthrough()
+      )
+      .max(20),
+    deleteMissing: z.boolean().optional(),
+  })
+  .passthrough();
 const CreateCampaignBody = z
   .object({
     advertiserId: z.number().int().lte(9007199254740991),
@@ -519,6 +646,8 @@ const CreateCampaignBody = z
       .optional(),
     performanceConfig: PerformanceConfig.optional(),
     optimizationApplyMode: OptimizationApplyMode.optional(),
+    catalogId: z.number().int().lte(9007199254740991).optional(),
+    utmConfig: CampaignUtmConfig.optional(),
   })
   .passthrough();
 const CampaignResponse = z.object({ campaign: Campaign });
@@ -559,10 +688,52 @@ const UpdateCampaignBody = z
       .passthrough(),
     performanceConfig: PerformanceConfig,
     optimizationApplyMode: OptimizationApplyMode,
+    catalogId: z.number().int().lte(9007199254740991).nullable(),
+    mediaBuys: z.array(
+      z
+        .object({
+          action: z.enum(['update', 'cancel', 'delete']).optional(),
+          mediaBuyId: z.string().min(1),
+          reason: z.string().max(1000).optional(),
+          packageIds: z.array(z.string().min(1)).optional(),
+          name: z.string().min(1).max(255).optional(),
+          packages: z
+            .array(
+              z
+                .object({
+                  packageId: z.string().min(1),
+                  budget: z.number().gt(0).optional(),
+                  pacing: z.enum(['even', 'asap']).optional(),
+                  bid_price: z.number().nullish(),
+                })
+                .passthrough()
+            )
+            .optional(),
+          products: z
+            .array(
+              z
+                .object({
+                  product_id: z.string().min(1),
+                  pricing_option_id: z.string().optional(),
+                  budget: z.number().gt(0).optional(),
+                  pacing: z.enum(['asap', 'even', 'front_loaded']).optional(),
+                  bid_price: z.number().nullish(),
+                })
+                .passthrough()
+            )
+            .optional(),
+          start_time: z.string().optional(),
+          end_time: z.string().optional(),
+          updated_reason: z.string().optional(),
+          suggestion_id: z.string().optional(),
+        })
+        .passthrough()
+    ),
+    utmConfig: CampaignUtmConfig,
   })
   .partial()
   .passthrough();
-const ExecuteCampaignBody = z.object({ debug: z.boolean() }).partial().passthrough();
+const ExecuteCampaignBody = z.object({ Debug: z.boolean() }).partial().passthrough();
 const ExecuteMediaBuyDebugInfo = z
   .object({
     request: z.object({}).partial().passthrough(),
@@ -575,7 +746,7 @@ const ExecutionError = z.object({
   mediaBuyId: z.string(),
   salesAgentId: z.string(),
   message: z.string(),
-  debug: ExecuteMediaBuyDebugInfo.optional(),
+  Debug: ExecuteMediaBuyDebugInfo.optional(),
 });
 const CampaignStatusChangeResponse = z.object({
   campaignId: z.string(),
@@ -584,6 +755,291 @@ const CampaignStatusChangeResponse = z.object({
   success: z.boolean(),
   errors: z.array(ExecutionError).optional(),
 });
+const RefinementItem = z.union([
+  z.object({ scope: z.literal('request'), ask: z.string().min(1) }).passthrough(),
+  z
+    .object({
+      scope: z.literal('product'),
+      id: z.string().min(1),
+      action: z.enum(['include', 'omit', 'moreLikeThis']),
+      ask: z.string().min(1).optional(),
+    })
+    .passthrough(),
+]);
+const AutoSelectProductsRequest = z
+  .object({
+    refine: z.array(RefinementItem).min(1),
+    maxProducts: z.number().int().lte(9007199254740991),
+    minBudgetPerProduct: z.number().gt(0),
+  })
+  .partial()
+  .passthrough();
+const AutoSelectProductsResponse = z.object({
+  campaignId: z.string(),
+  discoveryId: z.string(),
+  selectedProducts: z.array(
+    z.object({
+      productId: z.string(),
+      name: z.string(),
+      salesAgentId: z.string(),
+      groupId: z.string(),
+      groupName: z.string(),
+      cpm: z.number().optional(),
+      budget: z.number(),
+      pricingOptionId: z.string().optional(),
+    })
+  ),
+  budgetContext: z.object({
+    campaignBudget: z.number(),
+    totalAllocated: z.number(),
+    remainingBudget: z.number(),
+    currency: z.string(),
+  }),
+  productCount: z.number().int().gte(0).lte(9007199254740991),
+  previouslySelectedCount: z.number().int().gte(0).lte(9007199254740991).optional(),
+});
+const CreateCreativeManifestMetadata = z
+  .object({
+    name: z.string().min(1).max(255),
+    message: z.string().min(1).max(5000),
+    url_asset: z
+      .object({
+        url: z.string().url(),
+        url_type: z.enum(['CLICKTHROUGH', 'TRACKER_PIXEL', 'TRACKER_SCRIPT', 'VIDEO_VAST']),
+      })
+      .passthrough(),
+    webhook_asset: z
+      .object({
+        url: z.string().url(),
+        method: z.enum(['GET', 'POST']).optional(),
+        timeout_ms: z.number().int().gte(10).lte(5000).optional(),
+        response_type: z.enum(['html', 'json', 'xml', 'javascript']),
+        security: z
+          .object({
+            method: z.enum(['hmac_sha256', 'api_key', 'none']),
+            hmac_header: z.string().optional(),
+            api_key_header: z.string().optional(),
+          })
+          .passthrough(),
+      })
+      .passthrough(),
+    format_id: z
+      .object({
+        agent_url: z.string(),
+        id: z.string(),
+        width: z.number().nullish(),
+        height: z.number().nullish(),
+        duration_ms: z.number().nullish(),
+      })
+      .passthrough(),
+    template_id: z.string(),
+    assets: z.array(
+      z
+        .object({
+          filename: z.string().min(1),
+          asset_type: z
+            .enum([
+              'IMAGE',
+              'VIDEO',
+              'AUDIO',
+              'HTML',
+              'JAVASCRIPT',
+              'CSS',
+              'TEXT',
+              'URL',
+              'VAST',
+              'FONT',
+              'LOGO',
+              'DOCUMENT',
+            ])
+            .optional(),
+          label: z.string().optional(),
+        })
+        .passthrough()
+    ),
+  })
+  .partial()
+  .passthrough();
+const ManifestAssetResponse = z.object({
+  asset_id: z.string(),
+  name: z.string(),
+  original_filename: z.string(),
+  asset_type: z.enum([
+    'IMAGE',
+    'VIDEO',
+    'AUDIO',
+    'HTML',
+    'JAVASCRIPT',
+    'CSS',
+    'TEXT',
+    'URL',
+    'VAST',
+    'FONT',
+    'LOGO',
+    'DOCUMENT',
+  ]),
+  content_type: z.string(),
+  file_size: z.number().int().gte(-9007199254740991).lte(9007199254740991),
+  public_url: z.string().url(),
+  asset_source: z.enum(['CREATIVE_SOURCE', 'USER_UPLOADED', 'SYSTEM_PROCESSED']),
+  created_at: z.string().datetime({ offset: true }),
+});
+const CreativeManifestResponse = z.object({
+  creative_id: z.string(),
+  name: z.string(),
+  message: z.string().optional(),
+  brand_domain: z.string().optional(),
+  template_id: z.string().optional(),
+  format_id: z
+    .object({
+      id: z.string(),
+      agent_url: z.string(),
+      width: z.number().optional(),
+      height: z.number().optional(),
+      duration_ms: z.number().optional(),
+    })
+    .passthrough()
+    .optional(),
+  target_format_ids: z
+    .array(
+      z
+        .object({
+          id: z.string(),
+          agent_url: z.string(),
+          width: z.number().optional(),
+          height: z.number().optional(),
+          duration_ms: z.number().optional(),
+        })
+        .passthrough()
+    )
+    .optional(),
+  preview_url: z.string().url().optional(),
+  assets: z.array(ManifestAssetResponse),
+  html_processing: z
+    .object({
+      processed_html: z.string().optional(),
+      processed_html_url: z.string().url().optional(),
+      rewritten_refs: z.array(z.object({ original: z.string(), cdn_url: z.string() })),
+      unresolved_refs: z.array(z.string()),
+      inserted_macros: z.array(z.string()),
+    })
+    .optional(),
+  auto_detected_template: z
+    .object({
+      template_id: z.string(),
+      template_name: z.string(),
+      method: z.enum(['tag_hints', 'html_analysis', 'file_analysis', 'none']),
+    })
+    .optional(),
+  creative_manifest: z.unknown().optional(),
+  sync_status: z
+    .object({
+      synced: z.boolean(),
+      agent_count: z.number().int().gte(-9007199254740991).lte(9007199254740991),
+      last_synced_at: z.string().datetime({ offset: true }).optional(),
+    })
+    .optional(),
+  tracking: z
+    .object({
+      impression_tracker_url: z.string().optional(),
+      click_tracker_url: z.string().optional(),
+      supported_macros: z.array(z.string()),
+    })
+    .optional(),
+  campaign_id: z.string(),
+  created_at: z.string().datetime({ offset: true }),
+  updated_at: z.string().datetime({ offset: true }),
+});
+const CreativeManifestListResponse = z.object({
+  manifests: z.array(CreativeManifestResponse),
+  total: z.number().int().gte(0).lte(9007199254740991),
+});
+const UpdateCreativeManifestMetadata = z
+  .object({
+    name: z.string().min(1).max(255),
+    message: z.string().max(5000),
+    format_id: z
+      .object({
+        agent_url: z.string(),
+        id: z.string(),
+        width: z.number().nullish(),
+        height: z.number().nullish(),
+        duration_ms: z.number().nullish(),
+      })
+      .passthrough(),
+    template_id: z.string(),
+    url_asset: z
+      .object({
+        url: z.string().url(),
+        url_type: z.enum(['CLICKTHROUGH', 'TRACKER_PIXEL', 'TRACKER_SCRIPT', 'VIDEO_VAST']),
+      })
+      .passthrough(),
+    webhook_asset: z
+      .object({
+        url: z.string().url(),
+        method: z.enum(['GET', 'POST']).optional(),
+        timeout_ms: z.number().int().gte(10).lte(5000).optional(),
+        response_type: z.enum(['html', 'json', 'xml', 'javascript']),
+        security: z
+          .object({
+            method: z.enum(['hmac_sha256', 'api_key', 'none']),
+            hmac_header: z.string().optional(),
+            api_key_header: z.string().optional(),
+          })
+          .passthrough(),
+      })
+      .passthrough(),
+    delete_asset_ids: z.array(z.string().min(1)).max(100),
+    reclassify_assets: z
+      .array(
+        z
+          .object({
+            asset_id: z.string().min(1),
+            asset_type: z.enum([
+              'IMAGE',
+              'VIDEO',
+              'AUDIO',
+              'HTML',
+              'JAVASCRIPT',
+              'CSS',
+              'TEXT',
+              'URL',
+              'VAST',
+              'FONT',
+              'LOGO',
+              'DOCUMENT',
+            ]),
+          })
+          .passthrough()
+      )
+      .max(100),
+    new_assets: z.array(
+      z
+        .object({
+          filename: z.string().min(1),
+          asset_type: z
+            .enum([
+              'IMAGE',
+              'VIDEO',
+              'AUDIO',
+              'HTML',
+              'JAVASCRIPT',
+              'CSS',
+              'TEXT',
+              'URL',
+              'VAST',
+              'FONT',
+              'LOGO',
+              'DOCUMENT',
+            ])
+            .optional(),
+          label: z.string().optional(),
+        })
+        .passthrough()
+    ),
+  })
+  .partial()
+  .passthrough();
 const EventSourceOutput = z.object({
   eventSourceId: z.string(),
   name: z.string(),
@@ -629,90 +1085,6 @@ const EventSourceListResponse = z.object({
   eventSources: z.array(EventSourceOutput),
   total: z.number().int().gte(0).lte(9007199254740991),
 });
-const CreateEventSourceInput = z
-  .object({
-    eventSourceId: z.string().min(1).max(255),
-    name: z.string().min(1).max(255),
-    eventTypes: z
-      .array(
-        z.enum([
-          'page_view',
-          'view_content',
-          'select_content',
-          'select_item',
-          'search',
-          'share',
-          'add_to_cart',
-          'remove_from_cart',
-          'viewed_cart',
-          'add_to_wishlist',
-          'initiate_checkout',
-          'add_payment_info',
-          'purchase',
-          'refund',
-          'lead',
-          'qualify_lead',
-          'close_convert_lead',
-          'disqualify_lead',
-          'complete_registration',
-          'subscribe',
-          'start_trial',
-          'app_install',
-          'app_launch',
-          'contact',
-          'schedule',
-          'donate',
-          'submit_application',
-          'custom',
-        ])
-      )
-      .min(1)
-      .optional(),
-    allowedDomains: z.array(z.string().min(1)).optional(),
-  })
-  .passthrough();
-const EventSourceResponse = z.object({ eventSource: EventSourceOutput });
-const UpdateEventSourceInput = z
-  .object({
-    name: z.string().min(1).max(255),
-    eventTypes: z
-      .array(
-        z.enum([
-          'page_view',
-          'view_content',
-          'select_content',
-          'select_item',
-          'search',
-          'share',
-          'add_to_cart',
-          'remove_from_cart',
-          'viewed_cart',
-          'add_to_wishlist',
-          'initiate_checkout',
-          'add_payment_info',
-          'purchase',
-          'refund',
-          'lead',
-          'qualify_lead',
-          'close_convert_lead',
-          'disqualify_lead',
-          'complete_registration',
-          'subscribe',
-          'start_trial',
-          'app_install',
-          'app_launch',
-          'contact',
-          'schedule',
-          'donate',
-          'submit_application',
-          'custom',
-        ])
-      )
-      .min(1),
-    allowedDomains: z.array(z.string().min(1)),
-  })
-  .partial()
-  .passthrough();
 const SyncEventSourceObject = z
   .object({
     event_source_id: z.string().min(1).max(255),
@@ -768,6 +1140,70 @@ const EventSourceSyncResult = z.object({
   error: z.string().optional(),
 });
 const SyncEventSourcesResponse = z.object({ event_sources: z.array(EventSourceSyncResult) });
+const EventSummaryType = z.enum(['conversion', 'click', 'impression', 'measurement', 'mmp']);
+const EventType = EventSummaryType.optional();
+const EventSummaryEntry = z.object({
+  eventHour: z.string().datetime({ offset: true }),
+  EventType: EventSummaryType,
+  eventCount: z.number().int().gte(0).lte(9007199254740991),
+});
+const EventSummaryResponse = z.object({
+  periodStart: z.string().datetime({ offset: true }),
+  periodEnd: z.string().datetime({ offset: true }),
+  entries: z.array(EventSummaryEntry),
+  totalEventCount: z.number().int().gte(0).lte(9007199254740991),
+});
+const SyncMeasurementObject = z
+  .object({
+    start_time: z
+      .string()
+      .regex(
+        /^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z|([+-](?:[01]\d|2[0-3]):[0-5]\d)))$/
+      )
+      .datetime({ offset: true }),
+    end_time: z
+      .string()
+      .regex(
+        /^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z|([+-](?:[01]\d|2[0-3]):[0-5]\d)))$/
+      )
+      .datetime({ offset: true }),
+    metric_id: z.enum([
+      'revenue',
+      'incremental_revenue',
+      'conversions',
+      'incremental_conversions',
+      'page_view_count',
+      'add_to_cart_count',
+      'purchase_count',
+      'ltv_1d',
+      'ltv_7d',
+      'ltv_30d',
+    ]),
+    metric_value: z.number(),
+    unit: z.enum(['currency', 'count', 'ratio', 'percentage']),
+    currency: z
+      .string()
+      .regex(/^[A-Z]{3}$/)
+      .optional(),
+    campaign_id: z.string().min(1).max(255).optional(),
+    media_buy_id: z.string().min(1).max(255).optional(),
+    package_id: z.string().min(1).max(255).optional(),
+    creative_id: z.string().min(1).max(255).optional(),
+    source: z.enum(['advertiser', 'mmp', 'measurement_partner']).optional(),
+    source_platform: z.string().min(1).max(255).optional(),
+    source_metric_name: z.string().min(1).max(255).optional(),
+    external_row_id: z.string().min(1).max(255).optional(),
+  })
+  .passthrough();
+const SyncMeasurementDataRequest = z
+  .object({ measurements: z.array(SyncMeasurementObject).min(1).max(1000) })
+  .passthrough();
+const MeasurementDataSyncResult = z.object({
+  index: z.number().int().gte(0).lte(9007199254740991),
+  action: z.enum(['created', 'updated', 'unchanged', 'failed']),
+  error: z.string().optional(),
+});
+const SyncMeasurementDataResponse = z.object({ measurements: z.array(MeasurementDataSyncResult) });
 const ReportingMetrics = z.object({
   impressions: z.number().int().gte(0).lte(9007199254740991),
   spend: z.number().gte(0),
@@ -786,7 +1222,7 @@ const PackageReporting = z.object({ packageId: z.string(), metrics: ReportingMet
 const MediaBuyReporting = z.object({
   mediaBuyId: z.string(),
   name: z.string(),
-  status: z.string(),
+  Status: z.string(),
   budget: z.number().nullable(),
   metrics: ReportingMetrics,
   packages: z.array(PackageReporting),
@@ -818,7 +1254,7 @@ const AvailableAccountOutput = z.object({
   billing: z.string().nullish(),
   partnerId: z.string(),
   partnerName: z.string(),
-  status: z.enum(['active', 'pending_approval', 'payment_required', 'suspended', 'closed']),
+  Status: z.enum(['active', 'pending_approval', 'payment_required', 'suspended', 'closed']),
 });
 const AvailableAccountListResponse = z.object({
   accounts: z.array(AvailableAccountOutput),
@@ -862,7 +1298,7 @@ const SyncCatalogsBody = z
               ])
               .optional(),
             update_frequency: z.enum(['realtime', 'hourly', 'daily', 'weekly']).optional(),
-            items: z.array(z.object({}).partial().passthrough()).optional(),
+            items: z.array(z.object({}).partial().passthrough()).max(10000).optional(),
             conversion_events: z.array(z.string()).optional(),
           })
           .passthrough()
@@ -875,7 +1311,7 @@ const SyncCatalogsBody = z
     validation_mode: z.enum(['strict', 'lenient']).optional().default('strict'),
   })
   .passthrough();
-const CustomerAccountSummary = z.object({ accountIdentifier: z.string(), status: z.string() });
+const CustomerAccountSummary = z.object({ accountIdentifier: z.string(), Status: z.string() });
 const OAuthInfo = z.object({
   authorizationUrl: z.string().url(),
   agentId: z.string(),
@@ -893,7 +1329,7 @@ const Agent = z.object({
   billingOptions: z
     .object({ default: z.string().nullable(), supported: z.array(z.string()) })
     .nullish(),
-  status: z.enum(['PENDING', 'ACTIVE', 'DISABLED', 'COMING_SOON']),
+  Status: z.enum(['PENDING', 'ACTIVE', 'DISABLED', 'COMING_SOON']),
   relationship: z.enum(['SELF', 'MARKETPLACE']),
   customerAccounts: z.array(CustomerAccountSummary).optional(),
   requiresAccount: z.boolean(),
@@ -930,6 +1366,7 @@ const AgentList = z.object({
   items: z.array(Agent),
   total: z.number().int().gte(0).lte(9007199254740991),
   hasMore: z.boolean(),
+  nextOffset: z.number().int().gte(0).lte(9007199254740991).nullable(),
 });
 const RegisterSalesAgentAccountBody = z
   .object({
@@ -962,44 +1399,60 @@ const RegisterSalesAgentAccountBody = z
 const AgentAccount = z.object({
   id: z.string(),
   accountIdentifier: z.string(),
-  status: z.string(),
+  Status: z.string(),
   registeredBy: z.string(),
   createdAt: z.string().datetime({ offset: true }),
   oauth: OAuthInfo.optional(),
 });
 const SyndicateBody = z
   .object({
-    resource_type: z.enum(['AUDIENCE', 'EVENT_SOURCE', 'CATALOG']),
-    resource_id: z.string().min(1),
-    adcp_agent_ids: z.array(z.string().min(1)).min(1),
+    resourceType: z.enum(['AUDIENCE', 'EVENT_SOURCE', 'CATALOG']),
+    resourceId: z.string().min(1),
+    adcpAgentIds: z.array(z.string().min(1)).min(1),
     enabled: z.boolean(),
   })
   .passthrough();
 const SyndicationStatusOutput = z.object({
   id: z.string(),
-  customer_id: z.number().int().gte(-9007199254740991).lte(9007199254740991),
-  seat_id: z.string(),
-  resource_type: z.enum(['AUDIENCE', 'EVENT_SOURCE', 'CATALOG']),
-  resource_id: z.string(),
-  audience_id: z.string().nullable(),
-  event_source_id: z.string().nullable(),
-  catalog_id: z.string().nullable(),
-  adcp_agent_id: z.string(),
-  adcp_agent_account_id: z.string().nullable(),
+  customerId: z.number().int().gte(-9007199254740991).lte(9007199254740991),
+  seatId: z.string(),
+  resourceType: z.enum(['AUDIENCE', 'EVENT_SOURCE', 'CATALOG']),
+  resourceId: z.string(),
+  audienceId: z.string().nullable(),
+  eventSourceId: z.string().nullable(),
+  catalogId: z.string().nullable(),
+  adcpAgentId: z.string(),
+  adcpAgentAccountId: z.string().nullable(),
   enabled: z.boolean(),
-  status: z.enum(['PENDING', 'SYNCING', 'COMPLETED', 'FAILED', 'DISABLED']),
-  error_message: z.string().nullable(),
-  response_data: z.unknown().nullable(),
-  created_at: z.string(),
-  updated_at: z.string(),
-  completed_at: z.string().nullable(),
+  Status: z.enum(['PENDING', 'SYNCING', 'COMPLETED', 'FAILED', 'DISABLED']),
+  errorMessage: z.string().nullable(),
+  responseData: z.unknown().nullable(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+  completedAt: z.string().nullable(),
 });
 const SyndicateResponse = z.object({ data: z.array(SyndicationStatusOutput) });
 const SyndicationStatusListResponse = z.object({
   items: z.array(SyndicationStatusOutput),
   total: z.number().int().gte(0).lte(9007199254740991),
 });
-const RemoveMember = z.object({ externalId: z.string().min(1) }).passthrough();
+const RemoveMember = z
+  .object({
+    externalId: z.string().min(1),
+    hashedEmail: z
+      .string()
+      .regex(/^[0-9a-f]{64}$/)
+      .optional(),
+    hashedPhone: z
+      .string()
+      .regex(/^[0-9a-f]{64}$/)
+      .optional(),
+    uids: z
+      .array(z.object({ type: z.string().min(1), value: z.string().min(1) }).passthrough())
+      .min(1)
+      .optional(),
+  })
+  .passthrough();
 const AudienceItem = z
   .object({
     audienceId: z.string().min(1).max(255),
@@ -1043,10 +1496,7 @@ const SyncAudiencesBody = z
         token: z.string().nullish(),
         authentication: z
           .object({
-            schemes: z.union([
-              z.array(z.unknown()),
-              z.array(z.union([z.literal('Bearer'), z.literal('HMAC-SHA256')])),
-            ]),
+            schemes: z.array(z.union([z.literal('Bearer'), z.literal('HMAC-SHA256')])),
             credentials: z.string(),
           })
           .passthrough(),
@@ -1078,7 +1528,7 @@ const Audience = z.object({
   consentBasis: z
     .enum(['consent', 'legitimate_interest', 'contract', 'legal_obligation'])
     .nullable(),
-  status: z.enum(['PROCESSING', 'ERROR', 'READY', 'TOO_SMALL']),
+  Status: z.enum(['PROCESSING', 'ERROR', 'READY', 'TOO_SMALL']),
   deleted: z.boolean(),
   uploadedCount: z.number().nullable(),
   matchedCount: z.number().nullable(),
@@ -1109,7 +1559,7 @@ const TaskOutput = z.object({
     )
     .uuid(),
   taskType: z.enum(['audience_sync', 'media_buy_create', 'creative_sync']),
-  status: z.enum(['submitted', 'working', 'completed', 'failed', 'input-required']),
+  Status: z.enum(['submitted', 'working', 'completed', 'failed', 'input-required']),
   resourceType: z.string().nullable(),
   resourceId: z.string().nullable(),
   error: TaskError.nullable(),
@@ -1120,6 +1570,155 @@ const TaskOutput = z.object({
   updatedAt: z.string().datetime({ offset: true }),
 });
 const TaskResponse = z.object({ task: TaskOutput });
+const PropertyListFiltersOutput = z
+  .object({
+    channels_any: z
+      .array(
+        z.enum([
+          'display',
+          'olv',
+          'social',
+          'search',
+          'ctv',
+          'linear_tv',
+          'radio',
+          'streaming_audio',
+          'podcast',
+          'dooh',
+          'ooh',
+          'print',
+          'cinema',
+          'email',
+          'gaming',
+          'retail_media',
+          'influencer',
+          'affiliate',
+          'product_placement',
+        ])
+      )
+      .nullable(),
+    countries_all: z.array(z.string().min(2).max(2)).nullable(),
+    property_types: z
+      .array(
+        z.enum([
+          'website',
+          'mobile_app',
+          'ctv_app',
+          'desktop_app',
+          'dooh',
+          'podcast',
+          'radio',
+          'streaming_audio',
+        ])
+      )
+      .nullable(),
+    feature_requirements: z
+      .array(
+        z.object({
+          feature_id: z.string(),
+          min_value: z.number().nullish(),
+          max_value: z.number().nullish(),
+          allowed_values: z.array(z.unknown()).nullish(),
+          if_not_covered: z.enum(['exclude', 'include']).nullish(),
+        })
+      )
+      .nullable(),
+  })
+  .partial();
+const PropertyListOutput = z.object({
+  listId: z.string(),
+  name: z.string(),
+  purpose: z.enum(['include', 'exclude']),
+  domains: z.array(z.string()),
+  unresolvedDomains: z.array(z.string()),
+  registeredDomains: z.array(z.string()),
+  propertyCount: z.number().int().gte(0).lte(9007199254740991),
+  filters: PropertyListFiltersOutput.nullish(),
+  createdAt: z.string().datetime({ offset: true }),
+  updatedAt: z.string().datetime({ offset: true }),
+});
+const PropertyListListResponse = z.object({
+  propertyLists: z.array(PropertyListOutput),
+  total: z.number().int().gte(0).lte(9007199254740991),
+});
+const PropertyListFilters = z
+  .object({
+    channels_any: z
+      .array(
+        z.enum([
+          'display',
+          'olv',
+          'social',
+          'search',
+          'ctv',
+          'linear_tv',
+          'radio',
+          'streaming_audio',
+          'podcast',
+          'dooh',
+          'ooh',
+          'print',
+          'cinema',
+          'email',
+          'gaming',
+          'retail_media',
+          'influencer',
+          'affiliate',
+          'product_placement',
+        ])
+      )
+      .nullable(),
+    countries_all: z.array(z.string().min(2).max(2)).nullable(),
+    property_types: z
+      .array(
+        z.enum([
+          'website',
+          'mobile_app',
+          'ctv_app',
+          'desktop_app',
+          'dooh',
+          'podcast',
+          'radio',
+          'streaming_audio',
+        ])
+      )
+      .nullable(),
+    feature_requirements: z
+      .array(
+        z
+          .object({
+            feature_id: z.string(),
+            min_value: z.number().nullish(),
+            max_value: z.number().nullish(),
+            allowed_values: z.array(z.unknown()).nullish(),
+            if_not_covered: z.enum(['exclude', 'include']).nullish(),
+          })
+          .passthrough()
+      )
+      .nullable(),
+  })
+  .partial()
+  .passthrough();
+const CreatePropertyListInput = z
+  .object({
+    name: z.string().min(1).max(255),
+    purpose: z.enum(['include', 'exclude']),
+    domains: z.array(z.string().min(1)).min(1).max(10000),
+    filters: PropertyListFilters.nullish(),
+  })
+  .passthrough();
+const PropertyListResponse = z.object({ propertyList: PropertyListOutput });
+const UpdatePropertyListInput = z
+  .object({
+    name: z.string().min(1).max(255),
+    domains: z.array(z.string().min(1)).min(1).max(10000),
+  })
+  .partial()
+  .passthrough();
+const EmptyResponse = z.object({}).partial();
+const CheckPropertyListBody = z
+  .object({ domains: z.array(z.string().min(1)).min(1).max(1000) })
+  .passthrough();
 const McpInitializeRequest = z
   .object({
     jsonrpc: z.literal('2.0'),
@@ -1207,6 +1806,7 @@ export const schemas = {
   OptimizationApplyMode,
   CreateAdvertiserBody,
   UpdateAdvertiserBody,
+  DiscoveryRefinementItem,
   DiscoverProductsBody,
 
   ProductCardData,
@@ -1217,8 +1817,12 @@ export const schemas = {
   BudgetContextResponse,
   ProductAllocation,
   Proposal,
+  AgentDebugLog,
+  AgentDiscoveryResult,
+  RefinementApplied,
   DiscoverProductsResponse,
   SalesAgentIds,
+  Debug,
   SelectedProduct,
   SessionProductsResponse,
   ProductSelection,
@@ -1227,6 +1831,8 @@ export const schemas = {
   ApplyProposalRequest,
   AppliedProposalSummary,
   ApplyProposalResponse,
+  Status,
+  MediaBuyStatus,
   DurationOutput,
   OptimizationAttributionWindowOutput,
   EventGoalOutput,
@@ -1241,6 +1847,7 @@ export const schemas = {
   MetricGoal,
   OptimizationGoal,
   PerformanceConfig,
+  CampaignUtmConfig,
   CreateCampaignBody,
   CampaignResponse,
   UpdateCampaignBody,
@@ -1248,15 +1855,28 @@ export const schemas = {
   ExecuteMediaBuyDebugInfo,
   ExecutionError,
   CampaignStatusChangeResponse,
+  RefinementItem,
+  AutoSelectProductsRequest,
+  AutoSelectProductsResponse,
+  CreateCreativeManifestMetadata,
+  ManifestAssetResponse,
+  CreativeManifestResponse,
+  CreativeManifestListResponse,
+  UpdateCreativeManifestMetadata,
   EventSourceOutput,
   EventSourceListResponse,
-  CreateEventSourceInput,
-  EventSourceResponse,
-  UpdateEventSourceInput,
   SyncEventSourceObject,
   SyncEventSourcesRequest,
   EventSourceSyncResult,
   SyncEventSourcesResponse,
+  EventSummaryType,
+  EventType,
+  EventSummaryEntry,
+  EventSummaryResponse,
+  SyncMeasurementObject,
+  SyncMeasurementDataRequest,
+  MeasurementDataSyncResult,
+  SyncMeasurementDataResponse,
   ReportingMetrics,
   PackageReporting,
   MediaBuyReporting,
@@ -1285,6 +1905,15 @@ export const schemas = {
   TaskError,
   TaskOutput,
   TaskResponse,
+  PropertyListFiltersOutput,
+  PropertyListOutput,
+  PropertyListListResponse,
+  PropertyListFilters,
+  CreatePropertyListInput,
+  PropertyListResponse,
+  UpdatePropertyListInput,
+  EmptyResponse,
+  CheckPropertyListBody,
   McpInitializeRequest,
   McpInitializeResponse,
   McpApiCallRequest,
