@@ -1,0 +1,73 @@
+name: Post Slack Message
+description: Post a Block Kit message to a Slack channel via chat.postMessage
+
+inputs:
+  channel:
+    description: Slack channel to post to (e.g. '#agentic-service-alerts')
+    required: true
+  header:
+    description: Header text for the message (also used as fallback text)
+    required: true
+  content:
+    description: JSON array of Block Kit blocks for the message body
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Post to Slack
+      shell: bash
+      env:
+        SLACK_CHANNEL: ${{ inputs.channel }}
+        SLACK_HEADER: ${{ inputs.header }}
+        SLACK_CONTENT: ${{ inputs.content }}
+        GITHUB_REPO: ${{ github.repository }}
+        GITHUB_SERVER: ${{ github.server_url }}
+        GITHUB_RUN: ${{ github.run_id }}
+      run: |
+        if [ -z "$SLACK_TOKEN" ]; then
+          echo "::error::SLACK_TOKEN environment variable is not set"
+          exit 1
+        fi
+
+        if ! echo "$SLACK_CONTENT" | jq -e 'type == "array"' > /dev/null 2>&1; then
+          echo "::error::content input must be a valid JSON array"
+          exit 1
+        fi
+
+        TIMESTAMP=$(date +%s)
+        TIMESTAMP_FMT=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+
+        PAYLOAD=$(jq -n \
+          --arg channel "$SLACK_CHANNEL" \
+          --arg header "$SLACK_HEADER" \
+          --arg repo "$GITHUB_REPO" \
+          --arg server "$GITHUB_SERVER" \
+          --arg run_id "$GITHUB_RUN" \
+          --argjson content "$SLACK_CONTENT" \
+          --argjson ts "$TIMESTAMP" \
+          --arg ts_fmt "$TIMESTAMP_FMT" \
+          '{
+            channel: $channel,
+            text: $header,
+            blocks: (
+              [
+                {type: "header", text: {type: "plain_text", text: $header}},
+                {type: "context", elements: [{type: "mrkdwn", text: "<\($server)/\($repo)|\($repo)> | <\($server)/\($repo)/actions/runs/\($run_id)|Run #\($run_id)>"}]}
+              ]
+              + $content
+              + [
+                {type: "context", elements: [{type: "mrkdwn", text: "Posted at <!date^\($ts)^{date_num} {time_secs}|\($ts_fmt)>"}]}
+              ]
+            )
+          }')
+
+        RESPONSE=$(curl -s -X POST https://slack.com/api/chat.postMessage \
+          -H "Authorization: Bearer $SLACK_TOKEN" \
+          -H "Content-Type: application/json" \
+          -d "$PAYLOAD")
+
+        if [ "$(echo "$RESPONSE" | jq -r '.ok')" != "true" ]; then
+          echo "::error::Slack API error: $(echo "$RESPONSE" | jq -r '.error')"
+          exit 1
+        fi

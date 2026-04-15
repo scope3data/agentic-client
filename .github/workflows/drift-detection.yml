@@ -10,68 +10,106 @@ jobs:
     name: Check for API Drift
     runs-on: ubuntu-latest
     outputs:
-      drift_detected: ${{ steps.drift.outputs.exit_code == '1' }}
+      drift_detected: ${{ steps.drift.outputs.has_drift }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
-      - uses: scope3data/actions/node/install@node/install/v1
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund --ignore-scripts
 
       - name: Run drift detection
         id: drift
-        run: |
-          set +e
-          OUTPUT=$(npm run --silent detect-drift -- --json 2>/tmp/drift-stderr.log)
-          EXIT_CODE=$?
-          echo "exit_code=$EXIT_CODE" >> $GITHUB_OUTPUT
-          echo "$OUTPUT" > drift-report.json
-          cat drift-report.json
-          if [ -s /tmp/drift-stderr.log ]; then
-            echo "--- stderr ---"
-            cat /tmp/drift-stderr.log
-          fi
-          exit 0
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { execSync } = require('child_process');
 
-      - name: Parse drift report
-        if: steps.drift.outputs.exit_code == '1'
-        id: parse
-        run: |
-          REPORT=$(cat drift-report.json)
-          TOTAL=$(echo "$REPORT" | jq -r '.totalDrift')
-          SKILL_MISSING=$(echo "$REPORT" | jq -r '.drift.inSpecNotSkill | length')
-          SKILL_EXTRA=$(echo "$REPORT" | jq -r '.drift.inSkillNotSpec | length')
-          SDK_MISSING=$(echo "$REPORT" | jq -r '.drift.inSpecNotSdk | length')
-          SDK_EXTRA=$(echo "$REPORT" | jq -r '.drift.inSdkNotSpec | length')
-          echo "total=$TOTAL" >> $GITHUB_OUTPUT
-          echo "skill_missing=$SKILL_MISSING" >> $GITHUB_OUTPUT
-          echo "skill_extra=$SKILL_EXTRA" >> $GITHUB_OUTPUT
-          echo "sdk_missing=$SDK_MISSING" >> $GITHUB_OUTPUT
-          echo "sdk_extra=$SDK_EXTRA" >> $GITHUB_OUTPUT
+            let stdout = '';
+            let exitCode = 0;
+
+            try {
+              stdout = execSync('npm run --silent detect-drift -- --json', {
+                encoding: 'utf-8',
+                stdio: ['pipe', 'pipe', 'pipe'],
+                timeout: 120_000,
+              });
+            } catch (err) {
+              exitCode = err.status ?? 1;
+              stdout = err.stdout ?? '';
+              const stderr = err.stderr ?? '';
+              if (stderr) {
+                core.info(`--- stderr ---\n${stderr}`);
+              }
+            }
+
+            core.setOutput('exit_code', String(exitCode));
+            core.info(stdout);
+
+            if (exitCode === 0) {
+              core.setOutput('has_drift', 'false');
+              return;
+            }
+
+            let report;
+            try {
+              report = JSON.parse(stdout);
+            } catch {
+              core.warning('Drift report is missing or malformed');
+              core.setOutput('has_drift', 'false');
+              return;
+            }
+
+            if (!report.hasDrift) {
+              core.notice(`No actual drift found (totalDrift=${report.totalDrift}), skipping alert`);
+              core.setOutput('has_drift', 'false');
+              return;
+            }
+
+            core.setOutput('has_drift', 'true');
+            core.setOutput('total', String(report.totalDrift));
+            core.setOutput('skill_missing', String(report.drift.inSpecNotSkill.length));
+            core.setOutput('skill_extra', String(report.drift.inSkillNotSpec.length));
+            core.setOutput('sdk_missing', String(report.drift.inSpecNotSdk.length));
+            core.setOutput('sdk_extra', String(report.drift.inSdkNotSpec.length));
 
       - name: Alert on drift
-        if: steps.drift.outputs.exit_code == '1'
+        if: steps.drift.outputs.has_drift == 'true'
+        uses: ./.github/actions/slack-post
         env:
           SLACK_TOKEN: ${{ secrets.SLACK_NOTIF_BOT_TOKEN }}
-        uses: scope3data/actions/slack/post@slack/post/v2
         with:
           channel: '#agentic-service-alerts'
           header: 'SDK API Drift Detected'
           content: |
             [
-              {
-                "type": "section",
-                "text": {
-                  "type": "mrkdwn",
-                  "text": "*${{ steps.parse.outputs.total }} endpoint(s) out of sync*\n\n*skill.md vs spec:*\n• Missing from skill.md: ${{ steps.parse.outputs.skill_missing }}\n• Extra in skill.md: ${{ steps.parse.outputs.skill_extra }}\n\n*SDK vs spec:*\n• Missing from SDK: ${{ steps.parse.outputs.sdk_missing }}\n• Extra in SDK: ${{ steps.parse.outputs.sdk_extra }}"
-                }
-              },
-              {
-                "type": "section",
-                "text": {
-                  "type": "mrkdwn",
-                  "text": "<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View full report>"
-                }
-              }
+              {"type": "section", "text": {"type": "mrkdwn", "text": "*${{ steps.drift.outputs.total }} endpoint(s) out of sync*\n\n*skill.md vs spec:*\n• Missing from skill.md: ${{ steps.drift.outputs.skill_missing }}\n• Extra in skill.md: ${{ steps.drift.outputs.skill_extra }}\n\n*SDK vs spec:*\n• Missing from SDK: ${{ steps.drift.outputs.sdk_missing }}\n• Extra in SDK: ${{ steps.drift.outputs.sdk_extra }}"}},
+              {"type": "section", "text": {"type": "mrkdwn", "text": "<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View full report>"}}
             ]
+
+      - name: Alert on script error
+        if: steps.drift.outputs.exit_code != '0' && steps.drift.outputs.has_drift != 'true'
+        uses: ./.github/actions/slack-post
+        env:
+          SLACK_TOKEN: ${{ secrets.SLACK_NOTIF_BOT_TOKEN }}
+        with:
+          channel: '#agentic-service-alerts'
+          header: 'Drift Detection Script Error'
+          content: '[{"type": "section", "text": {"type": "mrkdwn", "text": "The drift detection script exited with code ${{ steps.drift.outputs.exit_code || ''unknown'' }} but produced no valid drift report. <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View run>"}}]'
+
+      - name: Notify on failure
+        if: failure()
+        uses: ./.github/actions/slack-post
+        env:
+          SLACK_TOKEN: ${{ secrets.SLACK_NOTIF_BOT_TOKEN }}
+        with:
+          channel: '#agentic-service-alerts'
+          header: 'API Drift Detection Failed'
+          content: '[{"type": "section", "text": {"type": "mrkdwn", "text": "The drift detection workflow failed. <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View run>"}}]'
 
   regenerate:
     name: Regenerate Schemas

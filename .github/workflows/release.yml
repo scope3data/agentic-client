@@ -12,31 +12,35 @@ jobs:
     name: Release
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
+      pull-requests: write
       id-token: write
     steps:
-      - name: Generate GitHub App token
-        id: app-token
-        uses: actions/create-github-app-token@v2
-        with:
-          app-id: ${{ vars.SCOPE3_WIZARD_APP_ID }}
-          private-key: ${{ secrets.SCOPE3_WIZARD_APP_PRIVATE_KEY }}
-
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
-          token: ${{ steps.app-token.outputs.token }}
+          persist-credentials: false
+
+      - name: Generate GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ vars.SCOPE3_WIZARD_CLIENT_ID }}
+          private-key: ${{ secrets.SCOPE3_WIZARD_APP_PRIVATE_KEY }}
+
+      - name: Configure git for app token
+        run: |
+          git remote set-url origin "https://x-access-token:${{ steps.app-token.outputs.token }}@github.com/${{ github.repository }}"
+          git config user.name "scope3-wizard[bot]"
+          git config user.email "${{ vars.SCOPE3_WIZARD_APP_ID }}+scope3-wizard[bot]@users.noreply.github.com"
 
       # setup-node used directly: internal action doesn't support registry-url
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: '22'
           registry-url: 'https://registry.npmjs.org'
-
-      - name: Update npm
-        run: npm install -g npm@latest
 
       - name: Install dependencies
         run: npm ci
@@ -49,5 +53,17 @@ jobs:
           version: npm run version
           commit: 'chore: version packages'
           title: 'chore: version packages'
+          setupGitUser: false
+          github-token: ${{ steps.app-token.outputs.token }}
         env:
           GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
+
+      - name: Notify on failure
+        if: failure()
+        uses: ./.github/actions/slack-post
+        env:
+          SLACK_TOKEN: ${{ secrets.SLACK_NOTIF_BOT_TOKEN }}
+        with:
+          channel: '#agentic-service-alerts'
+          header: 'Release Failed'
+          content: '[{"type": "section", "text": {"type": "mrkdwn", "text": "The release workflow failed. <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View run>"}}]'

@@ -13,18 +13,25 @@ jobs:
     name: Regenerate Schemas and Open PR
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v6
+
       - name: Generate GitHub App token
         id: app-token
-        uses: actions/create-github-app-token@v2
+        uses: actions/create-github-app-token@v3
         with:
-          app-id: ${{ vars.SCOPE3_WIZARD_APP_ID }}
+          client-id: ${{ vars.SCOPE3_WIZARD_CLIENT_ID }}
           private-key: ${{ secrets.SCOPE3_WIZARD_APP_PRIVATE_KEY }}
 
-      - uses: actions/checkout@v4
-        with:
-          token: ${{ steps.app-token.outputs.token }}
+      - name: Configure git for app token
+        run: git remote set-url origin "https://x-access-token:${{ steps.app-token.outputs.token }}@github.com/${{ github.repository }}"
 
-      - uses: scope3data/actions/node/install@node/install/v1
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund --ignore-scripts
 
       - name: Regenerate schemas
         run: npm run generate-schemas
@@ -81,26 +88,24 @@ jobs:
 
       - name: Notify Slack
         if: steps.create-pr.outputs.pr_url
+        uses: ./.github/actions/slack-post
         env:
           SLACK_TOKEN: ${{ secrets.SLACK_NOTIF_BOT_TOKEN }}
-        uses: scope3data/actions/slack/post@slack/post/v2
         with:
           channel: '#agentic-service-alerts'
           header: 'SDK Schemas Regenerated'
           content: |
             [
-              {
-                "type": "section",
-                "text": {
-                  "type": "mrkdwn",
-                  "text": "A PR has been created to update Zod schemas from the latest OpenAPI specification."
-                }
-              },
-              {
-                "type": "section",
-                "text": {
-                  "type": "mrkdwn",
-                  "text": "<${{ steps.create-pr.outputs.pr_url }}|View Pull Request>"
-                }
-              }
+              {"type": "section", "text": {"type": "mrkdwn", "text": "A PR has been created to update Zod schemas from the latest OpenAPI specification."}},
+              {"type": "section", "text": {"type": "mrkdwn", "text": "<${{ steps.create-pr.outputs.pr_url }}|View Pull Request>"}}
             ]
+
+      - name: Notify on failure
+        if: failure()
+        uses: ./.github/actions/slack-post
+        env:
+          SLACK_TOKEN: ${{ secrets.SLACK_NOTIF_BOT_TOKEN }}
+        with:
+          channel: '#agentic-service-alerts'
+          header: 'Schema Regeneration Failed'
+          content: '[{"type": "section", "text": {"type": "mrkdwn", "text": "The schema regeneration workflow failed. <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View run>"}}]'

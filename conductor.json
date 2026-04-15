@@ -26,6 +26,7 @@
     "update-schemas": {
       "command": "npm run update-schemas",
       "description": "Download latest OpenAPI spec and regenerate TypeScript types"
-    }
+    },
+    "setup": "./scripts/conductor-setup.sh"
   }
 }
