@@ -3,7 +3,13 @@
 
 import { z } from 'zod';
 
-const ApiError = z.object({ error: z.string(), message: z.string().optional() });
+const ApiError = z.object({
+  code: z.string(),
+  message: z.string(),
+  field: z.string().optional(),
+  details: z.object({}).partial().passthrough().optional(),
+});
+const ErrorResponse = z.object({ data: z.literal(null).nullable(), error: ApiError });
 const LinkedAccountInput = z
   .object({
     partnerId: z.string().min(1),
@@ -1218,7 +1224,11 @@ const ReportingMetrics = z.object({
   ctr: z.number().nullable(),
   completionRate: z.number().nullable(),
 });
-const PackageReporting = z.object({ packageId: z.string(), metrics: ReportingMetrics });
+const PackageReporting = z.object({
+  packageId: z.string(),
+  productId: z.string().nullable(),
+  metrics: ReportingMetrics,
+});
 const MediaBuyReporting = z.object({
   mediaBuyId: z.string(),
   name: z.string(),
@@ -1311,64 +1321,41 @@ const SyncCatalogsBody = z
     validation_mode: z.enum(['strict', 'lenient']).optional().default('strict'),
   })
   .passthrough();
-const CustomerAccountSummary = z.object({ accountIdentifier: z.string(), Status: z.string() });
+const BuyerStorefrontSource = z.object({
+  sourceId: z.string(),
+  name: z.string(),
+  protocol: z.enum(['MCP', 'A2A']),
+  requiresCredentials: z.boolean(),
+  connected: z.boolean(),
+  customerAccounts: z.array(z.object({ accountIdentifier: z.string(), Status: z.string() })),
+});
+const BuyerStorefront = z.object({
+  id: z.number().int().gte(-9007199254740991).lte(9007199254740991),
+  platformId: z.string(),
+  name: z.string(),
+  publisherDomain: z.string().nullable(),
+  sources: z.array(BuyerStorefrontSource),
+});
+const BuyerStorefrontList = z.object({
+  items: z.array(BuyerStorefront),
+  total: z.number().int().gte(0).lte(9007199254740991),
+  hasMore: z.boolean(),
+  nextOffset: z.number().int().gte(0).lte(9007199254740991).nullable(),
+});
 const OAuthInfo = z.object({
   authorizationUrl: z.string().url(),
   agentId: z.string(),
   agentName: z.string(),
 });
-const Agent = z.object({
-  agentId: z.string(),
-  type: z.enum(['SALES', 'SIGNAL', 'CREATIVE', 'OUTCOME']),
-  name: z.string(),
-  description: z.string().nullish(),
-  endpointUrl: z.string(),
-  protocol: z.enum(['MCP', 'A2A']),
-  authenticationType: z.enum(['API_KEY', 'NO_AUTH', 'JWT', 'OAUTH']),
-  requiresOperatorAuth: z.boolean(),
-  billingOptions: z
-    .object({ default: z.string().nullable(), supported: z.array(z.string()) })
-    .nullish(),
-  Status: z.enum(['PENDING', 'ACTIVE', 'DISABLED', 'COMING_SOON']),
-  relationship: z.enum(['SELF', 'MARKETPLACE']),
-  customerAccounts: z.array(CustomerAccountSummary).optional(),
-  requiresAccount: z.boolean(),
-  authConfigured: z.boolean(),
-  capabilities: z
-    .object({
-      version: z.enum(['v2', 'v3']),
-      protocols: z.array(z.string()),
-      extensions: z.array(z.string()),
-      features: z
-        .object({
-          inlineCreativeManagement: z.boolean(),
-          propertyListFiltering: z.boolean(),
-          contentStandards: z.boolean(),
-          conversionTracking: z.boolean(),
-          audienceManagement: z.boolean(),
-        })
-        .partial(),
-      sandbox: z.boolean(),
-      publisherDomains: z.array(z.string()).optional(),
-      channels: z.array(z.string()).optional(),
-      lastUpdated: z.string().optional(),
-      accounts: z.object({
-        requireOperatorAuth: z.boolean(),
-        defaultBilling: z.string().nullable(),
-        supportedBillings: z.array(z.string()),
-      }),
-    })
-    .nullish(),
+const AgentAccount = z.object({
+  id: z.string(),
+  accountIdentifier: z.string(),
+  Status: z.string(),
+  registeredBy: z.string(),
   createdAt: z.string().datetime({ offset: true }),
-  oauth: OAuthInfo.nullish(),
+  oauth: OAuthInfo.optional(),
 });
-const AgentList = z.object({
-  items: z.array(Agent),
-  total: z.number().int().gte(0).lte(9007199254740991),
-  hasMore: z.boolean(),
-  nextOffset: z.number().int().gte(0).lte(9007199254740991).nullable(),
-});
-const RegisterSalesAgentAccountBody = z
+const RegisterSourceCredentialsBody = z
   .object({
     accountIdentifier: z.string().min(1).max(255),
     auth: z
@@ -1396,14 +1383,6 @@ const RegisterSalesAgentAccountBody = z
     marketplaceAccount: z.boolean().optional(),
   })
   .passthrough();
-const AgentAccount = z.object({
-  id: z.string(),
-  accountIdentifier: z.string(),
-  Status: z.string(),
-  registeredBy: z.string(),
-  createdAt: z.string().datetime({ offset: true }),
-  oauth: OAuthInfo.optional(),
-});
 const SyndicateBody = z
   .object({
     resourceType: z.enum(['AUDIENCE', 'EVENT_SOURCE', 'CATALOG']),
@@ -1802,6 +1781,7 @@ const McpAskCapabilityRequest = z
 
 export const schemas: Record<string, z.ZodTypeAny> = {
   ApiError,
+  ErrorResponse,
   LinkedAccountInput,
   OptimizationApplyMode,
   CreateAdvertiserBody,
@@ -1886,12 +1866,12 @@ export const schemas: Record<string, z.ZodTypeAny> = {
   AvailableAccountOutput,
   AvailableAccountListResponse,
   SyncCatalogsBody,
-  CustomerAccountSummary,
+  BuyerStorefrontSource,
+  BuyerStorefront,
+  BuyerStorefrontList,
   OAuthInfo,
-  Agent,
-  AgentList,
-  RegisterSalesAgentAccountBody,
   AgentAccount,
+  RegisterSourceCredentialsBody,
   SyndicateBody,
   SyndicationStatusOutput,
   SyndicateResponse,
