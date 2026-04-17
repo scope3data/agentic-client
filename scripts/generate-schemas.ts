@@ -14,6 +14,20 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const BUYER_SPEC_URL = 'https://api.agentic.scope3.com/api/v2/buyer/openapi.yaml';
 const BUYER_SPEC_PATH = join(__dirname, '../.context/attachments/buyer-api-v2.yaml');
 
+function preProcessSpec(specPath: string) {
+  let content = readFileSync(specPath, 'utf-8');
+
+  const brokenRef = "$ref: '#/components/schemas/Error'";
+  const fixedRef = "$ref: '#/components/schemas/ErrorResponse'";
+
+  if (content.includes(brokenRef)) {
+    const count = content.split(brokenRef).length - 1;
+    console.log(`Pre-processing: replacing ${count} broken Error $ref(s) with ErrorResponse`);
+    content = content.replaceAll(brokenRef, fixedRef);
+    writeFileSync(specPath, content);
+  }
+}
+
 function postProcessSchemas(filePath: string) {
   let content = readFileSync(filePath, 'utf-8');
 
@@ -56,10 +70,6 @@ function postProcessSchemas(filePath: string) {
   );
 
   content = content.replace(/\\&/g, '&');
-
-  // Rename 'Error' to 'ApiError' to avoid shadowing the global
-  content = content.replace(/\bconst Error\b/g, 'const ApiError');
-  content = content.replace(/^\s+Error,$/m, '  ApiError,');
 
   // Normalize schema names to PascalCase
   const nameRenames: Array<[RegExp, string]> = [];
@@ -126,6 +136,8 @@ async function main() {
     writeFileSync(specPath, spec);
     console.log(`Downloaded spec to ${specPath}`);
   }
+
+  preProcessSpec(specPath);
 
   const outputFile = join(schemasDir, 'buyer.ts');
   console.log(`Generating schemas to ${outputFile}...`);
