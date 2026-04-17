@@ -60,13 +60,24 @@ jobs:
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
-          BRANCH="chore/regenerate-schemas-$(date +%Y%m%d-%H%M%S)"
+          TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+          BRANCH="chore/regenerate-schemas-${TIMESTAMP}"
+          CHANGESET_FILE=".changeset/regenerate-schemas-${TIMESTAMP}.md"
 
           git config user.name "scope3-wizard[bot]"
           git config user.email "${{ vars.SCOPE3_WIZARD_APP_ID }}+scope3-wizard[bot]@users.noreply.github.com"
 
           git checkout -b "$BRANCH"
-          git add src/schemas/
+
+          cat > "$CHANGESET_FILE" <<'EOF'
+          ---
+          'scope3': minor
+          ---
+
+          Regenerate Zod schemas from the latest OpenAPI specification
+          EOF
+
+          git add src/schemas/ "$CHANGESET_FILE"
           git commit -m "chore: regenerate schemas from OpenAPI spec"
           git push origin "$BRANCH"
 
