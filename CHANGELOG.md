@@ -1,5 +1,11 @@
 # @scope3/agentic-client
 
+## 2.2.0
+
+### Minor Changes
+
+- [#124](https://github.com/scope3data/agentic-client/pull/124) [`439633e`](https://github.com/scope3data/agentic-client/commit/439633e43b39eb7ad8e65fca506ccc2bcda13fe2) Thanks [@benminer](https://github.com/benminer)! - Add auto-generated Zod schemas from OpenAPI spec with drift detection and schema regeneration workflows
+
 ## 2.1.0
 
 ### Minor Changes
