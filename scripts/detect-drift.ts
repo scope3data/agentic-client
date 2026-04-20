@@ -36,16 +36,46 @@ function normalizeEndpoint(endpoint: string): string {
     .replace(/\/$/, '');
 }
 
+async function fetchWithRetry(url: string, maxAttempts = 4): Promise<Response> {
+  const base = 500;
+  let lastError: unknown;
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    try {
+      const response = await fetch(url, { signal: AbortSignal.timeout(30_000) });
+      if (response.ok) return response;
+      if (response.status >= 500 || response.status === 429) {
+        lastError = new Error(`${response.status} ${response.statusText}`);
+      } else {
+        return response;
+      }
+    } catch (err) {
+      lastError = err;
+    }
+    if (attempt < maxAttempts - 1) {
+      const delay = base * 2 ** attempt + Math.floor(Math.random() * base);
+      const message = lastError instanceof Error ? lastError.message : String(lastError);
+      console.error(
+        `Fetch attempt ${attempt + 1}/${maxAttempts} for ${url} failed: ${message}. Retrying in ${delay}ms...`
+      );
+      await new Promise((r) => setTimeout(r, delay));
+    }
+  }
+  const message = lastError instanceof Error ? lastError.message : String(lastError);
+  throw new Error(`Failed to fetch ${url} after ${maxAttempts} attempts: ${message}`);
+}
+
 async function fetchSpecEndpoints(): Promise<Map<string, string>> {
-  const response = await fetch(OPENAPI_SPEC_URL);
+  const response = await fetchWithRetry(OPENAPI_SPEC_URL);
   if (!response.ok) {
     throw new Error(`Failed to fetch OpenAPI spec: ${response.status} ${response.statusText}`);
   }
-  const spec = parseYaml(await response.text()) as Record<string, any>;
+  const spec = parseYaml(await response.text()) as {
+    paths?: Record<string, Record<string, unknown>>;
+  };
   const endpoints = new Map<string, string>();
 
   for (const [path, pathItem] of Object.entries(spec.paths ?? {})) {
-    for (const method of Object.keys(pathItem as object)) {
+    for (const method of Object.keys(pathItem)) {
       if (['get', 'post', 'put', 'patch', 'delete'].includes(method)) {
         const key = `${method.toUpperCase()} ${normalizeEndpoint(path)}`;
         endpoints.set(key, `${method.toUpperCase()} ${path}`);
