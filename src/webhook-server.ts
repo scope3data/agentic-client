@@ -1,7 +1,7 @@
 import { timingSafeEqual } from 'crypto';
 import express from 'express';
 import type { Express, Request, Response, NextFunction } from 'express';
-import { Server } from 'http';
+import { createServer, Server } from 'http';
 
 export interface WebhookEvent<T = Record<string, unknown>> {
   type: string;
@@ -121,13 +121,12 @@ export class WebhookServer {
 
   start(): Promise<void> {
     return new Promise((resolve, reject) => {
-      this.server = this.app.listen(this.config.port, () => {
+      this.server = createServer(this.app);
+      this.server.on('error', reject);
+      this.server.listen(this.config.port, () => {
         console.log(`Webhook server listening on port ${this.config.port}`);
         console.log(`Webhook endpoint: http://localhost:${this.config.port}${this.config.path}`);
         resolve();
-      });
-      this.server.on('error', (err) => {
-        reject(err);
       });
     });
   }
