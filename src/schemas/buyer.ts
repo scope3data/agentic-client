@@ -724,6 +724,7 @@ const UpdateCampaignBody = z
                   budget: z.number().gt(0).optional(),
                   pacing: z.enum(['asap', 'even', 'front_loaded']).optional(),
                   bid_price: z.number().nullish(),
+                  remove: z.boolean().optional(),
                 })
                 .passthrough()
             )
@@ -1255,6 +1256,110 @@ const ReportingMetricsResponse = z.object({
   periodStart: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   periodEnd: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
 });
+const CurrentAccountResponse = z.object({
+  id: z.number().int().gte(-9007199254740991).lte(9007199254740991),
+  company: z.string(),
+  name: z.string(),
+  role: z.string().optional(),
+});
+const OrgAccountSummary = z.object({
+  id: z.number().int().gte(-9007199254740991).lte(9007199254740991),
+  company: z.string(),
+  name: z.string(),
+  role: z.string().optional(),
+});
+const ListCustomerAccountsResponse = z.object({ accounts: z.array(OrgAccountSummary) });
+const CreateChildAccountBody = z
+  .object({
+    name: z.string().min(1).max(255),
+    customerRole: z.enum(['BUYER', 'SELLER']),
+    parentName: z.string().min(1).max(255).optional(),
+  })
+  .passthrough();
+const CreateChildAccountResponse = z.object({
+  user: z.object({}).partial().passthrough(),
+  customer: z.object({}).partial().passthrough(),
+  customers: z.array(z.object({}).partial().passthrough()),
+  showPsaBox: z.boolean(),
+  hasContract: z.boolean(),
+  latestPsaVersion: z.string(),
+  convertedFromStandalone: z.boolean(),
+});
+const UpdateNotificationPreferencesBody = z
+  .object({
+    optIns: z
+      .array(
+        z
+          .object({
+            notificationType: z.enum([
+              'brand_agent.created',
+              'brand_agent.updated',
+              'brand_agent.deleted',
+              'campaign.healthy',
+              'campaign.unhealthy',
+              'campaign.created',
+              'campaign.updated',
+              'campaign.deleted',
+              'campaign.completed',
+              'creative.approved',
+              'creative.rejected',
+              'creative.changes_requested',
+              'creative.sync_started',
+              'creative.sync_completed',
+              'creative.sync_failed',
+              'creative.created',
+              'creative.updated',
+              'creative.deleted',
+              'strategy.created',
+              'strategy.updated',
+              'strategy.deleted',
+              'media_buy.created',
+              'media_buy.updated',
+              'media_buy.deleted',
+              'salesagent.available',
+              'salesagent.unavailable',
+              'salesagent.registered',
+              'salesagent.unregistered',
+              'salesagent.updated',
+              'signalsagent.registered',
+              'signalsagent.unregistered',
+              'signalsagent.updated',
+              'signalsagent.signal_activated',
+              'signalsagent.signals_fetched',
+              'outcomesagent.registered',
+              'outcomesagent.unregistered',
+              'outcomesagent.updated',
+              'syndication.completed',
+              'syndication.failed',
+              'audience.synced',
+              'audience.sync_failed',
+              'optimization.suggestion_received',
+              'optimization.suggestion_approved',
+              'optimization.suggestion_rejected',
+              'optimization.suggestion_applied',
+              'optimization.suggestion_failed',
+              'system.warning',
+              'system.error',
+              'learning_cycle.completed',
+              'learning_cycle.failed',
+              'hypothesis.status_changed',
+              'hypothesis.review_requested',
+              'hypothesis.proven',
+              'hypothesis.disproven',
+              'measurement.received',
+              'measurement.stale',
+              'opportunity.evaluated',
+              'opportunity.recommended',
+              'opportunity.flagged',
+              'opportunity.explore',
+            ]),
+            channel: z.enum(['email', 'in_app']),
+          })
+          .passthrough()
+      )
+      .max(200),
+  })
+  .passthrough();
 const AvailableAccountOutput = z.object({
   accountId: z.string(),
   name: z.string().nullish(),
@@ -1456,9 +1561,9 @@ const AudienceItem = z
           })
           .passthrough()
       )
-      .max(10000)
+      .max(100000)
       .optional(),
-    remove: z.array(RemoveMember).max(10000).optional(),
+    remove: z.array(RemoveMember).max(100000).optional(),
     delete: z.boolean().optional(),
     consentBasis: z
       .enum(['consent', 'legitimate_interest', 'contract', 'legal_obligation'])
@@ -1863,6 +1968,12 @@ export const schemas: Record<string, z.ZodTypeAny> = {
   CampaignReporting,
   AdvertiserReporting,
   ReportingMetricsResponse,
+  CurrentAccountResponse,
+  OrgAccountSummary,
+  ListCustomerAccountsResponse,
+  CreateChildAccountBody,
+  CreateChildAccountResponse,
+  UpdateNotificationPreferencesBody,
   AvailableAccountOutput,
   AvailableAccountListResponse,
   SyncCatalogsBody,
