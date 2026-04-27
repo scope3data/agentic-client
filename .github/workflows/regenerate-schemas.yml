@@ -51,8 +51,14 @@ jobs:
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
-          EXISTING=$(gh pr list --search 'chore: regenerate schemas in:title' --state open --json number --jq 'length')
-          echo "count=$EXISTING" >> $GITHUB_OUTPUT
+          PR_JSON=$(gh pr list --search 'chore: regenerate schemas in:title' --state open --json number,headRefName,url --jq '.[0] // empty')
+          if [ -n "$PR_JSON" ]; then
+            echo "count=1" >> $GITHUB_OUTPUT
+            echo "branch=$(echo "$PR_JSON" | jq -r '.headRefName')" >> $GITHUB_OUTPUT
+            echo "url=$(echo "$PR_JSON" | jq -r '.url')" >> $GITHUB_OUTPUT
+          else
+            echo "count=0" >> $GITHUB_OUTPUT
+          fi
 
       - name: Create PR
         if: steps.changes.outputs.has_changes == 'true' && steps.existing-pr.outputs.count == '0'
@@ -97,8 +103,53 @@ jobs:
 
           echo "pr_url=$PR_URL" >> $GITHUB_OUTPUT
 
+      - name: Update existing PR
+        if: steps.changes.outputs.has_changes == 'true' && steps.existing-pr.outputs.count == '1'
+        id: update-pr
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: |
+          BRANCH="${{ steps.existing-pr.outputs.branch }}"
+          if [ -z "$BRANCH" ]; then
+            echo "::error::Could not resolve existing PR branch name"
+            exit 1
+          fi
+
+          git config user.name "scope3-wizard[bot]"
+          git config user.email "${{ vars.SCOPE3_WIZARD_APP_ID }}+scope3-wizard[bot]@users.noreply.github.com"
+
+          git fetch origin "$BRANCH"
+          git checkout -b "$BRANCH" "origin/$BRANCH"
+
+          npm run generate-schemas
+
+          git add src/schemas/
+
+          EXISTING_CHANGESET=$(find .changeset -name 'regenerate-schemas-*.md' -maxdepth 1 2>/dev/null | head -1)
+          if [ -z "$EXISTING_CHANGESET" ]; then
+            TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+            CHANGESET_FILE=".changeset/regenerate-schemas-${TIMESTAMP}.md"
+            cat > "$CHANGESET_FILE" <<'EOF'
+          ---
+          'scope3': minor
+          ---
+
+          Regenerate Zod schemas from the latest OpenAPI specification
+          EOF
+            git add "$CHANGESET_FILE"
+          fi
+
+          if git diff --cached --quiet; then
+            echo "No new changes to commit"
+          else
+            git commit -m "chore: regenerate schemas from OpenAPI spec"
+            git push origin "$BRANCH"
+          fi
+
+          echo "pr_url=${{ steps.existing-pr.outputs.url }}" >> $GITHUB_OUTPUT
+
       - name: Notify Slack
-        if: steps.create-pr.outputs.pr_url
+        if: steps.create-pr.outputs.pr_url || steps.update-pr.outputs.pr_url
         uses: ./.github/actions/slack-post
         env:
           SLACK_TOKEN: ${{ secrets.SLACK_NOTIF_BOT_TOKEN }}
@@ -107,8 +158,8 @@ jobs:
           header: 'SDK Schemas Regenerated'
           content: |
             [
-              {"type": "section", "text": {"type": "mrkdwn", "text": "A PR has been created to update Zod schemas from the latest OpenAPI specification."}},
-              {"type": "section", "text": {"type": "mrkdwn", "text": "<${{ steps.create-pr.outputs.pr_url }}|View Pull Request>"}}
+              {"type": "section", "text": {"type": "mrkdwn", "text": "A PR has been created or updated to regenerate Zod schemas from the latest OpenAPI specification."}},
+              {"type": "section", "text": {"type": "mrkdwn", "text": "<${{ steps.create-pr.outputs.pr_url || steps.update-pr.outputs.pr_url }}|View Pull Request>"}}
             ]
 
       - name: Notify on failure
