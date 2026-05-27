@@ -59,6 +59,19 @@ export class CreativesResource {
   }
 
   /**
+   * Create a new creative for this campaign
+   * @param data Creative creation data
+   * @returns Created creative
+   */
+  async create(data: Record<string, unknown>): Promise<ApiResponse<Creative>> {
+    return this.adapter.request<ApiResponse<Creative>>(
+      'POST',
+      `/campaigns/${validateResourceId(this.campaignId)}/creatives/create`,
+      data
+    );
+  }
+
+  /**
    * Update creative metadata
    * @param creativeId Creative ID
    * @param data Update data
@@ -80,6 +93,17 @@ export class CreativesResource {
     await this.adapter.request<void>(
       'DELETE',
       `/campaigns/${validateResourceId(this.campaignId)}/creatives/${validateResourceId(creativeId)}`
+    );
+  }
+
+  /**
+   * List creative manifests for this campaign
+   * @returns Creative manifests
+   */
+  async listManifests(): Promise<ApiResponse<Record<string, unknown>[]>> {
+    return this.adapter.request<ApiResponse<Record<string, unknown>[]>>(
+      'GET',
+      `/campaigns/${validateResourceId(this.campaignId)}/creativeManifest`
     );
   }
 }

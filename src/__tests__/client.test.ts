@@ -3,10 +3,7 @@
  */
 
 import { Scope3Client } from '../client';
-import { ConversionEventsResource } from '../resources/conversion-events';
-import { CreativeSetsResource } from '../resources/creative-sets';
 import { TestCohortsResource } from '../resources/test-cohorts';
-import { BundleProductsResource } from '../resources/products';
 import { TasksResource } from '../resources/tasks';
 import { PropertyListChecksResource } from '../resources/property-lists';
 import { EventSourcesResource } from '../resources/event-sources';
@@ -16,6 +13,14 @@ import { AudiencesResource } from '../resources/audiences';
 import { SyndicationResource } from '../resources/syndication';
 import { PropertyListsResource } from '../resources/property-lists';
 import { CreativesResource } from '../resources/creatives';
+import { DiscoveryResource } from '../resources/discovery';
+import { AccountsResource } from '../resources/accounts';
+import { NotificationPreferencesResource } from '../resources/notification-preferences';
+import { ModerationResource } from '../resources/moderation';
+import { StorefrontsResource } from '../resources/storefronts';
+import { AuditLogsResource } from '../resources/audit-logs';
+import { PlanningBriefsResource } from '../resources/planning-briefs';
+import { BuyerBillingResource } from '../resources/billing';
 
 jest.mock('../skill', () => ({
   fetchSkillMd: jest.fn(),
@@ -97,8 +102,13 @@ describe('Scope3Client', () => {
   });
 
   describe('buyer persona resources', () => {
+    let client: Scope3Client;
+
+    beforeEach(() => {
+      client = new Scope3Client({ apiKey: 'test-key', persona: 'buyer' });
+    });
+
     it('should have advertisers resource', () => {
-      const client = new Scope3Client({ apiKey: 'test-key', persona: 'buyer' });
       expect(client.advertisers).toBeDefined();
       expect(typeof client.advertisers.list).toBe('function');
       expect(typeof client.advertisers.get).toBe('function');
@@ -107,178 +117,73 @@ describe('Scope3Client', () => {
       expect(typeof client.advertisers.delete).toBe('function');
     });
 
-    it('should have campaigns resource with type-specific methods', () => {
-      const client = new Scope3Client({ apiKey: 'test-key', persona: 'buyer' });
+    it('should have campaigns resource with generic CRUD and actions', () => {
       expect(client.campaigns).toBeDefined();
       expect(typeof client.campaigns.list).toBe('function');
       expect(typeof client.campaigns.get).toBe('function');
-      expect(typeof client.campaigns.createDiscovery).toBe('function');
-      expect(typeof client.campaigns.updateDiscovery).toBe('function');
-      expect(typeof client.campaigns.createPerformance).toBe('function');
-      expect(typeof client.campaigns.updatePerformance).toBe('function');
-      expect(typeof client.campaigns.createAudience).toBe('function');
+      expect(typeof client.campaigns.create).toBe('function');
+      expect(typeof client.campaigns.update).toBe('function');
+      expect(typeof client.campaigns.delete).toBe('function');
       expect(typeof client.campaigns.execute).toBe('function');
       expect(typeof client.campaigns.pause).toBe('function');
     });
 
-    it('should have bundles resource', () => {
-      const client = new Scope3Client({ apiKey: 'test-key', persona: 'buyer' });
-      expect(client.bundles).toBeDefined();
-      expect(typeof client.bundles.create).toBe('function');
-      expect(typeof client.bundles.discoverProducts).toBe('function');
-      expect(typeof client.bundles.browseProducts).toBe('function');
-      expect(typeof client.bundles.products).toBe('function');
-    });
-
-    it('should return products resource for bundle with list, add, remove', () => {
-      const client = new Scope3Client({ apiKey: 'test-key', persona: 'buyer' });
-      const products = client.bundles.products('bundle-123');
-      expect(products).toBeDefined();
-      expect(typeof products.list).toBe('function');
-      expect(typeof products.add).toBe('function');
-      expect(typeof products.remove).toBe('function');
-    });
-
-    it('should have signals resource', () => {
-      const client = new Scope3Client({ apiKey: 'test-key', persona: 'buyer' });
-      expect(client.signals).toBeDefined();
-      expect(typeof client.signals.discover).toBe('function');
-      expect(typeof client.signals.list).toBe('function');
-    });
-
     it('should have reporting resource', () => {
-      const client = new Scope3Client({ apiKey: 'test-key', persona: 'buyer' });
       expect(client.reporting).toBeDefined();
       expect(typeof client.reporting.get).toBe('function');
     });
 
-    it('should have salesAgents resource', () => {
-      const client = new Scope3Client({ apiKey: 'test-key', persona: 'buyer' });
-      expect(client.salesAgents).toBeDefined();
-      expect(typeof client.salesAgents.list).toBe('function');
-      expect(typeof client.salesAgents.registerAccount).toBe('function');
-    });
-
     it('should have tasks resource', () => {
-      const client = new Scope3Client({ apiKey: 'test-key', persona: 'buyer' });
       expect(client.tasks).toBeDefined();
       expect(client.tasks).toBeInstanceOf(TasksResource);
       expect(typeof client.tasks.get).toBe('function');
     });
 
     it('should have propertyListChecks resource', () => {
-      const client = new Scope3Client({ apiKey: 'test-key', persona: 'buyer' });
       expect(client.propertyListChecks).toBeDefined();
       expect(client.propertyListChecks).toBeInstanceOf(PropertyListChecksResource);
       expect(typeof client.propertyListChecks.check).toBe('function');
       expect(typeof client.propertyListChecks.getReport).toBe('function');
     });
-  });
 
-  describe('storefront persona resources', () => {
-    it('should have storefront resource', () => {
-      const client = new Scope3Client({ apiKey: 'test-key', persona: 'storefront' });
-      expect(client.storefront).toBeDefined();
-      expect(typeof client.storefront.get).toBe('function');
-      expect(typeof client.storefront.create).toBe('function');
-      expect(typeof client.storefront.update).toBe('function');
-      expect(typeof client.storefront.delete).toBe('function');
+    it('should have discovery resource', () => {
+      expect(client.discovery).toBeDefined();
+      expect(client.discovery).toBeInstanceOf(DiscoveryResource);
     });
 
-    it('should have inventorySources resource', () => {
-      const client = new Scope3Client({ apiKey: 'test-key', persona: 'storefront' });
-      expect(client.inventorySources).toBeDefined();
-      expect(typeof client.inventorySources.list).toBe('function');
-      expect(typeof client.inventorySources.get).toBe('function');
-      expect(typeof client.inventorySources.create).toBe('function');
-      expect(typeof client.inventorySources.update).toBe('function');
-      expect(typeof client.inventorySources.delete).toBe('function');
+    it('should have accounts resource', () => {
+      expect(client.accounts).toBeDefined();
+      expect(client.accounts).toBeInstanceOf(AccountsResource);
     });
 
-    it('should have agents resource', () => {
-      const client = new Scope3Client({ apiKey: 'test-key', persona: 'storefront' });
-      expect(client.agents).toBeDefined();
-      expect(typeof client.agents.list).toBe('function');
-      expect(typeof client.agents.get).toBe('function');
-      expect(typeof client.agents.update).toBe('function');
+    it('should have notificationPreferences resource', () => {
+      expect(client.notificationPreferences).toBeDefined();
+      expect(client.notificationPreferences).toBeInstanceOf(NotificationPreferencesResource);
     });
 
-    it('should have readiness resource', () => {
-      const client = new Scope3Client({ apiKey: 'test-key', persona: 'storefront' });
-      expect(client.readiness).toBeDefined();
-      expect(typeof client.readiness.check).toBe('function');
+    it('should have moderation resource', () => {
+      expect(client.moderation).toBeDefined();
+      expect(client.moderation).toBeInstanceOf(ModerationResource);
+    });
+
+    it('should have storefronts resource', () => {
+      expect(client.storefronts).toBeDefined();
+      expect(client.storefronts).toBeInstanceOf(StorefrontsResource);
+    });
+
+    it('should have auditLogs resource', () => {
+      expect(client.auditLogs).toBeDefined();
+      expect(client.auditLogs).toBeInstanceOf(AuditLogsResource);
+    });
+
+    it('should have planningBriefs resource', () => {
+      expect(client.planningBriefs).toBeDefined();
+      expect(client.planningBriefs).toBeInstanceOf(PlanningBriefsResource);
     });
 
     it('should have billing resource', () => {
-      const client = new Scope3Client({ apiKey: 'test-key', persona: 'storefront' });
       expect(client.billing).toBeDefined();
-      expect(typeof client.billing.get).toBe('function');
-      expect(typeof client.billing.connect).toBe('function');
-      expect(typeof client.billing.status).toBe('function');
-      expect(typeof client.billing.transactions).toBe('function');
-      expect(typeof client.billing.payouts).toBe('function');
-      expect(typeof client.billing.onboardingUrl).toBe('function');
-    });
-
-    it('should have notifications resource', () => {
-      const client = new Scope3Client({ apiKey: 'test-key', persona: 'storefront' });
-      expect(client.notifications).toBeDefined();
-      expect(typeof client.notifications.list).toBe('function');
-      expect(typeof client.notifications.markAsRead).toBe('function');
-      expect(typeof client.notifications.acknowledge).toBe('function');
-      expect(typeof client.notifications.markAllAsRead).toBe('function');
-    });
-
-    it('should NOT have advertisers', () => {
-      const client = new Scope3Client({ apiKey: 'test-key', persona: 'storefront' });
-      expect(() => client.advertisers).toThrow(
-        'advertisers is only available with the buyer persona'
-      );
-    });
-
-    it('should NOT have campaigns', () => {
-      const client = new Scope3Client({ apiKey: 'test-key', persona: 'storefront' });
-      expect(() => client.campaigns).toThrow('campaigns is only available with the buyer persona');
-    });
-  });
-
-  describe('buyer persona cannot access storefront resources', () => {
-    it('should throw when accessing storefront', () => {
-      const client = new Scope3Client({ apiKey: 'test-key', persona: 'buyer' });
-      expect(() => client.storefront).toThrow(
-        'storefront is only available with the storefront persona'
-      );
-    });
-
-    it('should throw when accessing inventorySources', () => {
-      const client = new Scope3Client({ apiKey: 'test-key', persona: 'buyer' });
-      expect(() => client.inventorySources).toThrow(
-        'inventorySources is only available with the storefront persona'
-      );
-    });
-
-    it('should throw when accessing agents', () => {
-      const client = new Scope3Client({ apiKey: 'test-key', persona: 'buyer' });
-      expect(() => client.agents).toThrow('agents is only available with the storefront persona');
-    });
-
-    it('should throw when accessing readiness', () => {
-      const client = new Scope3Client({ apiKey: 'test-key', persona: 'buyer' });
-      expect(() => client.readiness).toThrow(
-        'readiness is only available with the storefront persona'
-      );
-    });
-
-    it('should throw when accessing billing', () => {
-      const client = new Scope3Client({ apiKey: 'test-key', persona: 'buyer' });
-      expect(() => client.billing).toThrow('billing is only available with the storefront persona');
-    });
-
-    it('should throw when accessing notifications', () => {
-      const client = new Scope3Client({ apiKey: 'test-key', persona: 'buyer' });
-      expect(() => client.notifications).toThrow(
-        'notifications is only available with the storefront persona'
-      );
+      expect(client.billing).toBeInstanceOf(BuyerBillingResource);
     });
   });
 
@@ -377,7 +282,6 @@ describe('Scope3Client', () => {
 
       await expect(client.getSkill()).rejects.toThrow('Network error');
 
-      // After error, cache should be cleared — next call should retry
       mockFetchSkillMd.mockResolvedValue('recovered markdown');
       mockParseSkillMd.mockReturnValue(fakeParsed);
 
@@ -385,18 +289,6 @@ describe('Scope3Client', () => {
 
       expect(mockFetchSkillMd).toHaveBeenCalledTimes(2);
       expect(result).toEqual(fakeParsed);
-    });
-
-    it('should pass correct params for storefront persona', async () => {
-      const sfClient = new Scope3Client({ apiKey: 'test-key', persona: 'storefront' });
-      mockFetchSkillMd.mockResolvedValue('markdown');
-      mockParseSkillMd.mockReturnValue({ ...fakeParsed, name: 'scope3-agentic-storefront' });
-
-      await sfClient.getSkill();
-
-      expect(mockFetchSkillMd).toHaveBeenCalledWith(
-        expect.objectContaining({ persona: 'storefront' })
-      );
     });
 
     it('should pass correct params for custom version', async () => {
@@ -436,32 +328,6 @@ describe('Scope3Client', () => {
         client = new Scope3Client({ apiKey: 'test-key', persona: 'buyer' });
       });
 
-      it('conversionEvents() returns a ConversionEventsResource', () => {
-        const resource = client.advertisers.conversionEvents('adv-123');
-        expect(resource).toBeInstanceOf(ConversionEventsResource);
-      });
-
-      it('conversionEvents() has list, get, create, update methods', () => {
-        const resource = client.advertisers.conversionEvents('adv-123');
-        expect(typeof resource.list).toBe('function');
-        expect(typeof resource.get).toBe('function');
-        expect(typeof resource.create).toBe('function');
-        expect(typeof resource.update).toBe('function');
-      });
-
-      it('creativeSets() returns a CreativeSetsResource', () => {
-        const resource = client.advertisers.creativeSets('adv-456');
-        expect(resource).toBeInstanceOf(CreativeSetsResource);
-      });
-
-      it('creativeSets() has list, create, addAsset, removeAsset methods', () => {
-        const resource = client.advertisers.creativeSets('adv-456');
-        expect(typeof resource.list).toBe('function');
-        expect(typeof resource.create).toBe('function');
-        expect(typeof resource.addAsset).toBe('function');
-        expect(typeof resource.removeAsset).toBe('function');
-      });
-
       it('testCohorts() returns a TestCohortsResource', () => {
         const resource = client.advertisers.testCohorts('adv-789');
         expect(resource).toBeInstanceOf(TestCohortsResource);
@@ -474,14 +340,8 @@ describe('Scope3Client', () => {
       });
 
       it('returns a new resource instance each call (not cached)', () => {
-        const a = client.advertisers.conversionEvents('adv-123');
-        const b = client.advertisers.conversionEvents('adv-123');
-        expect(a).not.toBe(b);
-      });
-
-      it('returns different resources for different advertiser IDs', () => {
-        const a = client.advertisers.conversionEvents('adv-1');
-        const b = client.advertisers.conversionEvents('adv-2');
+        const a = client.advertisers.testCohorts('adv-123');
+        const b = client.advertisers.testCohorts('adv-123');
         expect(a).not.toBe(b);
       });
 
@@ -540,48 +400,6 @@ describe('Scope3Client', () => {
         const a = client.campaigns.creatives('camp-123');
         const b = client.campaigns.creatives('camp-123');
         expect(a).not.toBe(b);
-      });
-    });
-
-    describe('bundles sub-resources', () => {
-      let client: Scope3Client;
-
-      beforeEach(() => {
-        client = new Scope3Client({ apiKey: 'test-key', persona: 'buyer' });
-      });
-
-      it('products() returns a BundleProductsResource', () => {
-        const resource = client.bundles.products('bundle-123');
-        expect(resource).toBeInstanceOf(BundleProductsResource);
-      });
-
-      it('products() has list, add, remove methods', () => {
-        const resource = client.bundles.products('bundle-123');
-        expect(typeof resource.list).toBe('function');
-        expect(typeof resource.add).toBe('function');
-        expect(typeof resource.remove).toBe('function');
-      });
-
-      it('returns a new resource instance each call', () => {
-        const a = client.bundles.products('bundle-123');
-        const b = client.bundles.products('bundle-123');
-        expect(a).not.toBe(b);
-      });
-    });
-
-    describe('storefront persona cannot access buyer sub-resources', () => {
-      it('should throw when accessing advertisers sub-resources', () => {
-        const client = new Scope3Client({ apiKey: 'test-key', persona: 'storefront' });
-        expect(() => client.advertisers.conversionEvents('adv-1')).toThrow(
-          'advertisers is only available with the buyer persona'
-        );
-      });
-
-      it('should throw when accessing bundles sub-resources', () => {
-        const client = new Scope3Client({ apiKey: 'test-key', persona: 'storefront' });
-        expect(() => client.bundles.products('bundle-1')).toThrow(
-          'bundles is only available with the buyer persona'
-        );
       });
     });
   });

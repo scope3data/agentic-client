@@ -4,12 +4,7 @@
  */
 
 import { type BaseAdapter, validateResourceId } from '../adapters/base';
-import type {
-  ApiResponse,
-  EventSource,
-  CreateEventSourceInput,
-  UpdateEventSourceInput,
-} from '../types';
+import type { ApiResponse, EventSource, LogEventInput } from '../types';
 
 /**
  * Resource for managing event sources (scoped to an advertiser)
@@ -19,6 +14,17 @@ export class EventSourcesResource {
     private readonly adapter: BaseAdapter,
     private readonly advertiserId: string
   ) {}
+
+  /**
+   * List all event sources for this advertiser
+   * @returns List of event sources
+   */
+  async list(): Promise<ApiResponse<EventSource[]>> {
+    return this.adapter.request<ApiResponse<EventSource[]>>(
+      'GET',
+      `/advertisers/${validateResourceId(this.advertiserId)}/event-sources`
+    );
+  }
 
   /**
    * Sync (bulk upsert) event sources for this advertiser
@@ -34,63 +40,26 @@ export class EventSourcesResource {
   }
 
   /**
-   * List all event sources for this advertiser
-   * @returns List of event sources
+   * Get event summary for this advertiser
+   * @returns Event summary
    */
-  async list(): Promise<ApiResponse<EventSource[]>> {
-    return this.adapter.request<ApiResponse<EventSource[]>>(
+  async getEventSummary(): Promise<ApiResponse<Record<string, unknown>>> {
+    return this.adapter.request<ApiResponse<Record<string, unknown>>>(
       'GET',
-      `/advertisers/${validateResourceId(this.advertiserId)}/event-sources`
+      `/advertisers/${validateResourceId(this.advertiserId)}/events/summary`
     );
   }
 
   /**
-   * Create a new event source
-   * @param data Event source creation data
-   * @returns Created event source
+   * Log an event for this advertiser
+   * @param data Event data to log
+   * @returns Log result
    */
-  async create(data: CreateEventSourceInput): Promise<ApiResponse<EventSource>> {
-    return this.adapter.request<ApiResponse<EventSource>>(
+  async logEvent(data: LogEventInput): Promise<ApiResponse<Record<string, unknown>>> {
+    return this.adapter.request<ApiResponse<Record<string, unknown>>>(
       'POST',
-      `/advertisers/${validateResourceId(this.advertiserId)}/event-sources`,
+      `/advertisers/${validateResourceId(this.advertiserId)}/log-event`,
       data
-    );
-  }
-
-  /**
-   * Get an event source by ID
-   * @param id Event source ID
-   * @returns Event source details
-   */
-  async get(id: string): Promise<ApiResponse<EventSource>> {
-    return this.adapter.request<ApiResponse<EventSource>>(
-      'GET',
-      `/advertisers/${validateResourceId(this.advertiserId)}/event-sources/${validateResourceId(id)}`
-    );
-  }
-
-  /**
-   * Update an existing event source
-   * @param id Event source ID
-   * @param data Update data
-   * @returns Updated event source
-   */
-  async update(id: string, data: UpdateEventSourceInput): Promise<ApiResponse<EventSource>> {
-    return this.adapter.request<ApiResponse<EventSource>>(
-      'PUT',
-      `/advertisers/${validateResourceId(this.advertiserId)}/event-sources/${validateResourceId(id)}`,
-      data
-    );
-  }
-
-  /**
-   * Delete an event source
-   * @param id Event source ID
-   */
-  async delete(id: string): Promise<void> {
-    await this.adapter.request<void>(
-      'DELETE',
-      `/advertisers/${validateResourceId(this.advertiserId)}/event-sources/${validateResourceId(id)}`
     );
   }
 }

@@ -40,7 +40,7 @@ describe('CampaignsResource', () => {
       });
     });
 
-    it('should pass filter params including type', async () => {
+    it('should pass filter params', async () => {
       mockAdapter.request.mockResolvedValue({ items: [], total: 0 });
 
       await resource.list({ advertiserId: 'adv-123', status: 'ACTIVE', type: 'discovery' });
@@ -59,7 +59,7 @@ describe('CampaignsResource', () => {
 
   describe('get', () => {
     it('should call adapter with correct path', async () => {
-      mockAdapter.request.mockResolvedValue({ id: 'camp-123', name: 'Test Campaign' });
+      mockAdapter.request.mockResolvedValue({ data: { id: 'camp-123', name: 'Test Campaign' } });
 
       await resource.get('camp-123');
 
@@ -67,91 +67,49 @@ describe('CampaignsResource', () => {
     });
   });
 
-  describe('createDiscovery', () => {
-    it('should call adapter with POST /campaigns/discovery', async () => {
+  describe('create', () => {
+    it('should call adapter with POST /campaigns', async () => {
       const input = {
         advertiserId: 'adv-123',
         name: 'Q1 Campaign',
-        bundleId: 'bundle-456',
+        type: 'discovery' as const,
         flightDates: { startDate: '2025-01-01', endDate: '2025-03-31' },
         budget: { total: 50000, currency: 'USD' },
       };
 
-      mockAdapter.request.mockResolvedValue({ id: 'camp-123', ...input });
+      mockAdapter.request.mockResolvedValue({ data: { id: 'camp-123', ...input } });
 
-      await resource.createDiscovery(input);
+      await resource.create(input);
 
-      expect(mockAdapter.request).toHaveBeenCalledWith('POST', '/campaigns/discovery', input);
+      expect(mockAdapter.request).toHaveBeenCalledWith('POST', '/campaigns', input);
     });
   });
 
-  describe('updateDiscovery', () => {
-    it('should call adapter with PUT /campaigns/discovery/{id}', async () => {
-      mockAdapter.request.mockResolvedValue({ id: 'camp-123', name: 'Updated' });
+  describe('update', () => {
+    it('should call adapter with PUT /campaigns/{id}', async () => {
+      mockAdapter.request.mockResolvedValue({ data: { id: 'camp-123', name: 'Updated' } });
 
-      await resource.updateDiscovery('camp-123', { name: 'Updated' });
+      await resource.update('camp-123', { name: 'Updated' });
 
-      expect(mockAdapter.request).toHaveBeenCalledWith('PUT', '/campaigns/discovery/camp-123', {
+      expect(mockAdapter.request).toHaveBeenCalledWith('PUT', '/campaigns/camp-123', {
         name: 'Updated',
       });
     });
   });
 
-  describe('createPerformance', () => {
-    it('should call adapter with POST /campaigns/performance', async () => {
-      const input = {
-        advertiserId: 'adv-123',
-        name: 'Q1 ROAS',
-        flightDates: { startDate: '2025-01-01', endDate: '2025-03-31' },
-        budget: { total: 100000, currency: 'USD' },
-        performanceConfig: { objective: 'ROAS' as const, goals: { targetRoas: 4.0 } },
-      };
+  describe('delete', () => {
+    it('should call adapter with DELETE /campaigns/{id}', async () => {
+      mockAdapter.request.mockResolvedValue(undefined);
 
-      mockAdapter.request.mockResolvedValue({ id: 'camp-456', ...input });
+      await resource.delete('camp-123');
 
-      await resource.createPerformance(input);
-
-      expect(mockAdapter.request).toHaveBeenCalledWith('POST', '/campaigns/performance', input);
-    });
-  });
-
-  describe('updatePerformance', () => {
-    it('should call adapter with PUT /campaigns/performance/{id}', async () => {
-      const update = { performanceConfig: { goals: { targetRoas: 5.0 } } };
-      mockAdapter.request.mockResolvedValue({ id: 'camp-456' });
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await resource.updatePerformance('camp-456', update as any);
-
-      expect(mockAdapter.request).toHaveBeenCalledWith(
-        'PUT',
-        '/campaigns/performance/camp-456',
-        update
-      );
-    });
-  });
-
-  describe('createAudience', () => {
-    it('should call adapter with POST /campaigns/audience', async () => {
-      const input = {
-        advertiserId: 'adv-123',
-        name: 'Audience Campaign',
-        flightDates: { startDate: '2025-01-01', endDate: '2025-03-31' },
-        budget: { total: 25000, currency: 'USD' },
-        signals: ['signal-1'],
-      };
-
-      mockAdapter.request.mockResolvedValue({ id: 'camp-789', ...input });
-
-      await resource.createAudience(input);
-
-      expect(mockAdapter.request).toHaveBeenCalledWith('POST', '/campaigns/audience', input);
+      expect(mockAdapter.request).toHaveBeenCalledWith('DELETE', '/campaigns/camp-123');
     });
   });
 
   describe('execute', () => {
     it('should call execute endpoint', async () => {
-      mockAdapter.request.mockResolvedValue({ success: true, executedAt: '2025-01-01' });
+      mockAdapter.request.mockResolvedValue({ data: { success: true } });
 
       await resource.execute('camp-123');
 
@@ -161,11 +119,48 @@ describe('CampaignsResource', () => {
 
   describe('pause', () => {
     it('should call pause endpoint', async () => {
-      mockAdapter.request.mockResolvedValue({ id: 'camp-123', status: 'PAUSED' });
+      mockAdapter.request.mockResolvedValue({ data: { id: 'camp-123', status: 'PAUSED' } });
 
       await resource.pause('camp-123');
 
       expect(mockAdapter.request).toHaveBeenCalledWith('POST', '/campaigns/camp-123/pause');
+    });
+  });
+
+  describe('autoSelectProducts', () => {
+    it('should call auto-select-products endpoint', async () => {
+      mockAdapter.request.mockResolvedValue({ data: { selected: 5 } });
+
+      await resource.autoSelectProducts('camp-123');
+
+      expect(mockAdapter.request).toHaveBeenCalledWith(
+        'POST',
+        '/campaigns/camp-123/auto-select-products',
+        undefined
+      );
+    });
+  });
+
+  describe('getMediaBuyStatus', () => {
+    it('should call media-buy-status endpoint', async () => {
+      mockAdapter.request.mockResolvedValue({ data: { status: 'ACTIVE' } });
+
+      await resource.getMediaBuyStatus('camp-123');
+
+      expect(mockAdapter.request).toHaveBeenCalledWith(
+        'GET',
+        '/campaigns/camp-123/media-buy-status'
+      );
+    });
+  });
+
+  describe('getProducts', () => {
+    it('should call products endpoint', async () => {
+      mockAdapter.request.mockResolvedValue({ data: { products: [] } });
+
+      await resource.getProducts('camp-123');
+
+      expect(mockAdapter.request).toHaveBeenCalledWith('GET', '/campaigns/camp-123/products');
     });
   });
 });
