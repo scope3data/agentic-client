@@ -247,7 +247,6 @@ export interface CreateCampaignInput {
   brief?: string;
   constraints?: CampaignConstraints;
   performanceConfig?: PerformanceConfig;
-  [key: string]: unknown;
 }
 
 export interface UpdateCampaignInput {
@@ -258,13 +257,76 @@ export interface UpdateCampaignInput {
   brief?: string;
   constraints?: CampaignConstraints;
   performanceConfig?: PerformanceConfig;
-  [key: string]: unknown;
 }
 
 export interface ListCampaignsParams extends PaginationParams {
   advertiserId?: string;
   type?: CampaignType;
   status?: CampaignStatus;
+}
+
+export interface AutoSelectProductsResult {
+  campaignId: string;
+  discoveryId: string;
+  selectedProducts: Array<{
+    productId: string;
+    name: string;
+    salesAgentId: string;
+    groupId: string;
+    groupName: string;
+    cpm?: number;
+  }>;
+}
+
+export interface CampaignProductEntry {
+  productId: string;
+  productName?: string;
+  salesAgentId: string;
+  salesAgentName?: string;
+  publisherDomain?: string;
+  publisherName?: string;
+  bidPrice?: number;
+  budget?: number;
+  pricingOptionId?: string;
+  pricingModel?: string;
+}
+
+export interface CampaignProductsResult {
+  campaignId: string;
+  discoveryId: string | null;
+  products: CampaignProductEntry[];
+  searchContexts: Array<{
+    id: string;
+    brief: string;
+    channels: string[];
+    countries: string[];
+    createdAt: string;
+    productCount: number;
+  }>;
+  summary: {
+    totalProducts: number;
+    productsOnMediaBuys: number;
+    productsPending: number;
+  };
+}
+
+export type MediaBuyStatusValue =
+  | 'DRAFT'
+  | 'PENDING_APPROVAL'
+  | 'INPUT_REQUIRED'
+  | 'ACTIVE'
+  | 'PAUSED'
+  | 'COMPLETED'
+  | 'CANCELED';
+
+export interface CampaignMediaBuyStatus {
+  mediaBuys: Array<{
+    MediaBuyId: string;
+    name: string;
+    Status: string;
+    startTime?: string;
+    endTime?: string;
+  }>;
 }
 
 // ============================================================================

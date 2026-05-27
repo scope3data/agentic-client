@@ -63,7 +63,10 @@ export class Scope3Client {
       throw new Error('apiKey is required');
     }
     if (!config.persona) {
-      throw new Error('persona is required (buyer or storefront)');
+      throw new Error('persona is required');
+    }
+    if (config.persona !== 'buyer') {
+      throw new Error('Scope3Client only supports the buyer persona');
     }
 
     this.version = config.version ?? 'v2';

@@ -131,6 +131,11 @@ export type {
   CreateCampaignInput,
   UpdateCampaignInput,
   ListCampaignsParams,
+  AutoSelectProductsResult,
+  CampaignProductEntry,
+  CampaignProductsResult,
+  CampaignMediaBuyStatus,
+  MediaBuyStatusValue,
   // Test Cohorts
   TestCohort,
   CreateTestCohortInput,

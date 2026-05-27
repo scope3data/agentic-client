@@ -10,6 +10,9 @@ import type {
   ListCampaignsParams,
   PaginatedApiResponse,
   ApiResponse,
+  AutoSelectProductsResult,
+  CampaignProductsResult,
+  CampaignMediaBuyStatus,
 } from '../types';
 import { campaignSchemas } from '../schemas/registry';
 import { shouldValidateResponse, validateResponse } from '../validation';
@@ -60,7 +63,11 @@ export class CampaignsResource {
    * @returns Created campaign
    */
   async create(data: CreateCampaignInput): Promise<ApiResponse<Campaign>> {
-    return this.adapter.request<ApiResponse<Campaign>>('POST', '/campaigns', data);
+    const result = await this.adapter.request<ApiResponse<Campaign>>('POST', '/campaigns', data);
+    if (shouldValidateResponse(this.adapter.validate)) {
+      result.data = validateResponse(campaignSchemas.response, result.data) as unknown as Campaign;
+    }
+    return result;
   }
 
   /**
@@ -70,11 +77,15 @@ export class CampaignsResource {
    * @returns Updated campaign
    */
   async update(id: string, data: UpdateCampaignInput): Promise<ApiResponse<Campaign>> {
-    return this.adapter.request<ApiResponse<Campaign>>(
+    const result = await this.adapter.request<ApiResponse<Campaign>>(
       'PUT',
       `/campaigns/${validateResourceId(id)}`,
       data
     );
+    if (shouldValidateResponse(this.adapter.validate)) {
+      result.data = validateResponse(campaignSchemas.response, result.data) as unknown as Campaign;
+    }
+    return result;
   }
 
   /**
@@ -88,14 +99,18 @@ export class CampaignsResource {
   /**
    * Auto-select products for a campaign
    * @param id Campaign ID
-   * @param data Optional configuration for product selection
-   * @returns Auto-selection result
+   * @param data Optional refinement and configuration for product selection
+   * @returns Auto-selection result with selected products
    */
   async autoSelectProducts(
     id: string,
-    data?: Record<string, unknown>
-  ): Promise<ApiResponse<Record<string, unknown>>> {
-    return this.adapter.request<ApiResponse<Record<string, unknown>>>(
+    data?: {
+      refine?: Array<Record<string, unknown>>;
+      maxProducts?: number;
+      minBudgetPerProduct?: number;
+    }
+  ): Promise<ApiResponse<AutoSelectProductsResult>> {
+    return this.adapter.request<ApiResponse<AutoSelectProductsResult>>(
       'POST',
       `/campaigns/${validateResourceId(id)}/auto-select-products`,
       data
@@ -105,10 +120,10 @@ export class CampaignsResource {
   /**
    * Get media buy status for a campaign
    * @param id Campaign ID
-   * @returns Media buy status
+   * @returns Media buy statuses
    */
-  async getMediaBuyStatus(id: string): Promise<ApiResponse<Record<string, unknown>>> {
-    return this.adapter.request<ApiResponse<Record<string, unknown>>>(
+  async getMediaBuyStatus(id: string): Promise<ApiResponse<CampaignMediaBuyStatus>> {
+    return this.adapter.request<ApiResponse<CampaignMediaBuyStatus>>(
       'GET',
       `/campaigns/${validateResourceId(id)}/media-buy-status`
     );
@@ -117,10 +132,10 @@ export class CampaignsResource {
   /**
    * Get products associated with a campaign
    * @param id Campaign ID
-   * @returns Campaign products
+   * @returns Campaign products with summary
    */
-  async getProducts(id: string): Promise<ApiResponse<Record<string, unknown>>> {
-    return this.adapter.request<ApiResponse<Record<string, unknown>>>(
+  async getProducts(id: string): Promise<ApiResponse<CampaignProductsResult>> {
+    return this.adapter.request<ApiResponse<CampaignProductsResult>>(
       'GET',
       `/campaigns/${validateResourceId(id)}/products`
     );
