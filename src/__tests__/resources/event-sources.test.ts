@@ -23,6 +23,14 @@ describe('EventSourcesResource', () => {
     resource = new EventSourcesResource(mockAdapter, 'adv-123');
   });
 
+  describe('list', () => {
+    it('should call adapter with correct path', async () => {
+      mockAdapter.request.mockResolvedValue([]);
+      await resource.list();
+      expect(mockAdapter.request).toHaveBeenCalledWith('GET', '/advertisers/adv-123/event-sources');
+    });
+  });
+
   describe('sync', () => {
     it('should call adapter with correct path and body', async () => {
       const data = { sources: [{ name: 'pixel' }] };
@@ -36,58 +44,26 @@ describe('EventSourcesResource', () => {
     });
   });
 
-  describe('list', () => {
+  describe('getEventSummary', () => {
     it('should call adapter with correct path', async () => {
-      mockAdapter.request.mockResolvedValue([]);
-      await resource.list();
-      expect(mockAdapter.request).toHaveBeenCalledWith('GET', '/advertisers/adv-123/event-sources');
-    });
-  });
-
-  describe('create', () => {
-    it('should call adapter with correct path and body', async () => {
-      const data = { name: 'new-source', type: 'pixel' };
-      mockAdapter.request.mockResolvedValue({ id: 'es-1' });
-      await resource.create(data);
-      expect(mockAdapter.request).toHaveBeenCalledWith(
-        'POST',
-        '/advertisers/adv-123/event-sources',
-        data
-      );
-    });
-  });
-
-  describe('get', () => {
-    it('should call adapter with correct path', async () => {
-      mockAdapter.request.mockResolvedValue({ id: 'es-1' });
-      await resource.get('es-1');
+      mockAdapter.request.mockResolvedValue({ data: {} });
+      await resource.getEventSummary();
       expect(mockAdapter.request).toHaveBeenCalledWith(
         'GET',
-        '/advertisers/adv-123/event-sources/es-1'
+        '/advertisers/adv-123/events/summary'
       );
     });
   });
 
-  describe('update', () => {
+  describe('logEvent', () => {
     it('should call adapter with correct path and body', async () => {
-      const data = { name: 'updated-source' };
-      mockAdapter.request.mockResolvedValue({ id: 'es-1', name: 'updated-source' });
-      await resource.update('es-1', data);
+      const data = { events: [{ eventType: 'conversion', value: 100 }] };
+      mockAdapter.request.mockResolvedValue({ data: { success: true } });
+      await resource.logEvent(data);
       expect(mockAdapter.request).toHaveBeenCalledWith(
-        'PUT',
-        '/advertisers/adv-123/event-sources/es-1',
+        'POST',
+        '/advertisers/adv-123/log-event',
         data
-      );
-    });
-  });
-
-  describe('delete', () => {
-    it('should call adapter with correct path', async () => {
-      mockAdapter.request.mockResolvedValue(undefined);
-      await resource.delete('es-1');
-      expect(mockAdapter.request).toHaveBeenCalledWith(
-        'DELETE',
-        '/advertisers/adv-123/event-sources/es-1'
       );
     });
   });

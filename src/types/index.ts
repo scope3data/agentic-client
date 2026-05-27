@@ -238,259 +238,33 @@ export interface Campaign {
   updatedAt: string;
 }
 
-/** Input for creating a discovery campaign */
-export interface CreateDiscoveryCampaignInput {
+export interface CreateCampaignInput {
   advertiserId: string;
   name: string;
-  bundleId: string;
+  type: CampaignType;
   flightDates: FlightDates;
   budget: Budget;
-  productIds?: string[];
-  constraints?: CampaignConstraints;
   brief?: string;
-}
-
-/** Input for updating a discovery campaign */
-export interface UpdateDiscoveryCampaignInput {
-  name?: string;
-  flightDates?: FlightDates;
-  budget?: Budget;
-  productIds?: string[];
   constraints?: CampaignConstraints;
-  brief?: string;
-}
-
-/** Input for creating a performance campaign */
-export interface CreatePerformanceCampaignInput {
-  advertiserId: string;
-  name: string;
-  flightDates: FlightDates;
-  budget: Budget;
-  performanceConfig: PerformanceConfig;
-  constraints?: CampaignConstraints;
-}
-
-/** Input for updating a performance campaign */
-export interface UpdatePerformanceCampaignInput {
-  name?: string;
-  flightDates?: FlightDates;
-  budget?: Budget;
   performanceConfig?: PerformanceConfig;
-  constraints?: CampaignConstraints;
+  [key: string]: unknown;
 }
 
-/** Input for creating an audience campaign (not yet implemented) */
-export interface CreateAudienceCampaignInput {
-  advertiserId: string;
-  name: string;
-  flightDates: FlightDates;
-  budget: Budget;
-  signals?: string[];
+export interface UpdateCampaignInput {
+  name?: string;
+  type?: CampaignType;
+  flightDates?: FlightDates;
+  budget?: Budget;
+  brief?: string;
   constraints?: CampaignConstraints;
+  performanceConfig?: PerformanceConfig;
+  [key: string]: unknown;
 }
 
 export interface ListCampaignsParams extends PaginationParams {
   advertiserId?: string;
   type?: CampaignType;
   status?: CampaignStatus;
-}
-
-// ============================================================================
-// Bundle Types (Buyer Persona)
-// ============================================================================
-
-export interface Bundle {
-  bundleId: string;
-}
-
-export interface CreateBundleInput {
-  advertiserId: string;
-  channels?: string[];
-  countries?: string[];
-  brief?: string;
-  budget?: number;
-  flightDates?: FlightDates;
-  salesAgentIds?: string[];
-  salesAgentNames?: string[];
-}
-
-/** Parameters for discovering products in a bundle */
-export interface DiscoverProductsParams {
-  /** Max groups to return (default: 10, max: 50) */
-  groupLimit?: number;
-  /** Groups to skip for pagination */
-  groupOffset?: number;
-  /** Products per group (default: 5, max: 50) */
-  productsPerGroup?: number;
-  /** Products to skip within each group */
-  productOffset?: number;
-  /** Filter by publisher domain */
-  publisherDomain?: string;
-  /** Filter by sales agent IDs (comma-separated) */
-  salesAgentIds?: string;
-  /** Filter by sales agent names (comma-separated) */
-  salesAgentNames?: string;
-}
-
-/** Response from discover-products endpoint */
-export interface DiscoverProductsResponse {
-  bundleId: string;
-  productGroups: ProductGroup[];
-  totalGroups: number;
-  hasMoreGroups: boolean;
-  summary: ProductSummary;
-  budgetContext?: BudgetContext;
-}
-
-export interface ProductGroup {
-  groupId: string;
-  groupName: string;
-  products: Product[];
-  productCount: number;
-  totalProducts: number;
-  hasMoreProducts: boolean;
-}
-
-export interface Product {
-  productId: string;
-  name: string;
-  publisher: string;
-  channel: string;
-  cpm: number;
-  salesAgentId: string;
-  briefRelevance?: string;
-}
-
-export interface ProductSummary {
-  totalProducts: number;
-  publishersCount: number;
-  priceRange?: {
-    min: number;
-    max: number;
-    avg: number;
-  };
-}
-
-export interface BudgetContext {
-  sessionBudget: number;
-  allocatedBudget: number;
-  remainingBudget: number;
-}
-
-/** Product selection for adding to a bundle */
-export interface BundleProductInput {
-  productId: string;
-  salesAgentId: string;
-  groupId: string;
-  groupName: string;
-  cpm?: number;
-  budget?: number;
-}
-
-export interface AddBundleProductsInput {
-  products: BundleProductInput[];
-}
-
-export interface RemoveBundleProductsInput {
-  productIds: string[];
-}
-
-export interface BundleProductsResponse {
-  bundleId: string;
-  products: SelectedBundleProduct[];
-  totalProducts: number;
-  budgetContext?: BudgetContext;
-}
-
-export interface SelectedBundleProduct {
-  productId: string;
-  salesAgentId: string;
-  cpm?: number;
-  budget?: number;
-  selectedAt: string;
-  groupId: string;
-  groupName: string;
-}
-
-/** Input for browse products without a campaign */
-export interface BrowseProductsInput {
-  advertiserId: string;
-  channels?: string[];
-  countries?: string[];
-  brief?: string;
-  publisherDomain?: string;
-  salesAgentIds?: string[];
-  salesAgentNames?: string[];
-}
-
-// ============================================================================
-// Conversion Event Types (Buyer Persona)
-// ============================================================================
-
-export type ConversionEventType =
-  | 'PURCHASE'
-  | 'SIGNUP'
-  | 'LEAD'
-  | 'PAGE_VIEW'
-  | 'ADD_TO_CART'
-  | 'CUSTOM';
-
-export interface ConversionEvent {
-  id: string;
-  name: string;
-  type: ConversionEventType;
-  description?: string;
-  value?: number;
-  currency?: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface CreateConversionEventInput {
-  name: string;
-  type: ConversionEventType;
-  description?: string;
-  value?: number;
-  currency?: string;
-}
-
-export interface UpdateConversionEventInput {
-  name?: string;
-  value?: number;
-  currency?: string;
-  description?: string;
-}
-
-// ============================================================================
-// Creative Set Types (Buyer Persona)
-// ============================================================================
-
-export interface CreativeSet {
-  id: string;
-  name: string;
-  type: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface CreateCreativeSetInput {
-  name: string;
-  type: string;
-}
-
-export interface CreativeAsset {
-  id: string;
-  assetUrl: string;
-  name: string;
-  type: string;
-  duration?: number;
-}
-
-export interface CreateCreativeAssetInput {
-  assetUrl: string;
-  name: string;
-  type: string;
-  duration?: number;
 }
 
 // ============================================================================
@@ -510,6 +284,12 @@ export interface CreateTestCohortInput {
   name: string;
   description?: string;
   splitPercentage: number;
+}
+
+export interface UpdateTestCohortInput {
+  name?: string;
+  description?: string;
+  splitPercentage?: number;
 }
 
 // ============================================================================
@@ -590,299 +370,6 @@ export interface ReportingTimeseriesResponse {
 export interface ReportingTimeseriesEntry {
   date: string;
   metrics: Partial<ReportingMetrics>;
-}
-
-// ============================================================================
-// Sales Agent Types (Buyer Persona)
-// ============================================================================
-
-export interface SalesAgent {
-  agentId: string;
-  type: string;
-  name: string;
-  description?: string;
-  endpointUrl?: string;
-  protocol?: string;
-  authenticationType?: string;
-  accountPolicy?: string[];
-  status: string;
-  relationship?: string;
-  customerAccounts?: SalesAgentAccount[];
-  requiresAccount?: boolean;
-  authConfigured?: boolean;
-  createdAt: string;
-}
-
-export interface SalesAgentAccount {
-  id?: string;
-  accountIdentifier: string;
-  status: string;
-  registeredBy?: string;
-  createdAt?: string;
-  oauth?: {
-    authorizationUrl: string;
-    agentId: string;
-    agentName: string;
-  };
-}
-
-export interface ListSalesAgentsParams {
-  status?: string;
-  relationship?: string;
-  name?: string;
-  limit?: number;
-  offset?: number;
-}
-
-export interface RegisterSalesAgentAccountInput {
-  advertiserId: string;
-  accountIdentifier: string;
-  auth?: {
-    type: string;
-    token?: string;
-  };
-  marketplaceAccount?: boolean;
-}
-
-// ============================================================================
-// Signal Types (Buyer Persona)
-// ============================================================================
-
-export interface Signal {
-  id: string;
-  name: string;
-  type: string;
-  catalogType?: string;
-}
-
-export interface DiscoverSignalsInput {
-  filters?: {
-    catalogTypes?: string[];
-  };
-}
-
-// ============================================================================
-// Storefront Types (Storefront Persona)
-// ============================================================================
-
-export interface Storefront {
-  platformId: string;
-  name: string;
-  publisherDomain?: string;
-  plan?: string;
-  enabled: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface CreateStorefrontInput {
-  platformId: string;
-  name: string;
-  publisherDomain?: string;
-  plan?: string;
-}
-
-export interface UpdateStorefrontInput {
-  name?: string;
-  publisherDomain?: string;
-  platformId?: string;
-  plan?: string;
-  enabled?: boolean;
-}
-
-// ============================================================================
-// Inventory Source Types (Storefront Persona)
-// ============================================================================
-
-export type InventorySourceExecutionType = 'agent';
-
-export interface InventorySource {
-  sourceId: string;
-  name: string;
-  executionType?: InventorySourceExecutionType;
-  status: string;
-  agentId?: string;
-  type?: AgentType;
-  endpointUrl?: string;
-  protocol?: AgentProtocol;
-  authenticationType?: AgentAuthenticationType;
-  authConfigured?: boolean;
-  executionConfig?: Record<string, unknown>;
-  description?: string;
-  oauth?: {
-    authorizationUrl: string;
-    agentId: string;
-    agentName: string;
-  };
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface CreateInventorySourceInput {
-  sourceId: string;
-  name: string;
-  executionType?: InventorySourceExecutionType;
-  type?: AgentType;
-  endpointUrl?: string;
-  protocol?: AgentProtocol;
-  authenticationType?: AgentAuthenticationType;
-  auth?: {
-    type: string;
-    token?: string;
-    privateKey?: string;
-  };
-  executionConfig?: Record<string, unknown>;
-  description?: string;
-}
-
-export interface UpdateInventorySourceInput {
-  name?: string;
-  executionType?: InventorySourceExecutionType;
-  executionConfig?: Record<string, unknown>;
-  status?: string;
-}
-
-// ============================================================================
-// Storefront Readiness Types
-// ============================================================================
-
-export type ReadinessStatus = 'ready' | 'blocked';
-
-export interface ReadinessCheck {
-  id: string;
-  name: string;
-  description: string;
-  category: string;
-  status: ReadinessStatus;
-  isBlocker: boolean;
-  details?: string;
-}
-
-export interface StorefrontReadiness {
-  platformId: string;
-  status: ReadinessStatus;
-  checks: ReadinessCheck[];
-}
-
-// ============================================================================
-// Storefront Billing Types (Stripe Connect)
-// ============================================================================
-
-export interface BillingFee {
-  name: string;
-  feePercent: number;
-}
-
-export interface StorefrontBilling {
-  stripeConnectedAccountId: string;
-  onboardingStatus: string;
-  platformFeePercent?: number;
-  fees?: BillingFee[];
-  currency?: string;
-  defaultNetDays?: number;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface StorefrontBillingConfig {
-  platformId: string;
-  billing: StorefrontBilling | null;
-}
-
-export interface StripeConnectResponse {
-  platformId: string;
-  stripeConnectedAccountId: string;
-  onboardingUrl: string;
-}
-
-// ============================================================================
-// Notification Types (Storefront Persona)
-// ============================================================================
-
-export interface Notification {
-  id: string;
-  type: string;
-  message: string;
-  read: boolean;
-  acknowledged: boolean;
-  brandAgentId?: number;
-  createdAt: string;
-}
-
-export interface ListNotificationsParams {
-  unreadOnly?: boolean;
-  brandAgentId?: number;
-  types?: string;
-  limit?: number;
-  offset?: number;
-}
-
-// ============================================================================
-// Agent Types (Storefront Persona)
-// ============================================================================
-
-export type AgentType = 'SALES' | 'SIGNAL' | 'CREATIVE' | 'OUTCOME';
-export type AgentStatus = 'PENDING' | 'ACTIVE' | 'DISABLED' | 'COMING_SOON';
-export type AgentAuthenticationType = 'API_KEY' | 'NO_AUTH' | 'JWT' | 'OAUTH';
-export type AgentProtocol = 'MCP' | 'A2A';
-
-export interface Agent {
-  agentId: string;
-  type: AgentType;
-  name: string;
-  description?: string;
-  endpointUrl?: string;
-  protocol?: AgentProtocol;
-  authenticationType?: AgentAuthenticationType;
-  accountPolicy?: string[];
-  status: AgentStatus;
-  relationship?: string;
-  customerAccounts?: SalesAgentAccount[];
-  requiresAccount?: boolean;
-  authConfigured?: boolean;
-  customerId?: number;
-  reportingType?: string;
-  reportingPollingCadence?: string;
-  oauth?: {
-    authorizationUrl: string;
-    agentId: string;
-    agentName: string;
-  };
-  createdAt: string;
-  updatedAt?: string;
-}
-
-export interface UpdateAgentInput {
-  name?: string;
-  description?: string;
-  endpointUrl?: string;
-  protocol?: AgentProtocol;
-  accountPolicy?: string[];
-  authenticationType?: AgentAuthenticationType;
-  auth?: {
-    type: string;
-    token?: string;
-  };
-  reportingType?: string;
-  reportingPollingCadence?: string;
-  status?: string;
-}
-
-export interface ListAgentsParams {
-  type?: AgentType;
-  status?: string;
-  relationship?: string;
-}
-
-export interface OAuthAuthorizeResponse {
-  authorizationUrl: string;
-  agentId: string;
-  agentName: string;
-}
-
-export interface OAuthCallbackInput {
-  code: string;
-  state: string;
 }
 
 // ============================================================================
@@ -1067,34 +554,221 @@ export interface PropertyListReport {
 }
 
 // ============================================================================
-// Billing Types (Storefront Persona)
+// Discovery Types (Buyer Persona)
 // ============================================================================
 
-export interface BillingStatus {
-  status: string;
-  connected: boolean;
-  accountId?: string;
+export interface DiscoverProductsInput {
+  advertiserId: string;
+  channels?: string[];
+  brief?: string;
+  budget?: number;
+  [key: string]: unknown;
 }
 
-export interface BillingTransaction {
+export interface DiscoveryProduct {
+  productId: string;
+  name: string;
+  publisher: string;
+  channel: string;
+  cpm: number;
+  [key: string]: unknown;
+}
+
+export interface AddProductsInput {
+  products: Array<{ productId: string; [key: string]: unknown }>;
+}
+
+export interface RemoveProductsInput {
+  productIds: string[];
+}
+
+export interface ApplyProposalInput {
+  proposalId: string;
+  [key: string]: unknown;
+}
+
+// ============================================================================
+// Account Types (Buyer Persona)
+// ============================================================================
+
+export interface Account {
+  id: string;
+  name: string;
+  domain?: string;
+  parentId?: string;
+  createdAt: string;
+  [key: string]: unknown;
+}
+
+export interface CreateChildAccountInput {
+  name: string;
+  domain?: string;
+  [key: string]: unknown;
+}
+
+export interface UpdateDomainInput {
+  domain: string;
+}
+
+export interface MembershipSettings {
+  [key: string]: unknown;
+}
+
+export interface UpdateMembershipInput {
+  [key: string]: unknown;
+}
+
+// ============================================================================
+// Notification Preferences Types (Buyer Persona)
+// ============================================================================
+
+export interface NotificationPreferences {
+  [key: string]: unknown;
+}
+
+export interface UpdateNotificationPreferencesInput {
+  [key: string]: unknown;
+}
+
+// ============================================================================
+// Moderation Types (Buyer Persona)
+// ============================================================================
+
+export interface ModerationCheckInput {
+  content: string;
+  [key: string]: unknown;
+}
+
+export interface ModerationCheckResult {
+  passed: boolean;
+  [key: string]: unknown;
+}
+
+// ============================================================================
+// Buyer Storefront Types (Buyer Persona)
+// ============================================================================
+
+export interface BuyerStorefront {
+  id: string;
+  name: string;
+  [key: string]: unknown;
+}
+
+export interface StorefrontCredential {
+  [key: string]: unknown;
+}
+
+export interface RegisterCredentialsInput {
+  [key: string]: unknown;
+}
+
+// ============================================================================
+// Audit Log Types (Buyer Persona)
+// ============================================================================
+
+export interface AuditLog {
+  id: string;
+  action: string;
+  resourceType: string;
+  resourceId?: string;
+  createdAt: string;
+  [key: string]: unknown;
+}
+
+export interface ListAuditLogsParams extends PaginationParams {
+  resourceType?: string;
+  action?: string;
+}
+
+// ============================================================================
+// Planning Brief Types (Buyer Persona)
+// ============================================================================
+
+export interface PlanningBrief {
+  id: string;
+  status: string;
+  brief: string;
+  createdAt: string;
+  [key: string]: unknown;
+}
+
+export interface CreatePlanningBriefInput {
+  brief: string;
+  [key: string]: unknown;
+}
+
+export interface PlanningBriefResponse {
+  id: string;
+  briefId: string;
+  [key: string]: unknown;
+}
+
+// ============================================================================
+// Buyer Billing Types (Buyer Persona)
+// ============================================================================
+
+export interface BuyerInvoice {
   id: string;
   amount: number;
   currency: string;
+  status: string;
+  createdAt: string;
+  [key: string]: unknown;
+}
+
+export interface BuyerPendingInvoiceItem {
+  id: string;
+  amount: number;
   description: string;
-  createdAt: string;
+  [key: string]: unknown;
 }
 
-export interface BillingPayout {
+// ============================================================================
+// Measurement Types (Buyer Persona)
+// ============================================================================
+
+export interface MeasurementConfig {
+  [key: string]: unknown;
+}
+
+export interface UpdateMeasurementConfigInput {
+  [key: string]: unknown;
+}
+
+export interface MeasurementSource {
   id: string;
-  amount: number;
-  currency: string;
-  status: string;
-  createdAt: string;
+  [key: string]: unknown;
 }
 
-export interface ListBillingParams {
-  limit?: number;
-  offset?: number;
-  startDate?: string;
-  endDate?: string;
+export interface CreateMeasurementSourceInput {
+  [key: string]: unknown;
+}
+
+export interface UpdateMeasurementSourceInput {
+  [key: string]: unknown;
+}
+
+export interface UploadMeasurementRecordsInput {
+  [key: string]: unknown;
+}
+
+export interface UploadContextRecordsInput {
+  [key: string]: unknown;
+}
+
+export interface MeasurementFreshness {
+  [key: string]: unknown;
+}
+
+// ============================================================================
+// Event Summary Types (Buyer Persona)
+// ============================================================================
+
+export interface EventSummary {
+  [key: string]: unknown;
+}
+
+export interface LogEventInput {
+  events: Array<Record<string, unknown>>;
+  [key: string]: unknown;
 }

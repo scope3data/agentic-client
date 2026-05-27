@@ -3,8 +3,13 @@
  * Scoped to a specific advertiser
  */
 
-import type { BaseAdapter } from '../adapters/base';
-import type { TestCohort, CreateTestCohortInput, ApiResponse } from '../types';
+import { type BaseAdapter, validateResourceId } from '../adapters/base';
+import type {
+  TestCohort,
+  CreateTestCohortInput,
+  UpdateTestCohortInput,
+  ApiResponse,
+} from '../types';
 
 /**
  * Resource for managing test cohorts (scoped to an advertiser)
@@ -22,7 +27,7 @@ export class TestCohortsResource {
   async list(): Promise<ApiResponse<TestCohort[]>> {
     return this.adapter.request<ApiResponse<TestCohort[]>>(
       'GET',
-      `/advertisers/${this.advertiserId}/test-cohorts`
+      `/advertisers/${validateResourceId(this.advertiserId)}/test-cohorts`
     );
   }
 
@@ -34,8 +39,45 @@ export class TestCohortsResource {
   async create(data: CreateTestCohortInput): Promise<ApiResponse<TestCohort>> {
     return this.adapter.request<ApiResponse<TestCohort>>(
       'POST',
-      `/advertisers/${this.advertiserId}/test-cohorts`,
+      `/advertisers/${validateResourceId(this.advertiserId)}/test-cohorts`,
       data
+    );
+  }
+
+  /**
+   * Get a test cohort by ID
+   * @param cohortId Test cohort ID
+   * @returns Test cohort details
+   */
+  async get(cohortId: string): Promise<ApiResponse<TestCohort>> {
+    return this.adapter.request<ApiResponse<TestCohort>>(
+      'GET',
+      `/advertisers/${validateResourceId(this.advertiserId)}/test-cohorts/${validateResourceId(cohortId)}`
+    );
+  }
+
+  /**
+   * Update a test cohort
+   * @param cohortId Test cohort ID
+   * @param data Update data
+   * @returns Updated test cohort
+   */
+  async update(cohortId: string, data: UpdateTestCohortInput): Promise<ApiResponse<TestCohort>> {
+    return this.adapter.request<ApiResponse<TestCohort>>(
+      'PUT',
+      `/advertisers/${validateResourceId(this.advertiserId)}/test-cohorts/${validateResourceId(cohortId)}`,
+      data
+    );
+  }
+
+  /**
+   * Delete a test cohort
+   * @param cohortId Test cohort ID
+   */
+  async delete(cohortId: string): Promise<void> {
+    await this.adapter.request<void>(
+      'DELETE',
+      `/advertisers/${validateResourceId(this.advertiserId)}/test-cohorts/${validateResourceId(cohortId)}`
     );
   }
 }

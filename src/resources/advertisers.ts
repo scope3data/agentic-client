@@ -11,8 +11,6 @@ import type {
   PaginatedApiResponse,
   ApiResponse,
 } from '../types';
-import { ConversionEventsResource } from './conversion-events';
-import { CreativeSetsResource } from './creative-sets';
 import { TestCohortsResource } from './test-cohorts';
 import { EventSourcesResource } from './event-sources';
 import { MeasurementDataResource } from './measurement-data';
@@ -93,21 +91,52 @@ export class AdvertisersResource {
   }
 
   /**
-   * Get the conversion events resource for a specific advertiser
+   * Validate a data delivery credential for an advertiser
    * @param advertiserId Advertiser ID
-   * @returns ConversionEventsResource scoped to the advertiser
+   * @param name Credential name
+   * @returns Validation result
    */
-  conversionEvents(advertiserId: string): ConversionEventsResource {
-    return new ConversionEventsResource(this.adapter, validateResourceId(advertiserId));
+  async validateDataDeliveryCredential(
+    advertiserId: string,
+    name: string
+  ): Promise<ApiResponse<Record<string, unknown>>> {
+    return this.adapter.request<ApiResponse<Record<string, unknown>>>(
+      'POST',
+      `/advertisers/${validateResourceId(advertiserId)}/data-delivery-credentials/${encodeURIComponent(name)}/validate`
+    );
   }
 
   /**
-   * Get the creative sets resource for a specific advertiser
+   * List available accounts for an advertiser
    * @param advertiserId Advertiser ID
-   * @returns CreativeSetsResource scoped to the advertiser
+   * @returns Available accounts
    */
-  creativeSets(advertiserId: string): CreativeSetsResource {
-    return new CreativeSetsResource(this.adapter, validateResourceId(advertiserId));
+  async listAvailableAccounts(
+    advertiserId: string
+  ): Promise<ApiResponse<Record<string, unknown>[]>> {
+    return this.adapter.request<ApiResponse<Record<string, unknown>[]>>(
+      'GET',
+      `/advertisers/${validateResourceId(advertiserId)}/accounts/available`
+    );
+  }
+
+  /**
+   * Update the reporting bucket for an advertiser account link
+   * @param advertiserId Advertiser ID
+   * @param linkId Account link ID
+   * @param data Reporting bucket configuration
+   * @returns Updated account link
+   */
+  async updateAccountReportingBucket(
+    advertiserId: string,
+    linkId: string,
+    data: Record<string, unknown>
+  ): Promise<ApiResponse<Record<string, unknown>>> {
+    return this.adapter.request<ApiResponse<Record<string, unknown>>>(
+      'PUT',
+      `/advertisers/${validateResourceId(advertiserId)}/accounts/${validateResourceId(linkId)}/reporting-bucket`,
+      data
+    );
   }
 
   /**

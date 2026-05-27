@@ -25,10 +25,3 @@ export const discoverySchemas = {
 export const reportingSchemas = {
   response: schemas.ReportingMetricsResponse,
 };
-
-export const salesAgentSchemas = {
-  registerAccountInput: schemas.RegisterSalesAgentAccountBody,
-  response: schemas.Agent,
-  listResponse: schemas.AgentList,
-  accountResponse: schemas.AgentAccount,
-};

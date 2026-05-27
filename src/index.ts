@@ -49,21 +49,18 @@ export type { BaseAdapter } from './adapters/base';
 // ── Resources (used by Scope3Client, exported for typing) ──────────
 
 export {
+  AccountsResource,
   AdvertisersResource,
-  AgentsResource,
-  BillingResource,
-  BundlesResource,
-  BundleProductsResource,
+  AuditLogsResource,
+  BuyerBillingResource,
   CampaignsResource,
-  ConversionEventsResource,
-  CreativeSetsResource,
-  InventorySourcesResource,
-  NotificationsResource,
-  ReadinessResource,
+  CreativesResource,
+  DiscoveryResource,
+  ModerationResource,
+  NotificationPreferencesResource,
+  PlanningBriefsResource,
   ReportingResource,
-  SalesAgentsResource,
-  SignalsResource,
-  StorefrontResource,
+  StorefrontsResource,
   TestCohortsResource,
   EventSourcesResource,
   MeasurementDataResource,
@@ -73,7 +70,6 @@ export {
   TasksResource,
   PropertyListsResource,
   PropertyListChecksResource,
-  CreativesResource,
 } from './resources';
 
 // ── skill.md support ───────────────────────────────────────────────
@@ -115,7 +111,7 @@ export type {
   CreateAdvertiserInput,
   UpdateAdvertiserInput,
   ListAdvertisersParams,
-  // Linked Brand (resolved from advertiser brandDomain)
+  // Linked Brand
   LinkedBrand,
   BrandManifest,
   BrandLogo,
@@ -132,37 +128,9 @@ export type {
   CampaignConstraints,
   PerformanceObjective,
   PerformanceConfig,
-  CreateDiscoveryCampaignInput,
-  UpdateDiscoveryCampaignInput,
-  CreatePerformanceCampaignInput,
-  UpdatePerformanceCampaignInput,
-  CreateAudienceCampaignInput,
+  CreateCampaignInput,
+  UpdateCampaignInput,
   ListCampaignsParams,
-  // Bundle
-  Bundle,
-  CreateBundleInput,
-  DiscoverProductsParams,
-  DiscoverProductsResponse,
-  ProductGroup,
-  Product,
-  ProductSummary,
-  BudgetContext,
-  BundleProductInput,
-  AddBundleProductsInput,
-  RemoveBundleProductsInput,
-  BundleProductsResponse,
-  SelectedBundleProduct,
-  BrowseProductsInput,
-  // Conversion Events
-  ConversionEvent,
-  ConversionEventType,
-  CreateConversionEventInput,
-  UpdateConversionEventInput,
-  // Creative Sets
-  CreativeSet,
-  CreateCreativeSetInput,
-  CreativeAsset,
-  CreateCreativeAssetInput,
   // Test Cohorts
   TestCohort,
   CreateTestCohortInput,
@@ -177,51 +145,20 @@ export type {
   ReportingPackage,
   ReportingTimeseriesResponse,
   ReportingTimeseriesEntry,
-  // Sales Agents
-  SalesAgent,
-  SalesAgentAccount,
-  ListSalesAgentsParams,
-  RegisterSalesAgentAccountInput,
-  // Signals
-  Signal,
-  DiscoverSignalsInput,
-  // Storefront
-  Storefront,
-  CreateStorefrontInput,
-  UpdateStorefrontInput,
-  // Inventory Sources
-  InventorySource,
-  InventorySourceExecutionType,
-  CreateInventorySourceInput,
-  UpdateInventorySourceInput,
-  // Storefront Readiness
-  ReadinessStatus,
-  ReadinessCheck,
-  StorefrontReadiness,
-  // Storefront Billing
-  BillingFee,
-  StorefrontBilling,
-  StorefrontBillingConfig,
-  StripeConnectResponse,
-  // Notifications
-  Notification,
-  ListNotificationsParams,
-  // Agent
-  Agent,
-  AgentType,
-  AgentStatus,
-  AgentAuthenticationType,
-  AgentProtocol,
-  UpdateAgentInput,
-  ListAgentsParams,
-  OAuthAuthorizeResponse,
-  OAuthCallbackInput,
   // Event Sources
   EventSource,
   CreateEventSourceInput,
   UpdateEventSourceInput,
   // Measurement Data
   MeasurementDataSync,
+  MeasurementConfig,
+  UpdateMeasurementConfigInput,
+  MeasurementSource,
+  CreateMeasurementSourceInput,
+  UpdateMeasurementSourceInput,
+  UploadMeasurementRecordsInput,
+  UploadContextRecordsInput,
+  MeasurementFreshness,
   // Catalogs
   Catalog,
   CatalogSync,
@@ -243,9 +180,39 @@ export type {
   UpdatePropertyListInput,
   PropertyListCheck,
   PropertyListReport,
-  // Billing
-  BillingStatus,
-  BillingTransaction,
-  BillingPayout,
-  ListBillingParams,
+  // Discovery
+  DiscoverProductsInput,
+  DiscoveryProduct,
+  AddProductsInput,
+  RemoveProductsInput,
+  ApplyProposalInput,
+  // Accounts
+  Account,
+  CreateChildAccountInput,
+  UpdateDomainInput,
+  MembershipSettings,
+  UpdateMembershipInput,
+  // Notification Preferences
+  NotificationPreferences,
+  UpdateNotificationPreferencesInput,
+  // Moderation
+  ModerationCheckInput,
+  ModerationCheckResult,
+  // Storefronts (buyer browsing)
+  BuyerStorefront,
+  StorefrontCredential,
+  RegisterCredentialsInput,
+  // Audit Logs
+  AuditLog,
+  ListAuditLogsParams,
+  // Planning Briefs
+  PlanningBrief,
+  CreatePlanningBriefInput,
+  PlanningBriefResponse,
+  // Buyer Billing
+  BuyerInvoice,
+  BuyerPendingInvoiceItem,
+  // Event Summary
+  EventSummary,
+  LogEventInput,
 } from './types';

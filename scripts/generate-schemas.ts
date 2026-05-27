@@ -71,6 +71,17 @@ function postProcessSchemas(filePath: string) {
 
   content = content.replace(/\\&/g, '&');
 
+  // Fix regex literals that break Prettier's parser.
+  // openapi-zod-client double-escapes backslashes before slashes (e.g. \\/) which Prettier
+  // interprets as "backslash literal" + "end of regex". Replace \\/ with \/ inside .regex() calls.
+  content = content.replace(
+    /\.regex\(\/([^)]+)\/([gimsuy]*)\)/g,
+    (_match, body: string, flags: string) => {
+      const fixed = body.replace(/\\\\\//g, '\\/');
+      return `.regex(/${fixed}/${flags})`;
+    }
+  );
+
   // Normalize schema names to PascalCase
   const nameRenames: Array<[RegExp, string]> = [];
   const namePattern = /^const ([a-z]\w*_\w+|[a-z]\w+) = /gm;

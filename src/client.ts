@@ -12,18 +12,17 @@ import type { Scope3ClientConfig, ApiVersion, Persona } from './types';
 import { RestAdapter } from './adapters/rest';
 import { AdvertisersResource } from './resources/advertisers';
 import { CampaignsResource } from './resources/campaigns';
-import { BundlesResource } from './resources/bundles';
-import { SignalsResource } from './resources/signals';
 import { ReportingResource } from './resources/reporting';
-import { SalesAgentsResource } from './resources/sales-agents';
-import { StorefrontResource } from './resources/storefront';
-import { InventorySourcesResource } from './resources/inventory-sources';
-import { AgentsResource } from './resources/agents';
-import { ReadinessResource } from './resources/readiness';
-import { BillingResource } from './resources/billing';
-import { NotificationsResource } from './resources/notifications';
 import { TasksResource } from './resources/tasks';
 import { PropertyListChecksResource } from './resources/property-lists';
+import { DiscoveryResource } from './resources/discovery';
+import { AccountsResource } from './resources/accounts';
+import { NotificationPreferencesResource } from './resources/notification-preferences';
+import { ModerationResource } from './resources/moderation';
+import { StorefrontsResource } from './resources/storefronts';
+import { AuditLogsResource } from './resources/audit-logs';
+import { PlanningBriefsResource } from './resources/planning-briefs';
+import { BuyerBillingResource } from './resources/billing';
 import { fetchSkillMd, parseSkillMd, ParsedSkill } from './skill';
 
 /**
@@ -32,33 +31,24 @@ import { fetchSkillMd, parseSkillMd, ParsedSkill } from './skill';
  *
  * @example
  * ```typescript
- * // Buyer persona
  * const client = new Scope3Client({ apiKey: 'token', persona: 'buyer' });
  * const advertisers = await client.advertisers.list();
- *
- * // Storefront persona
- * const sfClient = new Scope3Client({ apiKey: 'token', persona: 'storefront' });
- * const sf = await sfClient.storefront.get();
  * ```
  */
 export class Scope3Client {
-  // Buyer persona resources
-  private _advertisers?: AdvertisersResource;
-  private _campaigns?: CampaignsResource;
-  private _bundles?: BundlesResource;
-  private _signals?: SignalsResource;
-  private _reporting?: ReportingResource;
-  private _salesAgents?: SalesAgentsResource;
-  private _tasks?: TasksResource;
-  private _propertyListChecks?: PropertyListChecksResource;
-
-  // Storefront persona resources
-  private _storefront?: StorefrontResource;
-  private _inventorySources?: InventorySourcesResource;
-  private _agents?: AgentsResource;
-  private _readiness?: ReadinessResource;
-  private _billing?: BillingResource;
-  private _notifications?: NotificationsResource;
+  private readonly _advertisers: AdvertisersResource;
+  private readonly _campaigns: CampaignsResource;
+  private readonly _reporting: ReportingResource;
+  private readonly _tasks: TasksResource;
+  private readonly _propertyListChecks: PropertyListChecksResource;
+  private readonly _discovery: DiscoveryResource;
+  private readonly _accounts: AccountsResource;
+  private readonly _notificationPreferences: NotificationPreferencesResource;
+  private readonly _moderation: ModerationResource;
+  private readonly _storefronts: StorefrontsResource;
+  private readonly _auditLogs: AuditLogsResource;
+  private readonly _planningBriefs: PlanningBriefsResource;
+  private readonly _billing: BuyerBillingResource;
 
   private readonly adapter: RestAdapter;
 
@@ -80,135 +70,72 @@ export class Scope3Client {
     this.persona = config.persona;
     this.adapter = new RestAdapter({ ...config, apiKey: trimmedKey });
 
-    switch (this.persona) {
-      case 'buyer':
-        this._advertisers = new AdvertisersResource(this.adapter);
-        this._campaigns = new CampaignsResource(this.adapter);
-        this._bundles = new BundlesResource(this.adapter);
-        this._signals = new SignalsResource(this.adapter);
-        this._reporting = new ReportingResource(this.adapter);
-        this._salesAgents = new SalesAgentsResource(this.adapter);
-        this._tasks = new TasksResource(this.adapter);
-        this._propertyListChecks = new PropertyListChecksResource(this.adapter);
-        break;
-      case 'storefront':
-        this._storefront = new StorefrontResource(this.adapter);
-        this._inventorySources = new InventorySourcesResource(this.adapter);
-        this._agents = new AgentsResource(this.adapter);
-        this._readiness = new ReadinessResource(this.adapter);
-        this._billing = new BillingResource(this.adapter);
-        this._notifications = new NotificationsResource(this.adapter);
-        break;
-      default: {
-        const _exhaustive: never = this.persona;
-        throw new Error(`Unknown persona: ${_exhaustive}`);
-      }
-    }
+    this._advertisers = new AdvertisersResource(this.adapter);
+    this._campaigns = new CampaignsResource(this.adapter);
+    this._reporting = new ReportingResource(this.adapter);
+    this._tasks = new TasksResource(this.adapter);
+    this._propertyListChecks = new PropertyListChecksResource(this.adapter);
+    this._discovery = new DiscoveryResource(this.adapter);
+    this._accounts = new AccountsResource(this.adapter);
+    this._notificationPreferences = new NotificationPreferencesResource(this.adapter);
+    this._moderation = new ModerationResource(this.adapter);
+    this._storefronts = new StorefrontsResource(this.adapter);
+    this._auditLogs = new AuditLogsResource(this.adapter);
+    this._planningBriefs = new PlanningBriefsResource(this.adapter);
+    this._billing = new BuyerBillingResource(this.adapter);
   }
 
-  // ── Buyer persona resources ──────────────────────────────────────
-
   get advertisers(): AdvertisersResource {
-    if (!this._advertisers) {
-      throw new Error('advertisers is only available with the buyer persona');
-    }
     return this._advertisers;
   }
 
   get campaigns(): CampaignsResource {
-    if (!this._campaigns) {
-      throw new Error('campaigns is only available with the buyer persona');
-    }
     return this._campaigns;
   }
 
-  get bundles(): BundlesResource {
-    if (!this._bundles) {
-      throw new Error('bundles is only available with the buyer persona');
-    }
-    return this._bundles;
-  }
-
-  get signals(): SignalsResource {
-    if (!this._signals) {
-      throw new Error('signals is only available with the buyer persona');
-    }
-    return this._signals;
-  }
-
   get reporting(): ReportingResource {
-    if (!this._reporting) {
-      throw new Error('reporting is only available with the buyer persona');
-    }
     return this._reporting;
   }
 
-  get salesAgents(): SalesAgentsResource {
-    if (!this._salesAgents) {
-      throw new Error('salesAgents is only available with the buyer persona');
-    }
-    return this._salesAgents;
-  }
-
   get tasks(): TasksResource {
-    if (!this._tasks) {
-      throw new Error('tasks is only available with the buyer persona');
-    }
     return this._tasks;
   }
 
   get propertyListChecks(): PropertyListChecksResource {
-    if (!this._propertyListChecks) {
-      throw new Error('propertyListChecks is only available with the buyer persona');
-    }
     return this._propertyListChecks;
   }
 
-  // ── Storefront persona resources ─────────────────────────────────
-
-  get storefront(): StorefrontResource {
-    if (!this._storefront) {
-      throw new Error('storefront is only available with the storefront persona');
-    }
-    return this._storefront;
+  get discovery(): DiscoveryResource {
+    return this._discovery;
   }
 
-  get inventorySources(): InventorySourcesResource {
-    if (!this._inventorySources) {
-      throw new Error('inventorySources is only available with the storefront persona');
-    }
-    return this._inventorySources;
+  get accounts(): AccountsResource {
+    return this._accounts;
   }
 
-  get agents(): AgentsResource {
-    if (!this._agents) {
-      throw new Error('agents is only available with the storefront persona');
-    }
-    return this._agents;
+  get notificationPreferences(): NotificationPreferencesResource {
+    return this._notificationPreferences;
   }
 
-  get readiness(): ReadinessResource {
-    if (!this._readiness) {
-      throw new Error('readiness is only available with the storefront persona');
-    }
-    return this._readiness;
+  get moderation(): ModerationResource {
+    return this._moderation;
   }
 
-  get billing(): BillingResource {
-    if (!this._billing) {
-      throw new Error('billing is only available with the storefront persona');
-    }
+  get storefronts(): StorefrontsResource {
+    return this._storefronts;
+  }
+
+  get auditLogs(): AuditLogsResource {
+    return this._auditLogs;
+  }
+
+  get planningBriefs(): PlanningBriefsResource {
+    return this._planningBriefs;
+  }
+
+  get billing(): BuyerBillingResource {
     return this._billing;
   }
-
-  get notifications(): NotificationsResource {
-    if (!this._notifications) {
-      throw new Error('notifications is only available with the storefront persona');
-    }
-    return this._notifications;
-  }
-
-  // ── Shared methods ───────────────────────────────────────────────
 
   async getSkill(): Promise<ParsedSkill> {
     if (!this.skillPromise) {

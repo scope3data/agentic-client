@@ -5,11 +5,8 @@
 import { type BaseAdapter, validateResourceId } from '../adapters/base';
 import type {
   Campaign,
-  CreateDiscoveryCampaignInput,
-  UpdateDiscoveryCampaignInput,
-  CreatePerformanceCampaignInput,
-  UpdatePerformanceCampaignInput,
-  CreateAudienceCampaignInput,
+  CreateCampaignInput,
+  UpdateCampaignInput,
   ListCampaignsParams,
   PaginatedApiResponse,
   ApiResponse,
@@ -58,96 +55,75 @@ export class CampaignsResource {
   }
 
   /**
-   * Create a discovery campaign
-   * @param data Discovery campaign creation data
+   * Create a campaign
+   * @param data Campaign creation data
    * @returns Created campaign
    */
-  async createDiscovery(data: CreateDiscoveryCampaignInput): Promise<ApiResponse<Campaign>> {
-    const result = await this.adapter.request<ApiResponse<Campaign>>(
-      'POST',
-      '/campaigns/discovery',
-      data
-    );
-    if (shouldValidateResponse(this.adapter.validate)) {
-      result.data = validateResponse(campaignSchemas.response, result.data) as unknown as Campaign;
-    }
-    return result;
+  async create(data: CreateCampaignInput): Promise<ApiResponse<Campaign>> {
+    return this.adapter.request<ApiResponse<Campaign>>('POST', '/campaigns', data);
   }
 
   /**
-   * Update an existing discovery campaign
+   * Update an existing campaign
    * @param id Campaign ID
-   * @param data Discovery campaign update data
+   * @param data Campaign update data
    * @returns Updated campaign
    */
-  async updateDiscovery(
-    id: string,
-    data: UpdateDiscoveryCampaignInput
-  ): Promise<ApiResponse<Campaign>> {
-    const result = await this.adapter.request<ApiResponse<Campaign>>(
+  async update(id: string, data: UpdateCampaignInput): Promise<ApiResponse<Campaign>> {
+    return this.adapter.request<ApiResponse<Campaign>>(
       'PUT',
-      `/campaigns/discovery/${validateResourceId(id)}`,
+      `/campaigns/${validateResourceId(id)}`,
       data
     );
-    if (shouldValidateResponse(this.adapter.validate)) {
-      result.data = validateResponse(campaignSchemas.response, result.data) as unknown as Campaign;
-    }
-    return result;
   }
 
   /**
-   * Create a performance campaign
-   * @param data Performance campaign creation data
-   * @returns Created campaign
-   */
-  async createPerformance(data: CreatePerformanceCampaignInput): Promise<ApiResponse<Campaign>> {
-    const result = await this.adapter.request<ApiResponse<Campaign>>(
-      'POST',
-      '/campaigns/performance',
-      data
-    );
-    if (shouldValidateResponse(this.adapter.validate)) {
-      result.data = validateResponse(campaignSchemas.response, result.data) as unknown as Campaign;
-    }
-    return result;
-  }
-
-  /**
-   * Update an existing performance campaign
+   * Delete a campaign
    * @param id Campaign ID
-   * @param data Performance campaign update data
-   * @returns Updated campaign
    */
-  async updatePerformance(
-    id: string,
-    data: UpdatePerformanceCampaignInput
-  ): Promise<ApiResponse<Campaign>> {
-    const result = await this.adapter.request<ApiResponse<Campaign>>(
-      'PUT',
-      `/campaigns/performance/${validateResourceId(id)}`,
-      data
-    );
-    if (shouldValidateResponse(this.adapter.validate)) {
-      result.data = validateResponse(campaignSchemas.response, result.data) as unknown as Campaign;
-    }
-    return result;
+  async delete(id: string): Promise<void> {
+    await this.adapter.request<void>('DELETE', `/campaigns/${validateResourceId(id)}`);
   }
 
   /**
-   * Create an audience campaign
-   * @param data Audience campaign creation data
-   * @returns Created campaign
+   * Auto-select products for a campaign
+   * @param id Campaign ID
+   * @param data Optional configuration for product selection
+   * @returns Auto-selection result
    */
-  async createAudience(data: CreateAudienceCampaignInput): Promise<ApiResponse<Campaign>> {
-    const result = await this.adapter.request<ApiResponse<Campaign>>(
+  async autoSelectProducts(
+    id: string,
+    data?: Record<string, unknown>
+  ): Promise<ApiResponse<Record<string, unknown>>> {
+    return this.adapter.request<ApiResponse<Record<string, unknown>>>(
       'POST',
-      '/campaigns/audience',
+      `/campaigns/${validateResourceId(id)}/auto-select-products`,
       data
     );
-    if (shouldValidateResponse(this.adapter.validate)) {
-      result.data = validateResponse(campaignSchemas.response, result.data) as unknown as Campaign;
-    }
-    return result;
+  }
+
+  /**
+   * Get media buy status for a campaign
+   * @param id Campaign ID
+   * @returns Media buy status
+   */
+  async getMediaBuyStatus(id: string): Promise<ApiResponse<Record<string, unknown>>> {
+    return this.adapter.request<ApiResponse<Record<string, unknown>>>(
+      'GET',
+      `/campaigns/${validateResourceId(id)}/media-buy-status`
+    );
+  }
+
+  /**
+   * Get products associated with a campaign
+   * @param id Campaign ID
+   * @returns Campaign products
+   */
+  async getProducts(id: string): Promise<ApiResponse<Record<string, unknown>>> {
+    return this.adapter.request<ApiResponse<Record<string, unknown>>>(
+      'GET',
+      `/campaigns/${validateResourceId(id)}/products`
+    );
   }
 
   /**

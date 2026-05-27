@@ -1,96 +1,28 @@
-/**
- * Billing resource for managing storefront Stripe Connect billing
- */
-
 import { type BaseAdapter } from '../adapters/base';
-import type {
-  StorefrontBillingConfig,
-  StripeConnectResponse,
-  BillingStatus,
-  BillingTransaction,
-  BillingPayout,
-  ApiResponse,
-} from '../types';
+import type { BuyerInvoice, BuyerPendingInvoiceItem, ApiResponse } from '../types';
 
 /**
- * Resource for managing billing (Storefront persona)
+ * Resource for buyer billing and invoices
  */
-export class BillingResource {
+export class BuyerBillingResource {
   constructor(private readonly adapter: BaseAdapter) {}
 
   /**
-   * Get billing configuration
-   * @returns Billing config with Stripe Connect details
+   * List invoices for the current buyer
+   * @returns List of invoices
    */
-  async get(): Promise<StorefrontBillingConfig> {
-    return this.adapter.request<StorefrontBillingConfig>('GET', '/billing');
+  async listInvoices(): Promise<ApiResponse<BuyerInvoice[]>> {
+    return this.adapter.request<ApiResponse<BuyerInvoice[]>>('GET', '/billing/invoices');
   }
 
   /**
-   * Connect to Stripe via Stripe Connect
-   * @returns Stripe Connect response with onboarding URL
+   * List pending invoice items that have not yet been billed
+   * @returns List of pending invoice items
    */
-  async connect(): Promise<StripeConnectResponse> {
-    return this.adapter.request<StripeConnectResponse>('POST', '/billing/connect');
-  }
-
-  /**
-   * Get billing status
-   * @returns Billing status
-   */
-  async status(): Promise<BillingStatus> {
-    return this.adapter.request<BillingStatus>('GET', '/billing/status');
-  }
-
-  /**
-   * List billing transactions
-   * @param params Pagination parameters
-   * @returns List of transactions
-   */
-  async transactions(params?: {
-    limit?: number;
-    starting_after?: string;
-  }): Promise<ApiResponse<BillingTransaction[]>> {
-    return this.adapter.request<ApiResponse<BillingTransaction[]>>(
+  async listPendingItems(): Promise<ApiResponse<BuyerPendingInvoiceItem[]>> {
+    return this.adapter.request<ApiResponse<BuyerPendingInvoiceItem[]>>(
       'GET',
-      '/billing/transactions',
-      undefined,
-      {
-        params: {
-          limit: params?.limit,
-          starting_after: params?.starting_after,
-        },
-      }
+      '/billing/pending-invoice-items'
     );
-  }
-
-  /**
-   * List billing payouts
-   * @param params Pagination parameters
-   * @returns List of payouts
-   */
-  async payouts(params?: {
-    limit?: number;
-    starting_after?: string;
-  }): Promise<ApiResponse<BillingPayout[]>> {
-    return this.adapter.request<ApiResponse<BillingPayout[]>>(
-      'GET',
-      '/billing/payouts',
-      undefined,
-      {
-        params: {
-          limit: params?.limit,
-          starting_after: params?.starting_after,
-        },
-      }
-    );
-  }
-
-  /**
-   * Get Stripe onboarding URL
-   * @returns Onboarding URL details
-   */
-  async onboardingUrl(): Promise<StripeConnectResponse> {
-    return this.adapter.request<StripeConnectResponse>('GET', '/billing/onboard');
   }
 }

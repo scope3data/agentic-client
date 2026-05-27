@@ -4,6 +4,13 @@
 
 import { AdvertisersResource } from '../../resources/advertisers';
 import type { BaseAdapter } from '../../adapters/base';
+import { TestCohortsResource } from '../../resources/test-cohorts';
+import { EventSourcesResource } from '../../resources/event-sources';
+import { MeasurementDataResource } from '../../resources/measurement-data';
+import { CatalogsResource } from '../../resources/catalogs';
+import { AudiencesResource } from '../../resources/audiences';
+import { SyndicationResource } from '../../resources/syndication';
+import { PropertyListsResource } from '../../resources/property-lists';
 
 describe('AdvertisersResource', () => {
   let mockAdapter: jest.Mocked<BaseAdapter>;
@@ -101,20 +108,81 @@ describe('AdvertisersResource', () => {
     });
   });
 
+  describe('validateDataDeliveryCredential', () => {
+    it('should call adapter with correct path', async () => {
+      mockAdapter.request.mockResolvedValue({ data: { valid: true } });
+
+      await resource.validateDataDeliveryCredential('adv-123', 'my-cred');
+
+      expect(mockAdapter.request).toHaveBeenCalledWith(
+        'POST',
+        '/advertisers/adv-123/data-delivery-credentials/my-cred/validate'
+      );
+    });
+  });
+
+  describe('listAvailableAccounts', () => {
+    it('should call adapter with correct path', async () => {
+      mockAdapter.request.mockResolvedValue({ data: [] });
+
+      await resource.listAvailableAccounts('adv-123');
+
+      expect(mockAdapter.request).toHaveBeenCalledWith(
+        'GET',
+        '/advertisers/adv-123/accounts/available'
+      );
+    });
+  });
+
+  describe('updateAccountReportingBucket', () => {
+    it('should call adapter with correct path and body', async () => {
+      const data = { bucket: 's3://reports' };
+      mockAdapter.request.mockResolvedValue({ data: {} });
+
+      await resource.updateAccountReportingBucket('adv-123', 'link-456', data);
+
+      expect(mockAdapter.request).toHaveBeenCalledWith(
+        'PUT',
+        '/advertisers/adv-123/accounts/link-456/reporting-bucket',
+        data
+      );
+    });
+  });
+
   describe('sub-resources', () => {
-    it('should return conversionEvents resource for advertiser', () => {
-      const convEvents = resource.conversionEvents('adv-123');
-      expect(convEvents).toBeDefined();
-    });
-
-    it('should return creativeSets resource for advertiser', () => {
-      const creativeSets = resource.creativeSets('adv-123');
-      expect(creativeSets).toBeDefined();
-    });
-
     it('should return testCohorts resource for advertiser', () => {
       const testCohorts = resource.testCohorts('adv-123');
-      expect(testCohorts).toBeDefined();
+      expect(testCohorts).toBeInstanceOf(TestCohortsResource);
+    });
+
+    it('should return eventSources resource for advertiser', () => {
+      const eventSources = resource.eventSources('adv-123');
+      expect(eventSources).toBeInstanceOf(EventSourcesResource);
+    });
+
+    it('should return measurementData resource for advertiser', () => {
+      const measurementData = resource.measurementData('adv-123');
+      expect(measurementData).toBeInstanceOf(MeasurementDataResource);
+    });
+
+    it('should return catalogs resource for advertiser', () => {
+      const catalogs = resource.catalogs('adv-123');
+      expect(catalogs).toBeInstanceOf(CatalogsResource);
+    });
+
+    it('should return audiences resource for advertiser', () => {
+      const audiences = resource.audiences('adv-123');
+      expect(audiences).toBeInstanceOf(AudiencesResource);
+    });
+
+    it('should return syndication resource for advertiser', () => {
+      const syndication = resource.syndication('adv-123');
+      expect(syndication).toBeInstanceOf(SyndicationResource);
+    });
+
+    it('should return propertyLists resource for advertiser', () => {
+      const propertyLists = resource.propertyLists('adv-123');
+      expect(propertyLists).toBeInstanceOf(PropertyListsResource);
     });
   });
 });
