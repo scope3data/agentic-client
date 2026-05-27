@@ -13,6 +13,7 @@ import type {
   AutoSelectProductsResult,
   CampaignProductsResult,
   CampaignMediaBuyStatus,
+  RefinementItem,
 } from '../types';
 import { campaignSchemas } from '../schemas/registry';
 import { shouldValidateResponse, validateResponse } from '../validation';
@@ -105,7 +106,7 @@ export class CampaignsResource {
   async autoSelectProducts(
     id: string,
     data?: {
-      refine?: Array<Record<string, unknown>>;
+      refine?: RefinementItem[];
       maxProducts?: number;
       minBudgetPerProduct?: number;
     }

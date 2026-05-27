@@ -131,6 +131,7 @@ export type {
   CreateCampaignInput,
   UpdateCampaignInput,
   ListCampaignsParams,
+  RefinementItem,
   AutoSelectProductsResult,
   CampaignProductEntry,
   CampaignProductsResult,
