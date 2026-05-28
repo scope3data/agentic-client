@@ -53,7 +53,7 @@ export class CampaignsResource {
       `/campaigns/${validateResourceId(id)}`
     );
     if (shouldValidateResponse(this.adapter.validate)) {
-      result.data = validateResponse(campaignSchemas.response, result.data) as unknown as Campaign;
+      result.data = validateResponse(campaignSchemas.response, result.data);
     }
     return result;
   }
@@ -66,7 +66,7 @@ export class CampaignsResource {
   async create(data: CreateCampaignInput): Promise<ApiResponse<Campaign>> {
     const result = await this.adapter.request<ApiResponse<Campaign>>('POST', '/campaigns', data);
     if (shouldValidateResponse(this.adapter.validate)) {
-      result.data = validateResponse(campaignSchemas.response, result.data) as unknown as Campaign;
+      result.data = validateResponse(campaignSchemas.response, result.data);
     }
     return result;
   }
@@ -84,7 +84,7 @@ export class CampaignsResource {
       data
     );
     if (shouldValidateResponse(this.adapter.validate)) {
-      result.data = validateResponse(campaignSchemas.response, result.data) as unknown as Campaign;
+      result.data = validateResponse(campaignSchemas.response, result.data);
     }
     return result;
   }

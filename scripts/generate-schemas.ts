@@ -114,7 +114,8 @@ function postProcessSchemas(filePath: string) {
     });
   });
 
-  // Add explicit type annotation to avoid TS7056 (inferred type too large for declaration files)
+  // The schemas bag uses Record<string, z.ZodTypeAny> to avoid TS7056
+  // (inferred type too large for declaration files).
   content = content.replace(
     'export const schemas = {',
     'export const schemas: Record<string, z.ZodTypeAny> = {'
