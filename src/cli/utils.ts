@@ -49,7 +49,7 @@ export function loadConfig(): CliConfig {
       const content = fs.readFileSync(CONFIG_FILE, 'utf-8');
       return JSON.parse(content) as CliConfig;
     }
-  } catch (error) {
+  } catch {
     // Ignore errors, return empty config
   }
   return {};
