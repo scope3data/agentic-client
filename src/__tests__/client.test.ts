@@ -53,6 +53,12 @@ describe('Scope3Client', () => {
       expect(() => new Scope3Client({ apiKey: 'test-key' } as any)).toThrow('persona is required');
     });
 
+    it('should reject storefront persona', () => {
+      expect(() => new Scope3Client({ apiKey: 'test-key', persona: 'storefront' })).toThrow(
+        'Scope3Client only supports the buyer persona'
+      );
+    });
+
     it('should default to v2 version', () => {
       const client = new Scope3Client({ apiKey: 'test-key', persona: 'buyer' });
       expect(client.version).toBe('v2');

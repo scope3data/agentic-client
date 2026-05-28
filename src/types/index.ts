@@ -247,7 +247,6 @@ export interface CreateCampaignInput {
   brief?: string;
   constraints?: CampaignConstraints;
   performanceConfig?: PerformanceConfig;
-  [key: string]: unknown;
 }
 
 export interface UpdateCampaignInput {
@@ -258,13 +257,101 @@ export interface UpdateCampaignInput {
   brief?: string;
   constraints?: CampaignConstraints;
   performanceConfig?: PerformanceConfig;
-  [key: string]: unknown;
 }
 
 export interface ListCampaignsParams extends PaginationParams {
   advertiserId?: string;
   type?: CampaignType;
   status?: CampaignStatus;
+}
+
+export type RefinementItem =
+  | { scope: 'request'; ask: string }
+  | { scope: 'product'; id: string; action: 'include' | 'omit' | 'moreLikeThis'; ask?: string };
+
+export interface AutoSelectProductsResult {
+  campaignId: string;
+  discoveryId: string;
+  selectedProducts: Array<{
+    productId: string;
+    name: string;
+    salesAgentId: string;
+    groupId: string;
+    groupName: string;
+    cpm?: number;
+    budget: number;
+    pricingOptionId?: string;
+  }>;
+  budgetContext: {
+    campaignBudget: number;
+    totalAllocated: number;
+    remainingBudget: number;
+    currency: string;
+  };
+  productCount: number;
+  previouslySelectedCount?: number;
+}
+
+export interface CampaignProductEntry {
+  productId: string;
+  productName?: string;
+  salesAgentId: string;
+  salesAgentName?: string;
+  publisherDomain?: string;
+  publisherName?: string;
+  bidPrice?: number;
+  budget?: number;
+  pricingOptionId?: string;
+  pricingModel?: string;
+  selectedAt: string;
+  searchContext?: { id: string; brief: string };
+  mediaBuys: Array<{ MediaBuyId: string; Status: string; name: string }>;
+}
+
+export interface CampaignProductsResult {
+  campaignId: string;
+  discoveryId: string | null;
+  products: CampaignProductEntry[];
+  searchContexts: Array<{
+    id: string;
+    brief: string;
+    channels: string[];
+    countries: string[];
+    createdAt: string;
+    productCount: number;
+  }>;
+  summary: {
+    totalProducts: number;
+    productsOnMediaBuys: number;
+    productsPending: number;
+  };
+}
+
+export type MediaBuyStatusValue =
+  | 'DRAFT'
+  | 'PENDING_APPROVAL'
+  | 'INPUT_REQUIRED'
+  | 'ACTIVE'
+  | 'PAUSED'
+  | 'COMPLETED'
+  | 'CANCELED'
+  | 'FAILED'
+  | 'REJECTED'
+  | 'ARCHIVED';
+
+export interface CampaignMediaBuyStatus {
+  campaign_id: string;
+  media_buys: Array<{
+    media_buy_id: string;
+    adcp_media_buy_id: string;
+    internal_status: string;
+    adcp_status: string | null;
+    previous_internal_status: string;
+    previous_adcp_status: string | null;
+    updated: boolean;
+  }>;
+  agents_queried: number;
+  errors: Array<{ media_buy_id: string; error: string }>;
 }
 
 // ============================================================================

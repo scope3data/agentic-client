@@ -43,7 +43,7 @@ program
   .option('--base-url <url>', 'Custom API base URL')
   .option('--format <format>', 'Output format: json, table, or yaml (default: table)')
   .option('--debug', 'Enable debug mode')
-  .option('--persona <persona>', 'API persona: buyer or storefront (default: buyer)');
+  .option('--persona <persona>', 'API persona (default: buyer)');
 
 program.hook('preAction', (_thisCommand, actionCommand) => {
   const skipCommands = ['login', 'logout', 'config', 'commands'];

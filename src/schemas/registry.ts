@@ -1,15 +1,27 @@
+import { type ZodType } from 'zod';
 import { schemas } from './buyer';
+import type {
+  Campaign,
+  CreateCampaignInput,
+  UpdateCampaignInput,
+  CreateAdvertiserInput,
+  UpdateAdvertiserInput,
+} from '../types';
+
+function typed<T>(schema: unknown): ZodType<T> {
+  return schema as ZodType<T>;
+}
 
 export const advertiserSchemas = {
-  createInput: schemas.CreateAdvertiserBody,
-  updateInput: schemas.UpdateAdvertiserBody,
+  createInput: typed<CreateAdvertiserInput>(schemas.CreateAdvertiserBody),
+  updateInput: typed<UpdateAdvertiserInput>(schemas.UpdateAdvertiserBody),
 };
 
 export const campaignSchemas = {
-  createInput: schemas.CreateCampaignBody,
-  updateInput: schemas.UpdateCampaignBody,
+  createInput: typed<CreateCampaignInput>(schemas.CreateCampaignBody),
+  updateInput: typed<UpdateCampaignInput>(schemas.UpdateCampaignBody),
   executeInput: schemas.ExecuteCampaignBody,
-  response: schemas.Campaign,
+  response: typed<Campaign>(schemas.Campaign),
   listResponse: schemas.CampaignListResponse,
   statusChangeResponse: schemas.CampaignStatusChangeResponse,
 };
