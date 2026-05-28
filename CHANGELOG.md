@@ -1,5 +1,23 @@
 # @scope3/agentic-client
 
+## 4.0.0
+
+### Major Changes
+
+- [#170](https://github.com/scope3data/agentic-client/pull/170) [`e26b97b`](https://github.com/scope3data/agentic-client/commit/e26b97bc5d4eb1803831470c0e1ef021b4a04e79) Thanks [@benminer](https://github.com/benminer)! - Sync SDK with current OpenAPI specification. Removes stale storefront-only and deprecated resources (agents, billing/storefront, inventory-sources, notifications, readiness, bundles, signals, sales-agents, conversion-events, creative-sets). Adds all missing buyer endpoints (discovery, accounts, planning-briefs, moderation, storefronts, audit-logs, notification-preferences). Replaces typed campaign creation methods with generic create/update/delete. Fixes schema generation regex escaping bug.
+
+### Minor Changes
+
+- [#124](https://github.com/scope3data/agentic-client/pull/124) [`439633e`](https://github.com/scope3data/agentic-client/commit/439633e43b39eb7ad8e65fca506ccc2bcda13fe2) Thanks [@benminer](https://github.com/benminer)! - Add auto-generated Zod schemas from OpenAPI spec with drift detection and schema regeneration workflows
+
+### Patch Changes
+
+- [#171](https://github.com/scope3data/agentic-client/pull/171) [`99f9e3b`](https://github.com/scope3data/agentic-client/commit/99f9e3b24a864be79c48186251adbfd60f775da3) Thanks [@benminer](https://github.com/benminer)! - Remove placeholder test stubs for deleted resources, reject storefront persona at runtime, remove unsafe index signatures from campaign input types, add response validation to campaign create/update, and type campaign sub-endpoint responses.
+
+- [#157](https://github.com/scope3data/agentic-client/pull/157) [`fc77e24`](https://github.com/scope3data/agentic-client/commit/fc77e242d188ecdb717afe34453da8086d0f7863) Thanks [@benminer](https://github.com/benminer)! - Ensure schema regeneration PRs include a changeset and require new changesets in every non-release PR
+
+- [#163](https://github.com/scope3data/agentic-client/pull/163) [`5ea3281`](https://github.com/scope3data/agentic-client/commit/5ea3281229bdfd578f39b186f5bcdcda0f2b2b4e) Thanks [@benminer](https://github.com/benminer)! - Update schema regeneration workflow to push changeset and schema changes to existing open PRs instead of skipping them
+
 ## 2.1.0
 
 ### Minor Changes
