@@ -35,12 +35,10 @@ jobs:
           git config user.name "scope3-wizard[bot]"
           git config user.email "${{ vars.SCOPE3_WIZARD_APP_ID }}+scope3-wizard[bot]@users.noreply.github.com"
 
-      # setup-node used directly: internal action doesn't support registry-url
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
           node-version: '22'
-          registry-url: 'https://registry.npmjs.org'
 
       - name: Install dependencies
         run: npm ci
