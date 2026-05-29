@@ -3,6 +3,27 @@
 
 import { z } from 'zod';
 
+const AdvertiserSummary = z.object({
+  id: z.string(),
+  name: z.string(),
+  Status: z.enum(['ACTIVE', 'ARCHIVED']),
+  sandbox: z.boolean(),
+  brand: z.string().optional(),
+  primaryCurrency: z
+    .string()
+    .min(3)
+    .max(3)
+    .regex(/^[A-Z]{3}$/),
+  createdAt: z.string().datetime({ offset: true }),
+  updatedAt: z.string().datetime({ offset: true }),
+  linkedAccountCount: z.number().int().gte(0).lte(9007199254740991),
+});
+const AdvertiserListResponse = z.object({
+  items: z.array(AdvertiserSummary),
+  total: z.number().int().gte(0).lte(9007199254740991),
+  hasMore: z.boolean(),
+  nextOffset: z.number().int().gte(0).lte(9007199254740991).nullable(),
+});
 const ApiError = z.object({
   code: z.string(),
   message: z.string(),
@@ -30,14 +51,6 @@ const GcsCredentialConfig = z
       .regex(/^[a-z0-9][a-z0-9._-]*[a-z0-9]$/),
   })
   .passthrough();
-const S3AssumeRoleAuth = z
-  .object({
-    mode: z.literal('ASSUME_ROLE'),
-    roleArn: z.string().regex(/^arn:aws[a-zA-Z-]*:iam::\d{12}:role\/.+$/),
-    externalId: z.string().min(2).max(1224).optional(),
-  })
-  .passthrough();
-const S3Auth = S3AssumeRoleAuth;
 const S3CredentialConfig = z
   .object({
     type: z.literal('S3'),
@@ -47,14 +60,13 @@ const S3CredentialConfig = z
       .max(63)
       .regex(/^[a-z0-9][a-z0-9.-]*[a-z0-9]$/),
     region: z.string().regex(/^[a-z]{2}(-[a-z]+)+-\d+$/),
-    auth: S3Auth,
   })
   .passthrough();
-const AzureBlobSasAuth = z
+const AzureBlobSasAuthInput = z
   .object({ mode: z.literal('SAS_TOKEN'), sasToken: z.string().min(1).max(4096) })
   .passthrough();
-const AzureBlobAuth = AzureBlobSasAuth;
-const AzureBlobCredentialConfig = z
+const AzureBlobAuthInput = AzureBlobSasAuthInput;
+const AzureBlobCredentialConfigInput = z
   .object({
     type: z.literal('AZURE_BLOB'),
     storageAccountName: z
@@ -67,13 +79,13 @@ const AzureBlobCredentialConfig = z
       .min(3)
       .max(63)
       .regex(/^(?!.*--)[a-z0-9][a-z0-9-]*[a-z0-9]$/),
-    auth: AzureBlobAuth,
+    auth: AzureBlobAuthInput,
   })
   .passthrough();
-const CredentialConfig = z.discriminatedUnion('type', [
+const CredentialConfigInput = z.discriminatedUnion('type', [
   GcsCredentialConfig,
   S3CredentialConfig,
-  AzureBlobCredentialConfig,
+  AzureBlobCredentialConfigInput,
 ]);
 const DataDeliveryCredentialInput = z
   .object({
@@ -82,7 +94,7 @@ const DataDeliveryCredentialInput = z
       .min(1)
       .max(64)
       .regex(/^[a-zA-Z0-9][a-zA-Z0-9_-]*$/),
-    config: CredentialConfig,
+    config: CredentialConfigInput,
   })
   .passthrough();
 const DataDeliveryCredentialArrayInput = z.array(DataDeliveryCredentialInput);
@@ -147,6 +159,12 @@ const CreateAdvertiserBody = z
     linkedAccounts: z.array(LinkedAccountInput).optional(),
     optimizationApplyMode: OptimizationApplyMode.optional(),
     campaignBudgetType: CampaignBudgetType.optional(),
+    primaryCurrency: z
+      .string()
+      .min(3)
+      .max(3)
+      .regex(/^[A-Za-z]{3}$/)
+      .optional(),
     sandbox: z.boolean().optional().default(false),
     utmConfig: z
       .array(
@@ -183,6 +201,294 @@ const CreateAdvertiserBody = z
       .optional(),
   })
   .passthrough();
+const BrandManifestJson = z
+  .object({
+    name: z.string().min(1).max(500),
+    url: z.string().url().optional(),
+    logos: z
+      .array(
+        z
+          .object({
+            url: z.string().url(),
+            tags: z.array(z.string()).optional(),
+            width: z.number().int().lte(9007199254740991).optional(),
+            height: z.number().int().lte(9007199254740991).optional(),
+          })
+          .passthrough()
+      )
+      .optional(),
+    colors: z
+      .object({
+        primary: z.string().regex(/^#[0-9A-Fa-f]{6}$/),
+        secondary: z.string().regex(/^#[0-9A-Fa-f]{6}$/),
+        accent: z.string().regex(/^#[0-9A-Fa-f]{6}$/),
+        background: z.string().regex(/^#[0-9A-Fa-f]{6}$/),
+        text: z.string().regex(/^#[0-9A-Fa-f]{6}$/),
+      })
+      .partial()
+      .passthrough()
+      .optional(),
+    fonts: z
+      .union([
+        z
+          .object({
+            primary: z.string(),
+            secondary: z.string(),
+            fontUrls: z.array(z.string().url()),
+          })
+          .partial()
+          .passthrough(),
+        z.array(z.object({ name: z.string(), role: z.string().optional() }).passthrough()),
+      ])
+      .optional(),
+    tone: z.string().max(2000).optional(),
+    tagline: z.string().max(500).optional(),
+    assets: z
+      .array(
+        z
+          .object({
+            assetId: z.string(),
+            assetType: z.string(),
+            url: z.string().url(),
+            name: z.string().optional(),
+            description: z.string().optional(),
+            tags: z.array(z.string()).optional(),
+            width: z.number().int().lte(9007199254740991).optional(),
+            height: z.number().int().lte(9007199254740991).optional(),
+            durationSeconds: z.number().gt(0).optional(),
+            fileSizeBytes: z.number().int().lte(9007199254740991).optional(),
+            format: z.string().optional(),
+            metadata: z.object({}).partial().passthrough().optional(),
+          })
+          .passthrough()
+      )
+      .optional(),
+    productCatalog: z
+      .object({
+        feedUrl: z.string().url(),
+        feedFormat: z.enum(['google_merchant_center', 'facebook_catalog', 'custom']).optional(),
+        categories: z.array(z.string()).optional(),
+        lastUpdated: z.string().datetime({ offset: true }).optional(),
+        updateFrequency: z.enum(['realtime', 'hourly', 'daily', 'weekly']).optional(),
+      })
+      .passthrough()
+      .optional(),
+    disclaimers: z
+      .array(
+        z
+          .object({
+            text: z.string(),
+            context: z.string().optional(),
+            required: z.boolean().default(true),
+          })
+          .passthrough()
+      )
+      .optional(),
+    industry: z.string().max(255).optional(),
+    targetAudience: z.string().max(1000).optional(),
+    contact: z
+      .object({
+        email: z
+          .string()
+          .regex(
+            /^(?!\.)(?!.*\.\.)([A-Za-z0-9_'+\-\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\-]*\.)+[A-Za-z]{2,}$/
+          )
+          .email(),
+        phone: z.string(),
+        website: z.string().url(),
+      })
+      .partial()
+      .passthrough()
+      .optional(),
+    metadata: z
+      .object({
+        createdDate: z.string().datetime({ offset: true }),
+        updatedDate: z.string().datetime({ offset: true }),
+        version: z.string(),
+      })
+      .partial()
+      .passthrough()
+      .optional(),
+  })
+  .passthrough();
+const BuyerCredentialSourceRef = z.object({
+  storefrontId: z.number().int().gte(-9007199254740991).lte(9007199254740991),
+  storefrontName: z.string(),
+  sourceId: z.string(),
+  sourceName: z.string(),
+});
+const LinkedAccount = z.object({
+  linkId: z.string(),
+  accountId: z.string(),
+  name: z.string().nullable(),
+  sources: z.array(BuyerCredentialSourceRef),
+  Status: z.string(),
+  createdAt: z.string().datetime({ offset: true }),
+  updatedAt: z.string().datetime({ offset: true }),
+});
+const GcsCredentialConfigOutput = z.object({
+  type: z.literal('GCS'),
+  bucket: z
+    .string()
+    .min(1)
+    .max(222)
+    .regex(/^[a-z0-9][a-z0-9._-]*[a-z0-9]$/),
+});
+const S3CredentialConfigOutput = z.object({
+  type: z.literal('S3'),
+  bucket: z
+    .string()
+    .min(3)
+    .max(63)
+    .regex(/^[a-z0-9][a-z0-9.-]*[a-z0-9]$/),
+  region: z.string().regex(/^[a-z]{2}(-[a-z]+)+-\d+$/),
+});
+const AzureBlobSasAuthStored = z.object({ mode: z.literal('SAS_TOKEN') });
+const AzureBlobAuthStored = AzureBlobSasAuthStored;
+const AzureBlobCredentialConfig = z.object({
+  type: z.literal('AZURE_BLOB'),
+  storageAccountName: z
+    .string()
+    .min(3)
+    .max(24)
+    .regex(/^[a-z0-9]+$/),
+  containerName: z
+    .string()
+    .min(3)
+    .max(63)
+    .regex(/^(?!.*--)[a-z0-9][a-z0-9-]*[a-z0-9]$/),
+  auth: AzureBlobAuthStored,
+});
+const CredentialConfig = z.discriminatedUnion('type', [
+  GcsCredentialConfigOutput,
+  S3CredentialConfigOutput,
+  AzureBlobCredentialConfig,
+]);
+const DataDeliveryCredential = z.object({
+  credentialId: z.string(),
+  name: z.string(),
+  destinationType: z.enum(['GCS', 'S3', 'AZURE_BLOB', 'SNOWFLAKE', 'DATABRICKS']),
+  config: CredentialConfig,
+  Status: z.enum(['PENDING', 'VALIDATED', 'FAILED']),
+  statusError: z.string().optional(),
+  validatedAt: z.string().optional(),
+  expiresAt: z.string().optional(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+});
+const GcsDeliveryConfigOutput = z.object({
+  type: z.literal('GCS'),
+  pathPrefix: z.string().max(1024).default(''),
+  format: z.enum(['JSONL', 'PARQUET', 'CSV']).default('JSONL'),
+});
+const S3DeliveryConfigOutput = z.object({
+  type: z.literal('S3'),
+  pathPrefix: z.string().max(1024).default(''),
+  format: z.enum(['JSONL', 'PARQUET', 'CSV']).default('JSONL'),
+});
+const AzureBlobDeliveryConfigOutput = z.object({
+  type: z.literal('AZURE_BLOB'),
+  pathPrefix: z.string().max(1024).default(''),
+  format: z.enum(['JSONL', 'PARQUET', 'CSV']).default('JSONL'),
+});
+const DeliveryConfigOutput = z.discriminatedUnion('type', [
+  GcsDeliveryConfigOutput,
+  S3DeliveryConfigOutput,
+  AzureBlobDeliveryConfigOutput,
+]);
+const DataDeliveryOutput = z.object({
+  outputConfigId: z.string(),
+  dataDeliveryType: z.enum([
+    'MB_DELIVERY',
+    'IMPRESSIONS',
+    'CLICKS',
+    'VAST_EVENTS',
+    'CAPI_ATTRIBUTION',
+    'MMP_POSTBACKS',
+  ]),
+  cadence: z.enum(['HOURLY', 'DAILY', 'WEEKLY']),
+  syncWeeklyDay: z.number().int().gte(0).lte(6).optional(),
+  enabled: z.boolean(),
+  credentialId: z.string(),
+  credentialName: z.string(),
+  deliveryConfig: DeliveryConfigOutput,
+  source: z.enum(['advertiser', 'campaign']),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+});
+const AdvertiserDataDelivery = z
+  .object({ credentials: z.array(DataDeliveryCredential), outputs: z.array(DataDeliveryOutput) })
+  .partial();
+const FrequencyCapTargetLevel = z.enum(['ADVERTISER', 'CAMPAIGN', 'CREATIVE']);
+const Advertiser = z.object({
+  id: z.string(),
+  name: z.string(),
+  description: z.string().optional(),
+  Status: z.enum(['ACTIVE', 'ARCHIVED']),
+  createdAt: z.string().datetime({ offset: true }),
+  updatedAt: z.string().datetime({ offset: true }),
+  linkedBrand: z
+    .object({
+      id: z.string(),
+      name: z.string(),
+      domain: z.string(),
+      manifest: BrandManifestJson,
+      logoUrl: z.string().optional(),
+      industry: z.string().optional(),
+      colors: z.record(z.string()).optional(),
+      tagline: z.string().optional(),
+      tone: z.string().optional(),
+    })
+    .optional(),
+  brand: z.string().optional(),
+  brandWarning: z.string().optional(),
+  sandbox: z.boolean(),
+  optimizationApplyMode: OptimizationApplyMode,
+  campaignBudgetType: CampaignBudgetType,
+  primaryCurrency: z
+    .string()
+    .min(3)
+    .max(3)
+    .regex(/^[A-Z]{3}$/),
+  linkedAccounts: z.array(LinkedAccount).optional(),
+  utmConfig: z
+    .array(
+      z.object({
+        paramKey: z.string(),
+        paramValue: z.string(),
+        source: z.enum(['seat', 'campaign']),
+      })
+    )
+    .optional(),
+  dataDelivery: AdvertiserDataDelivery.optional(),
+  frequencyCaps: z
+    .array(
+      z
+        .object({
+          max_impressions: z.number().int().lte(9007199254740991),
+          window: z
+            .object({
+              interval: z.number().gte(1),
+              unit: z.union([
+                z.literal('seconds'),
+                z.literal('minutes'),
+                z.literal('hours'),
+                z.literal('days'),
+                z.literal('campaign'),
+              ]),
+            })
+            .passthrough(),
+          id: z.string(),
+          targetLevel: FrequencyCapTargetLevel,
+          targetId: z.string(),
+          createdAt: z.string(),
+          updatedAt: z.string(),
+          archivedAt: z.string().nullish(),
+        })
+        .passthrough()
+    )
+    .optional(),
+});
 const UpdateAdvertiserBody = z
   .object({
     name: z.string().min(1).max(255),
@@ -191,6 +497,11 @@ const UpdateAdvertiserBody = z
     linkedAccounts: z.array(LinkedAccountInput),
     optimizationApplyMode: OptimizationApplyMode,
     campaignBudgetType: CampaignBudgetType,
+    primaryCurrency: z
+      .string()
+      .min(3)
+      .max(3)
+      .regex(/^[A-Za-z]{3}$/),
     utmConfig: z
       .array(
         z
@@ -230,55 +541,6 @@ const UpdateAdvertiserBody = z
   })
   .partial()
   .passthrough();
-const GcsCredentialConfigOutput = z.object({
-  type: z.literal('GCS'),
-  bucket: z
-    .string()
-    .min(1)
-    .max(222)
-    .regex(/^[a-z0-9][a-z0-9._-]*[a-z0-9]$/),
-});
-const S3AssumeRoleAuthOutput = z.object({
-  mode: z.literal('ASSUME_ROLE'),
-  roleArn: z.string().regex(/^arn:aws[a-zA-Z-]*:iam::\d{12}:role\/.+$/),
-  externalId: z.string().min(2).max(1224).optional(),
-});
-const S3AuthOutput = S3AssumeRoleAuthOutput;
-const S3CredentialConfigOutput = z.object({
-  type: z.literal('S3'),
-  bucket: z
-    .string()
-    .min(3)
-    .max(63)
-    .regex(/^[a-z0-9][a-z0-9.-]*[a-z0-9]$/),
-  region: z.string().regex(/^[a-z]{2}(-[a-z]+)+-\d+$/),
-  auth: S3AuthOutput,
-});
-const AzureBlobSasAuthResponse = z.object({ mode: z.literal('SAS_TOKEN') });
-const AzureBlobAuthResponse = AzureBlobSasAuthResponse;
-const AzureBlobCredentialConfigResponse = z.object({
-  type: z.literal('AZURE_BLOB'),
-  storageAccountName: z.string(),
-  containerName: z.string(),
-  auth: AzureBlobAuthResponse,
-});
-const CredentialConfigResponse = z.discriminatedUnion('type', [
-  GcsCredentialConfigOutput,
-  S3CredentialConfigOutput,
-  AzureBlobCredentialConfigResponse,
-]);
-const DataDeliveryCredential = z.object({
-  credentialId: z.string(),
-  name: z.string(),
-  destinationType: z.enum(['GCS', 'S3', 'AZURE_BLOB', 'SNOWFLAKE', 'DATABRICKS']),
-  config: CredentialConfigResponse,
-  Status: z.enum(['PENDING', 'VALIDATED', 'FAILED']),
-  statusError: z.string().optional(),
-  validatedAt: z.string().optional(),
-  expiresAt: z.string().optional(),
-  createdAt: z.string(),
-  updatedAt: z.string(),
-});
 const RevalidateDataDeliveryCredentialResponse = z.object({ credential: DataDeliveryCredential });
 const DiscoveryRefinementItem = z.union([
   z.object({ scope: z.literal('request'), ask: z.string().min(1).max(2000) }).passthrough(),
@@ -344,6 +606,15 @@ const PricingOptionData = z
     floorPrice: z.number(),
     fixedPrice: z.number(),
     currency: z.string(),
+    priceGuidance: z
+      .object({
+        floor: z.number().nullable(),
+        p25: z.number().nullable(),
+        p50: z.number().nullable(),
+        p75: z.number().nullable(),
+        p90: z.number().nullable(),
+      })
+      .partial(),
   })
   .partial();
 const Product = z.object({
@@ -364,6 +635,7 @@ const Product = z.object({
   pricingOptions: z.array(PricingOptionData).optional(),
   estimatedExposures: z.number().int().gte(-9007199254740991).lte(9007199254740991).optional(),
   forecast: z.object({}).partial().passthrough().optional(),
+  bookability: z.string().optional(),
   publisherProperties: z
     .array(
       z
@@ -723,7 +995,7 @@ const CreateCampaignBody = z
     budget: z
       .object({
         total: z.number().gt(0),
-        currency: z.string().min(3).max(3).optional().default('USD'),
+        currency: z.string().min(3).max(3).optional(),
         dailyCap: z.number().gt(0).optional(),
         pacing: z.enum(['EVEN', 'ASAP', 'FRONTLOADED']).optional(),
       })
@@ -1008,48 +1280,7 @@ const OptimizationGoalOutput = z.discriminatedUnion('kind', [EventGoalOutput, Me
 const PerformanceConfigOutput = z.object({
   optimizationGoals: z.array(OptimizationGoalOutput).min(1),
 });
-const GcsDeliveryConfigOutput = z.object({
-  type: z.literal('GCS'),
-  pathPrefix: z.string().max(1024).default(''),
-  format: z.enum(['JSONL', 'PARQUET', 'CSV']).default('JSONL'),
-});
-const S3DeliveryConfigOutput = z.object({
-  type: z.literal('S3'),
-  pathPrefix: z.string().max(1024).default(''),
-  format: z.enum(['JSONL', 'PARQUET', 'CSV']).default('JSONL'),
-});
-const AzureBlobDeliveryConfigOutput = z.object({
-  type: z.literal('AZURE_BLOB'),
-  pathPrefix: z.string().max(1024).default(''),
-  format: z.enum(['JSONL', 'PARQUET', 'CSV']).default('JSONL'),
-});
-const DeliveryConfigOutput = z.discriminatedUnion('type', [
-  GcsDeliveryConfigOutput,
-  S3DeliveryConfigOutput,
-  AzureBlobDeliveryConfigOutput,
-]);
-const DataDeliveryOutput = z.object({
-  outputConfigId: z.string(),
-  dataDeliveryType: z.enum([
-    'MB_DELIVERY',
-    'IMPRESSIONS',
-    'CLICKS',
-    'VAST_EVENTS',
-    'CAPI_ATTRIBUTION',
-    'MMP_POSTBACKS',
-  ]),
-  cadence: z.enum(['HOURLY', 'DAILY', 'WEEKLY']),
-  syncWeeklyDay: z.number().int().gte(0).lte(6).optional(),
-  enabled: z.boolean(),
-  credentialId: z.string(),
-  credentialName: z.string(),
-  deliveryConfig: DeliveryConfigOutput,
-  source: z.enum(['advertiser', 'campaign']),
-  createdAt: z.string(),
-  updatedAt: z.string(),
-});
 const CampaignDataDelivery = z.object({ outputs: z.array(DataDeliveryOutput) }).partial();
-const FrequencyCapTargetLevel = z.enum(['ADVERTISER', 'CAMPAIGN', 'CREATIVE']);
 const Campaign = z.object({
   campaignId: z.string(),
   advertiserId: z.string(),
@@ -2448,7 +2679,7 @@ const UrlAssetSlotInput = z
   .object({
     asset_id: z.string().min(1).max(255),
     url: z.string().url(),
-    url_type: z.enum(['CLICKTHROUGH', 'TRACKER_PIXEL', 'TRACKER_SCRIPT', 'VAST']).optional(),
+    url_type: z.enum(['clickthrough', 'tracker_pixel', 'tracker_script', 'vast']).optional(),
   })
   .passthrough();
 const TextAssetSlotInput = z
@@ -2473,7 +2704,7 @@ const CreateCreativeManifestMetadata = z
     url_asset: z
       .object({
         url: z.string().url(),
-        url_type: z.enum(['CLICKTHROUGH', 'TRACKER_PIXEL', 'TRACKER_SCRIPT', 'VAST']),
+        url_type: z.enum(['clickthrough', 'tracker_pixel', 'tracker_script', 'vast']),
       })
       .passthrough(),
     url_assets: z.array(UrlAssetSlotInput).max(50),
@@ -2670,6 +2901,204 @@ const CreativeManifestResponse = z.object({
   created_at: z.string().datetime({ offset: true }),
   updated_at: z.string().datetime({ offset: true }),
 });
+const CreativeManifest = z
+  .object({
+    format_id: z
+      .object({
+        agent_url: z.string(),
+        id: z.string().regex(/^[a-zA-Z0-9_-]+$/),
+        width: z.number().gte(1).optional(),
+        height: z.number().gte(1).optional(),
+        duration_ms: z.number().gte(1).optional(),
+      })
+      .passthrough()
+      .optional(),
+    assets: z.record(
+      z.union([
+        z.union([
+          z
+            .object({
+              url: z.string().url(),
+              width: z.number().int().gte(-9007199254740991).lte(9007199254740991).optional(),
+              height: z.number().int().gte(-9007199254740991).lte(9007199254740991).optional(),
+              format: z.string().optional(),
+              alt_text: z.string().optional(),
+            })
+            .passthrough(),
+          z
+            .object({
+              url: z.string().url(),
+              duration_ms: z.number().int().gte(-9007199254740991).lte(9007199254740991).optional(),
+              codec: z.string().optional(),
+              bitrate: z.number().optional(),
+              width: z.number().int().gte(-9007199254740991).lte(9007199254740991).optional(),
+              height: z.number().int().gte(-9007199254740991).lte(9007199254740991).optional(),
+              frame_rate: z.number().optional(),
+            })
+            .passthrough(),
+          z
+            .object({
+              url: z.string().url(),
+              duration_ms: z.number().int().gte(-9007199254740991).lte(9007199254740991).optional(),
+              codec: z.string().optional(),
+              bitrate: z.number().optional(),
+            })
+            .passthrough(),
+          z
+            .object({ content: z.string(), url: z.string().url(), version: z.string() })
+            .partial()
+            .passthrough(),
+          z
+            .object({ content: z.string(), url: z.string().url(), module_type: z.string() })
+            .partial()
+            .passthrough(),
+          z.object({ content: z.string(), url: z.string().url() }).partial().passthrough(),
+          z.object({ content: z.string() }).passthrough(),
+          z
+            .object({
+              url: z.string().url(),
+              url_type: z
+                .enum(['clickthrough', 'tracker_pixel', 'tracker_script', 'vast'])
+                .optional(),
+            })
+            .passthrough(),
+          z
+            .object({
+              delivery_type: z.enum(['url', 'inline']),
+              url: z.string().url(),
+              content: z.string(),
+              vast_version: z.string(),
+              vpaid_enabled: z.boolean(),
+              duration_ms: z.number().int().gte(0).lte(9007199254740991),
+            })
+            .partial()
+            .passthrough(),
+          z
+            .object({
+              delivery_type: z.enum(['url', 'inline']),
+              url: z.string().url(),
+              content: z.string(),
+              daast_version: z.string(),
+              duration_ms: z.number().int().gte(0).lte(9007199254740991),
+              companion_ads: z.boolean(),
+            })
+            .partial()
+            .passthrough(),
+          z
+            .object({
+              url: z.string().url(),
+              method: z.enum(['GET', 'POST']).optional().default('POST'),
+              timeout_ms: z.number().int().gte(10).lte(5000).optional().default(500),
+              response_type: z.enum(['html', 'json', 'xml', 'javascript']),
+              security: z
+                .object({
+                  method: z.enum(['hmac_sha256', 'api_key', 'none']),
+                  hmac_header: z.string().optional(),
+                  api_key_header: z.string().optional(),
+                })
+                .passthrough(),
+            })
+            .passthrough(),
+          z.object({ content: z.string(), url: z.string().url() }).partial().passthrough(),
+          z.object({}).partial().passthrough(),
+        ]),
+        z.array(
+          z
+            .object({
+              asset_type: z.literal('card'),
+              media: z.union([
+                z
+                  .object({
+                    url: z.string().url(),
+                    width: z.number().int().gte(-9007199254740991).lte(9007199254740991).optional(),
+                    height: z
+                      .number()
+                      .int()
+                      .gte(-9007199254740991)
+                      .lte(9007199254740991)
+                      .optional(),
+                    format: z.string().optional(),
+                    alt_text: z.string().optional(),
+                  })
+                  .passthrough(),
+                z
+                  .object({
+                    url: z.string().url(),
+                    duration_ms: z
+                      .number()
+                      .int()
+                      .gte(-9007199254740991)
+                      .lte(9007199254740991)
+                      .optional(),
+                    codec: z.string().optional(),
+                    bitrate: z.number().optional(),
+                    width: z.number().int().gte(-9007199254740991).lte(9007199254740991).optional(),
+                    height: z
+                      .number()
+                      .int()
+                      .gte(-9007199254740991)
+                      .lte(9007199254740991)
+                      .optional(),
+                    frame_rate: z.number().optional(),
+                  })
+                  .passthrough(),
+              ]),
+              headline: z.string().max(255).optional(),
+              description: z.string().max(2000).optional(),
+              cta: z.string().max(50).optional(),
+              landing_page_url: z
+                .object({
+                  url: z.string().url(),
+                  url_type: z
+                    .enum(['clickthrough', 'tracker_pixel', 'tracker_script', 'vast'])
+                    .optional(),
+                })
+                .passthrough()
+                .optional(),
+              platform_extensions: z.array(z.object({}).partial().passthrough()).optional(),
+            })
+            .passthrough()
+        ),
+      ])
+    ),
+    rights: z.array(z.object({}).partial().passthrough()).optional(),
+    provenance: z.object({}).partial().passthrough().optional(),
+    ext: z.object({}).partial().passthrough().optional(),
+  })
+  .passthrough();
+const ValidateCreativeBody = z
+  .object({
+    manifest: CreativeManifest,
+    targets: z
+      .array(
+        z.union([
+          z.object({ kind: z.literal('canonical'), id: z.string().min(1) }).passthrough(),
+          z.object({ kind: z.literal('product'), id: z.string().min(1) }).passthrough(),
+          z.object({ kind: z.literal('third_party_format'), id: z.string().min(1) }).passthrough(),
+        ])
+      )
+      .optional(),
+  })
+  .passthrough();
+const ValidationResult = z.object({
+  target: z.object({
+    kind: z.enum(['canonical', 'product', 'third_party_format']),
+    id: z.string(),
+  }),
+  result_kind: z.enum(['validated_pass', 'validated_fail', 'unvalidatable_nondeterministic']),
+  violations: z
+    .array(
+      z.object({
+        rule: z.string(),
+        field: z.string(),
+        expected: z.unknown().optional(),
+        predicted: z.unknown().optional(),
+        retry_with: z.object({}).partial().passthrough().optional(),
+      })
+    )
+    .optional(),
+});
+const ValidateCreativeResponse = z.object({ results: z.array(ValidationResult) });
 const CreativeManifestSummary = z.object({
   creative_id: z.string(),
   campaign_id: z.string(),
@@ -2742,7 +3171,7 @@ const UpdateCreativeManifestMetadata = z
     url_asset: z
       .object({
         url: z.string().url(),
-        url_type: z.enum(['CLICKTHROUGH', 'TRACKER_PIXEL', 'TRACKER_SCRIPT', 'VAST']),
+        url_type: z.enum(['clickthrough', 'tracker_pixel', 'tracker_script', 'vast']),
       })
       .passthrough(),
     url_assets: z.array(UrlAssetSlotInput).max(50),
@@ -3441,12 +3870,6 @@ const CheckModerationBody = z
     surface: z.string().min(1).max(100).optional().default('moderation.check'),
   })
   .passthrough();
-const BuyerCredentialSourceRef = z.object({
-  storefrontId: z.number().int().gte(-9007199254740991).lte(9007199254740991),
-  storefrontName: z.string(),
-  sourceId: z.string(),
-  sourceName: z.string(),
-});
 const AvailableAccountOutput = z.object({
   accountId: z.string(),
   name: z.string().nullish(),
@@ -4516,19 +4939,19 @@ const McpAskCapabilityRequest = z
   .passthrough();
 
 export const schemas: Record<string, z.ZodTypeAny> = {
+  AdvertiserSummary,
+  AdvertiserListResponse,
   ApiError,
   ErrorResponse,
   LinkedAccountInput,
   OptimizationApplyMode,
   CampaignBudgetType,
   GcsCredentialConfig,
-  S3AssumeRoleAuth,
-  S3Auth,
   S3CredentialConfig,
-  AzureBlobSasAuth,
-  AzureBlobAuth,
-  AzureBlobCredentialConfig,
-  CredentialConfig,
+  AzureBlobSasAuthInput,
+  AzureBlobAuthInput,
+  AzureBlobCredentialConfigInput,
+  CredentialConfigInput,
   DataDeliveryCredentialInput,
   DataDeliveryCredentialArrayInput,
   GcsDeliveryConfig,
@@ -4539,16 +4962,25 @@ export const schemas: Record<string, z.ZodTypeAny> = {
   DataDeliveryOutputArrayInput,
   AdvertiserDataDeliveryInput,
   CreateAdvertiserBody,
-  UpdateAdvertiserBody,
+  BrandManifestJson,
+  BuyerCredentialSourceRef,
+  LinkedAccount,
   GcsCredentialConfigOutput,
-  S3AssumeRoleAuthOutput,
-  S3AuthOutput,
   S3CredentialConfigOutput,
-  AzureBlobSasAuthResponse,
-  AzureBlobAuthResponse,
-  AzureBlobCredentialConfigResponse,
-  CredentialConfigResponse,
+  AzureBlobSasAuthStored,
+  AzureBlobAuthStored,
+  AzureBlobCredentialConfig,
+  CredentialConfig,
   DataDeliveryCredential,
+  GcsDeliveryConfigOutput,
+  S3DeliveryConfigOutput,
+  AzureBlobDeliveryConfigOutput,
+  DeliveryConfigOutput,
+  DataDeliveryOutput,
+  AdvertiserDataDelivery,
+  FrequencyCapTargetLevel,
+  Advertiser,
+  UpdateAdvertiserBody,
   RevalidateDataDeliveryCredentialResponse,
   DiscoveryRefinementItem,
   DiscoverProductsBody,
@@ -4605,13 +5037,7 @@ export const schemas: Record<string, z.ZodTypeAny> = {
   MetricGoalOutput,
   OptimizationGoalOutput,
   PerformanceConfigOutput,
-  GcsDeliveryConfigOutput,
-  S3DeliveryConfigOutput,
-  AzureBlobDeliveryConfigOutput,
-  DeliveryConfigOutput,
-  DataDeliveryOutput,
   CampaignDataDelivery,
-  FrequencyCapTargetLevel,
   Campaign,
   CampaignResponse,
   UpdateCampaignBody,
@@ -4638,6 +5064,10 @@ export const schemas: Record<string, z.ZodTypeAny> = {
   ManifestAssetResponse,
   CreativeManifestSyncStatus,
   CreativeManifestResponse,
+  CreativeManifest,
+  ValidateCreativeBody,
+  ValidationResult,
+  ValidateCreativeResponse,
   CreativeManifestSummary,
   CreativeManifestListResponse,
   UpdateCreativeManifestMetadata,
@@ -4694,7 +5124,6 @@ export const schemas: Record<string, z.ZodTypeAny> = {
   UpdateMembershipSettingsBody,
   UpdateNotificationPreferencesBody,
   CheckModerationBody,
-  BuyerCredentialSourceRef,
   AvailableAccountOutput,
   AvailableAccountListResponse,
   ReportingBucket,
