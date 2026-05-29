@@ -48,9 +48,9 @@ function makeRequest(options: {
   });
 }
 
-/** Pick a random high port to avoid test collisions */
+/** Use port 0 so the OS assigns a free ephemeral port */
 function randomPort(): number {
-  return 10000 + Math.floor(Math.random() * 50000);
+  return 0;
 }
 
 describe('WebhookServer', () => {
@@ -184,17 +184,16 @@ describe('WebhookServer', () => {
 
   describe('lifecycle', () => {
     it('should start and begin listening', async () => {
-      port = randomPort();
-      server = new WebhookServer({ port });
+      server = new WebhookServer({ port: randomPort() });
       const logSpy = jest.spyOn(console, 'log').mockImplementation();
       await server.start();
+      port = parseInt(new URL(server.getUrl()).port);
       expect(logSpy).toHaveBeenCalledWith(expect.stringContaining(`listening on port ${port}`));
       logSpy.mockRestore();
     });
 
     it('should stop gracefully', async () => {
-      port = randomPort();
-      server = new WebhookServer({ port });
+      server = new WebhookServer({ port: randomPort() });
       const logSpy = jest.spyOn(console, 'log').mockImplementation();
       await server.start();
       await server.stop();
@@ -208,11 +207,11 @@ describe('WebhookServer', () => {
     });
 
     it('should reject start when port is already in use', async () => {
-      port = randomPort();
-      const first = new WebhookServer({ port });
+      const first = new WebhookServer({ port: randomPort() });
       await first.start();
+      const boundPort = parseInt(new URL(first.getUrl()).port);
 
-      const second = new WebhookServer({ port });
+      const second = new WebhookServer({ port: boundPort });
       await expect(second.start()).rejects.toThrow();
 
       await first.stop();
@@ -223,11 +222,11 @@ describe('WebhookServer', () => {
 
   describe('GET /health', () => {
     it('should return status ok', async () => {
-      port = randomPort();
-      server = new WebhookServer({ port });
+      server = new WebhookServer({ port: randomPort() });
       jest.spyOn(console, 'log').mockImplementation();
       jest.spyOn(console, 'warn').mockImplementation();
       await server.start();
+      port = parseInt(new URL(server.getUrl()).port);
 
       const res = await makeRequest({ port, method: 'GET', path: '/health' });
       expect(res.status).toBe(200);
@@ -235,10 +234,10 @@ describe('WebhookServer', () => {
     });
 
     it('should respond to /health even when secret is configured', async () => {
-      port = randomPort();
-      server = new WebhookServer({ port, secret: 'my-secret' });
+      server = new WebhookServer({ port: randomPort(), secret: 'my-secret' });
       jest.spyOn(console, 'log').mockImplementation();
       await server.start();
+      port = parseInt(new URL(server.getUrl()).port);
 
       // /health is behind the auth middleware when secret is set,
       // so it should require auth too (express middleware applies globally)
@@ -261,11 +260,11 @@ describe('WebhookServer', () => {
 
   describe('event dispatch', () => {
     beforeEach(async () => {
-      port = randomPort();
-      server = new WebhookServer({ port });
+      server = new WebhookServer({ port: randomPort() });
       jest.spyOn(console, 'log').mockImplementation();
       jest.spyOn(console, 'warn').mockImplementation();
       await server.start();
+      port = parseInt(new URL(server.getUrl()).port);
     });
 
     it('should invoke the specific handler for a matching event type', async () => {
@@ -386,11 +385,11 @@ describe('WebhookServer', () => {
 
   describe('invalid events', () => {
     beforeEach(async () => {
-      port = randomPort();
-      server = new WebhookServer({ port });
+      server = new WebhookServer({ port: randomPort() });
       jest.spyOn(console, 'log').mockImplementation();
       jest.spyOn(console, 'warn').mockImplementation();
       await server.start();
+      port = parseInt(new URL(server.getUrl()).port);
     });
 
     it('should return 400 when body is missing the type field', async () => {
@@ -451,11 +450,11 @@ describe('WebhookServer', () => {
 
   describe('handler errors', () => {
     beforeEach(async () => {
-      port = randomPort();
-      server = new WebhookServer({ port });
+      server = new WebhookServer({ port: randomPort() });
       jest.spyOn(console, 'log').mockImplementation();
       jest.spyOn(console, 'warn').mockImplementation();
       await server.start();
+      port = parseInt(new URL(server.getUrl()).port);
     });
 
     it('should return 500 when a handler throws synchronously', async () => {
@@ -549,11 +548,11 @@ describe('WebhookServer', () => {
 
   describe('authentication', () => {
     it('should not require auth when no secret is configured', async () => {
-      port = randomPort();
-      server = new WebhookServer({ port });
+      server = new WebhookServer({ port: randomPort() });
       jest.spyOn(console, 'log').mockImplementation();
       jest.spyOn(console, 'warn').mockImplementation();
       await server.start();
+      port = parseInt(new URL(server.getUrl()).port);
 
       const res = await makeRequest({
         port,
@@ -565,10 +564,10 @@ describe('WebhookServer', () => {
     });
 
     it('should return 401 when secret is set and no Authorization header is sent', async () => {
-      port = randomPort();
-      server = new WebhookServer({ port, secret: 'test-secret' });
+      server = new WebhookServer({ port: randomPort(), secret: 'test-secret' });
       jest.spyOn(console, 'log').mockImplementation();
       await server.start();
+      port = parseInt(new URL(server.getUrl()).port);
 
       const res = await makeRequest({
         port,
@@ -581,10 +580,10 @@ describe('WebhookServer', () => {
     });
 
     it('should return 401 when the wrong token is provided', async () => {
-      port = randomPort();
-      server = new WebhookServer({ port, secret: 'correct-secret' });
+      server = new WebhookServer({ port: randomPort(), secret: 'correct-secret' });
       jest.spyOn(console, 'log').mockImplementation();
       await server.start();
+      port = parseInt(new URL(server.getUrl()).port);
 
       const res = await makeRequest({
         port,
@@ -597,10 +596,10 @@ describe('WebhookServer', () => {
     });
 
     it('should return 401 when Authorization header format is wrong', async () => {
-      port = randomPort();
-      server = new WebhookServer({ port, secret: 'my-secret' });
+      server = new WebhookServer({ port: randomPort(), secret: 'my-secret' });
       jest.spyOn(console, 'log').mockImplementation();
       await server.start();
+      port = parseInt(new URL(server.getUrl()).port);
 
       const res = await makeRequest({
         port,
@@ -613,10 +612,10 @@ describe('WebhookServer', () => {
     });
 
     it('should accept requests with the correct Bearer token', async () => {
-      port = randomPort();
-      server = new WebhookServer({ port, secret: 'valid-token' });
+      server = new WebhookServer({ port: randomPort(), secret: 'valid-token' });
       jest.spyOn(console, 'log').mockImplementation();
       await server.start();
+      port = parseInt(new URL(server.getUrl()).port);
 
       const handler = jest.fn();
       server.on('authed', handler);
@@ -634,10 +633,10 @@ describe('WebhookServer', () => {
     });
 
     it('should reject tokens of different length via timing-safe comparison', async () => {
-      port = randomPort();
-      server = new WebhookServer({ port, secret: 'short' });
+      server = new WebhookServer({ port: randomPort(), secret: 'short' });
       jest.spyOn(console, 'log').mockImplementation();
       await server.start();
+      port = parseInt(new URL(server.getUrl()).port);
 
       const res = await makeRequest({
         port,
@@ -654,11 +653,11 @@ describe('WebhookServer', () => {
 
   describe('custom webhook path', () => {
     it('should accept events on custom path', async () => {
-      port = randomPort();
-      server = new WebhookServer({ port, path: '/custom/hooks' });
+      server = new WebhookServer({ port: randomPort(), path: '/custom/hooks' });
       jest.spyOn(console, 'log').mockImplementation();
       jest.spyOn(console, 'warn').mockImplementation();
       await server.start();
+      port = parseInt(new URL(server.getUrl()).port);
 
       const handler = jest.fn();
       server.on('test', handler);
@@ -675,11 +674,11 @@ describe('WebhookServer', () => {
     });
 
     it('should return 404 on default path when custom path is configured', async () => {
-      port = randomPort();
-      server = new WebhookServer({ port, path: '/custom/hooks' });
+      server = new WebhookServer({ port: randomPort(), path: '/custom/hooks' });
       jest.spyOn(console, 'log').mockImplementation();
       jest.spyOn(console, 'warn').mockImplementation();
       await server.start();
+      port = parseInt(new URL(server.getUrl()).port);
 
       const res = await makeRequest({
         port,
