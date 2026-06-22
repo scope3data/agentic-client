@@ -12,7 +12,7 @@ jobs:
     outputs:
       drift_detected: ${{ steps.drift.outputs.has_drift }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - uses: actions/setup-node@v6
         with:
